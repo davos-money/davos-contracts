@@ -24,15 +24,11 @@ interface IVault {
      * Methods
      */
     event RatioUpdated(uint256 currentRatio);
-    function deposit(uint256 amount) external returns (uint256);
     function depositFor(address recipient, uint256 amount)
     external
     returns (uint256);
     function claimYields(address recipient) external returns (uint256);
     function claimYieldsFor(address owner, address recipient)
-    external
-    returns (uint256);
-    function withdraw(address recipient, uint256 amount)
     external
     returns (uint256);
     function withdrawFor(

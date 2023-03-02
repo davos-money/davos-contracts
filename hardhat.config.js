@@ -52,29 +52,14 @@ module.exports = {
                 accountsBalance: "100000000000000000000000000",
               },
         },
-        mumbai_fork: {
-            url: "http://127.0.0.1:8545/",
-            timeout: 10000000
-        },
-        mumbai: {
-            url: process.env.MUMBAI_URL,
-            chainId: 80001,
+        ethereum: {
+            url: process.env.ETHEREUM_URL,
+            chainId: 1,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
         },
-        polygon: {
-            url: process.env.POLYGON_URL,
-            chainId: 137,
-            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
-            gasPrice: 200000000000
-        },
-        avalanche_testnet: {
-            url: process.env.AVALANCHE_TESTNET_URL,
-            chainId: 43113,
-            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
-        },
-        avalanche: {
-            url: process.env.AVALANCHE_MAINNET_URL,
-            chainId: 43114,
+        goerli: {
+            url: process.env.GOERLI_URL,
+            chainId: 5,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
         },
     },

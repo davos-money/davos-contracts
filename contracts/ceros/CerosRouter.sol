@@ -6,12 +6,11 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
-import "./interfaces/ISwapPool.sol";
-import "./interfaces/IPriceGetter.sol";
 import "./interfaces/ICerosRouter.sol";
+import "./interfaces/IPolygonPool.sol";
 import "./interfaces/ICertToken.sol";
-import "../MasterVault/interfaces/IMasterVault.sol";
-import "../MasterVault/interfaces/IWETH.sol";
+import "./interfaces/IPriceGetter.sol";
+import "./interfaces/ISwapRouter.sol";
 
 contract CerosRouter is
 ICerosRouter,
@@ -19,128 +18,97 @@ OwnableUpgradeable,
 PausableUpgradeable,
 ReentrancyGuardUpgradeable
 {
-    /**
-     * Variables
-     */
-    IVault private _vault;
-    ISwapRouter private _dex;
-    // Tokens
-    ICertToken private _certToken; // (default aMATICc)
-    address private _wMaticAddress;
-    IERC20 private _ceToken; // (default ceAMATICc)
-    mapping(address => uint256) private _profits;
-    IMasterVault private _masterVault;
-    uint24 private _pairFee;
-    ISwapPool private _pool;
-    IPriceGetter private _priceGetter;
-    /**
-     * Modifiers
-     */
+    /// Variables
+    IVault public _vault;
+    ISwapRouter public _dex;
+    IPolygonPool public _pool;
+    ICertToken public _certToken; // aMATICc
+    IERC20 public _maticToken;
+    IERC20 public _ceToken; // ceAMATICc
+    mapping(address => uint256) public _profits;
+    address public _strategy;
+    uint24 public _pairFee;
+    IPriceGetter public _priceGetter;
 
+    /// Modifiers
+    modifier onlyStrategy() {
+        require(
+            msg.sender == owner() || msg.sender == _strategy,
+            "Provider: not allowed"
+        );
+        _;
+    }
+
+    /// Init
     function initialize(
         address certToken,
-        address wMaticToken,
+        address maticToken,
         address ceToken,
+        address bondToken,
         address vault,
         address dexAddress,
         uint24 pairFee,
-        address swapPool,
-        address priceGetter
+        address pool,
+        address priceGetter,
+        address strategy
     ) public initializer {
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
         _certToken = ICertToken(certToken);
-        _wMaticAddress = wMaticToken;
+        _maticToken = IERC20(maticToken);
         _ceToken = IERC20(ceToken);
         _vault = IVault(vault);
         _dex = ISwapRouter(dexAddress);
         _pairFee = pairFee;
-        _pool = ISwapPool(swapPool);
+        _pool = IPolygonPool(pool);
         _priceGetter = IPriceGetter(priceGetter);
-        IERC20(wMaticToken).approve(swapPool, type(uint256).max);
-        IERC20(certToken).approve(swapPool, type(uint256).max);
-        IERC20(wMaticToken).approve(dexAddress, type(uint256).max);
+        _strategy = strategy;
+        IERC20(maticToken).approve(dexAddress, type(uint256).max);
         IERC20(certToken).approve(dexAddress, type(uint256).max);
+        IERC20(certToken).approve(bondToken, type(uint256).max);
+        IERC20(certToken).approve(pool, type(uint256).max);
         IERC20(certToken).approve(vault, type(uint256).max);
     }
-    /**
-     * DEPOSIT
-     */
-    function deposit()
-    external
-    payable
-    override
-    nonReentrant
-    returns (uint256 value)
-    {
-        uint256 amount = msg.value;
-        IWETH(_wMaticAddress).deposit{value: amount}();
-        return _deposit(amount);
-    }
 
-    function depositWMatic(uint256 amount) 
-    external
-    nonReentrant
-    returns (uint256 value)
-    {
-        IERC20(_wMaticAddress).transferFrom(msg.sender, address(this), amount);
-        return _deposit(amount);
-    }
-
-    function _deposit(uint256 amount) internal returns (uint256 value) {
-        require(amount > 0, "invalid deposit amount");
-        uint256 dexAmount = getAmountOut(_wMaticAddress, address(_certToken), amount);
-        // uint256 minAmount = (amount * _certToken.ratio()) / 1e18;
-        (uint256 minAmount,) = _pool.getAmountOut(true, amount, false);
-        uint256 realAmount;
-        if(dexAmount > minAmount) {
-            realAmount = swapV3(_wMaticAddress, address(_certToken), amount, minAmount, address(this));
-        } else {
-            realAmount = _pool.swap(true, amount, address(this));
+    /// Deposit Matic Token
+    function deposit(uint256 amount) external override nonReentrant returns (uint256 value) {   
+        {
+            require(amount > 0, "invalid deposit amount");
+            uint256 balanceBefore = _maticToken.balanceOf(address(this));
+            _maticToken.transferFrom(msg.sender, address(this), amount);
+            uint256 balanceAfter = _maticToken.balanceOf(address(this));
+            require(balanceAfter >= balanceBefore + amount, "CeRouter/invalid-transfer");
         }
 
-        require(realAmount >= minAmount, "price too low");
+        // Minimum acceptable amount
+        uint256 ratio = _certToken.ratio();
+        uint256 minAmount = (amount * ratio) / 1e18;
 
-        require(
-            _certToken.balanceOf(address(this)) >= realAmount,
-            "insufficient amount of CerosRouter in cert token"
-        );
+        // From PolygonPool
+        uint256 poolAmount = amount >= _pool.getMinimumStake() ? minAmount : 0;
+
+        // From Dex
+        uint256 dexAmount = getAmountOut(address(_maticToken), address(_certToken), amount);
+
+        // Compare both
+        uint256 realAmount;
+        if (poolAmount >= dexAmount) {
+            realAmount = poolAmount;
+            _pool.stakeAndClaimCerts(amount);
+        } else {
+            realAmount = swapV3(address(_maticToken), address(_certToken), amount, minAmount, address(this));
+        }
+
+        require(realAmount >= minAmount, "CeRouter/price-low");
+        require(_certToken.balanceOf(address(this)) >= realAmount, "CeRouter/wrong-certToken-amount-in-CerosRouter");
+        
+        // Profits
         uint256 profit = realAmount - minAmount;
-        // add profit
         _profits[msg.sender] += profit;
-
         value = _vault.depositFor(msg.sender, realAmount - profit);
-        emit Deposit(msg.sender, _wMaticAddress, realAmount - profit, profit);
+        emit Deposit(msg.sender, address(_maticToken), realAmount - profit, profit);
         return value;
-    }
-
-    /**
-     * CLAIM
-     */
-    // claim yields in aMATICc
-    function claim(address recipient)
-    external
-    override
-    nonReentrant
-    returns (uint256 yields)
-    {
-        yields = _vault.claimYieldsFor(msg.sender, recipient);
-        emit Claim(recipient, address(_certToken), yields);
-        return yields;
-    }
-    // claim profit in aMATICc
-    function claimProfit(address recipient) external nonReentrant {
-        uint256 profit = _profits[msg.sender];
-        require(profit > 0, "has not got a profit");
-        // let's check balance of CeRouter in aMATICc
-        require(
-            _certToken.balanceOf(address(this)) >= profit,
-            "insufficient amount"
-        );
-        _certToken.transfer(recipient, profit);
-        _profits[msg.sender] -= profit;
-        emit Claim(recipient, address(_certToken), profit);
     }
     function getAmountOut(address tokenIn, address tokenOut, uint256 amountIn) public view returns (uint256 amountOut) {
         if(address(_priceGetter) == address(0)) {
@@ -154,25 +122,6 @@ ReentrancyGuardUpgradeable
                 _pairFee
             );
         }
-    }
-
-    // withdrawal in MATIC via DEX or Swap Pool
-    function withdrawWithSlippage(
-        address recipient,
-        uint256 amount,
-        uint256 outAmount
-    ) external override nonReentrant returns (uint256 realAmount) {
-        realAmount = _vault.withdrawFor(msg.sender, address(this), amount);
-        uint256 dexAmount = getAmountOut(address(_certToken), _wMaticAddress, realAmount);
-        uint256 amountOut;
-        if(dexAmount > outAmount) {
-            amountOut = swapV3(address(_certToken), _wMaticAddress, realAmount, outAmount, recipient);
-        } else {
-            amountOut = _pool.swap(false, realAmount, recipient);
-        }
-        require(amountOut >= outAmount, "price too low");
-        emit Withdrawal(msg.sender, recipient, _wMaticAddress, amountOut);
-        return amountOut;
     }
     function swapV3(
         address tokenIn, 
@@ -192,71 +141,99 @@ ReentrancyGuardUpgradeable
         );
         amountOut = _dex.exactInputSingle(params);
     }
-    function getProfitFor(address account) external view returns (uint256) {
-        return _profits[account];
+
+
+
+    // withdrawal aMATICc
+    // @param recipient address to receive withdrawan aMATICc
+    // @param amount in MATIC
+    function withdrawAMATICc(address recipient, uint256 amount)
+    external
+    override
+    nonReentrant
+    returns (uint256 realAmount)
+    {
+        realAmount = _vault.withdrawFor(msg.sender, recipient, amount);
+        emit Withdrawal(msg.sender, recipient, address(_certToken), realAmount);
+        return realAmount;
     }
-    function getYieldFor(address account) external view returns(uint256) {
-        return _vault.getYieldFor(account);
-    } 
+    function withdrawFor(address recipient, uint256 amount)
+    external
+    override
+    nonReentrant
+    onlyStrategy
+    returns (uint256 realAmount)
+    {
+        realAmount = _vault.withdrawFor(msg.sender, address(this), amount);
+        _pool.unstakeCertsFor(recipient, realAmount); // realAmount -> BNB
+        emit Withdrawal(msg.sender, recipient, address(_maticToken), realAmount);
+        return realAmount;
+    }
+
+    /// Claim Yields
+    function claim(address recipient)
+    external
+    override
+    nonReentrant
+    returns (uint256 yields)
+    {
+        yields = _vault.claimYieldsFor(msg.sender, recipient); // in aMATICc
+        emit Claim(recipient, address(_certToken), yields);
+        return yields;
+    }
+    // Claim Profits
+    function claimProfit(address recipient) external nonReentrant {
+        uint256 profit = _profits[msg.sender];
+        require(profit > 0, "has not got a profit");
+        // let's check balance of CeRouter in aMATICc
+        require(_certToken.balanceOf(address(this)) >= profit, "CeRouter/insufficient-amount");
+        _certToken.transfer(recipient, profit); // in aMATICc
+        _profits[msg.sender] -= profit;
+        emit Claim(recipient, address(_certToken), profit);
+    }
+
+    // Setters
+    function changePriceGetter(address priceGetter) external onlyOwner {
+        require(priceGetter != address(0));
+        _priceGetter = IPriceGetter(priceGetter);
+    }
+    function changePairFee(uint24 fee) external onlyOwner {
+        _pairFee = fee;
+        emit ChangePairFee(fee);
+    }
+    function changeProvider(address strategy) external onlyOwner {
+        _strategy = strategy;
+        emit ChangeProvider(strategy);
+    }
+    function changePool(address pool) external onlyOwner {
+        // update allowances
+        _certToken.approve(address(_pool), 0);
+        _pool = IPolygonPool(pool);
+        _certToken.approve(address(_pool), type(uint256).max);
+        emit ChangePool(pool);
+    }
+    function changeDex(address dex) external onlyOwner {
+        IERC20(_maticToken).approve(address(_dex), 0);
+        _certToken.approve(address(_dex), 0);
+        _dex = ISwapRouter(dex);
+        // update allowances
+        IERC20(_maticToken).approve(address(_dex), type(uint256).max);
+        _certToken.approve(address(_dex), type(uint256).max);
+        emit ChangeDex(dex);
+    }
     function changeVault(address vault) external onlyOwner {
-        require(vault != address(0));
         // update allowances
         _certToken.approve(address(_vault), 0);
         _vault = IVault(vault);
         _certToken.approve(address(_vault), type(uint256).max);
         emit ChangeVault(vault);
     }
-    function changeDex(address dex) external onlyOwner {
-        require(dex != address(0));
-        IERC20(_wMaticAddress).approve(address(_dex), 0);
-        _certToken.approve(address(_dex), 0);
-        _dex = ISwapRouter(dex);
-        // update allowances
-        IERC20(_wMaticAddress).approve(address(_dex), type(uint256).max);
-        _certToken.approve(address(_dex), type(uint256).max);
-        emit ChangeDex(dex);
+
+    // Getters
+    function getPendingWithdrawalOf(address account) external view returns (uint256) {
+        return _pool.pendingUnstakesOf(account);
     }
-    function changeSwapPool(address swapPool) external onlyOwner {
-        require(swapPool != address(0));
-        IERC20(_wMaticAddress).approve(address(_pool), 0);
-        _certToken.approve(address(_pool), 0);
-        _pool = ISwapPool(swapPool);
-        IERC20(_wMaticAddress).approve(swapPool, type(uint256).max);
-        _certToken.approve(swapPool, type(uint256).max);
-        emit ChangeSwapPool(swapPool);
-    }
-    function changeProvider(address masterVault) external onlyOwner {
-        require(masterVault != address(0));
-        _masterVault = IMasterVault(masterVault);
-        emit ChangeProvider(masterVault);
-    }
-    function changePairFee(uint24 fee) external onlyOwner {
-        _pairFee = fee;
-        emit ChangePairFee(fee);
-    }
-    function changePriceGetter(address priceGetter) external onlyOwner {
-        require(priceGetter != address(0));
-        _priceGetter = IPriceGetter(priceGetter);
-    }
-    function getSwapPool() external view returns(address) {
-        return address(_pool);
-    }
-    function getCeToken() external view returns(address) {
-        return address(_ceToken);
-    }
-    function getWMaticAddress() external view returns(address) {
-        return _wMaticAddress;
-    }
-    function getCertToken() external view returns(address) {
-        return address(_certToken);
-    }
-    function getPoolAddress() external view returns(address) {
-        return address(_pool);
-    }
-    function getDexAddress() external view returns(address) {
-        return address(_dex);
-    }
-    function getVaultAddress() external view returns(address) {
-        return address(_vault);
-    }
+    function getYieldFor(address account) external view returns(uint256) {
+        return _vault.getYieldFor(account);
+    } 
 }

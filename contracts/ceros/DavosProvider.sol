@@ -4,6 +4,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IDex.sol";
 import "./interfaces/IDao.sol";
@@ -11,12 +12,15 @@ import "./interfaces/ICerosRouter.sol";
 import "./interfaces/IDavosProvider.sol";
 import "./interfaces/ICertToken.sol";
 import "../MasterVault/interfaces/IMasterVault.sol";
+
 contract DavosProvider is
 IDavosProvider,
 OwnableUpgradeable,
 PausableUpgradeable,
 ReentrancyGuardUpgradeable
 {
+    using SafeERC20 for IERC20;
+
     /**
      * Variables
      */
@@ -27,6 +31,7 @@ ReentrancyGuardUpgradeable
     IMasterVault public _masterVault;
     IDao public _dao;
     address public _proxy;
+    IERC20 public _maticToken;
     /**
      * Modifiers
      */
@@ -41,7 +46,8 @@ ReentrancyGuardUpgradeable
         address collateralToken,
         // address certToken,
         address masterVault,
-        address daoAddress
+        address daoAddress,
+        address maticToken
     ) public initializer {
         __Ownable_init();
         __Pausable_init();
@@ -51,31 +57,32 @@ ReentrancyGuardUpgradeable
         _ceToken = masterVault;
         _masterVault = IMasterVault(masterVault);
         _dao = IDao(daoAddress);
+        _maticToken = IERC20(maticToken);
         // _pool = IMaticPool(pool);
         IERC20(masterVault).approve(masterVault, type(uint256).max);
         IERC20(_ceToken).approve(daoAddress, type(uint256).max);
+        IERC20(_maticToken).approve(masterVault, type(uint256).max);
     }
     /**
-     * DEPOSIT
+     * DEPOSIT in Matic Token
      */
-    function provide()
+    function provide(uint256 amount)
     external
-    payable
     override
     whenNotPaused
     nonReentrant
     returns (uint256 value)
     {
-        value = _masterVault.depositETH{value: msg.value}();
+        _maticToken.safeTransferFrom(msg.sender, address(this), amount);
+        value = _masterVault.depositMatic(amount);
         // deposit ceToken as collateral
         value = _provideCollateral(msg.sender, value);
         emit Deposit(msg.sender, value);
         return value;
     }
     /**
-     * RELEASE
+     * RELEASE in Matic Token
      */
-    // withdrawal in MATIC
     function release(address recipient, uint256 amount)
     external
     override
@@ -85,7 +92,7 @@ ReentrancyGuardUpgradeable
     {
         require(recipient != address(0));
         realAmount = _withdrawCollateral(msg.sender, amount);
-        realAmount = _masterVault.withdrawETH(recipient, realAmount);
+        realAmount = _masterVault.withdrawMatic(recipient, realAmount);
         emit Withdrawal(msg.sender, recipient, realAmount);
         return realAmount;
     }
@@ -99,7 +106,7 @@ ReentrancyGuardUpgradeable
     nonReentrant
     {
         require(recipient != address(0));
-        _masterVault.withdrawETH(recipient, amount);
+        _masterVault.withdrawMatic(recipient, amount);
     }
     function daoBurn(address account, uint256 value)
     external

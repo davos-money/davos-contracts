@@ -25,15 +25,15 @@ interface IMasterVault {
     
     // amount: asset that are deposited to strategy
     // actualAmount: amount - strategyFee, if any
-    event DepositedToStrategy(address strategy, uint256 amount, uint256 actaulAmount);
+    event DepositedToStrategy(address strategy, uint256 amount, uint256 actualAmount);
 
     // amount: asset that needs to be withdrawn from strategy
     // actualAmount: amount - strategyFee, if any
     event WithdrawnFromStrategy(address strategy, uint256 amount, uint256 actualAmount);
 
-    function withdrawETH(address account, uint256 amount) external  returns (uint256);
-    function depositETH() external payable returns (uint256);
-    function feeReceiver() external returns (address payable);
+    function withdrawMatic(address account, uint256 amount) external  returns (uint256);
+    function depositMatic(uint256 amount) external returns (uint256);
+    function feeReceiver() external returns (address);
     function withdrawalFee() external view returns (uint256);
     function strategyParams(address strategy) external view returns(bool active, uint256 allocation, uint256 debt);
 }

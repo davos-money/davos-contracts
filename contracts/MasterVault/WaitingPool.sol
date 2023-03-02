@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./interfaces/IMasterVault.sol";
 import "./interfaces/IWaitingPool.sol";
 
-contract WaitingPool is IWaitingPool, Initializable {
+contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
     IMasterVault public masterVault;
     struct Person {
         address _address;
@@ -15,6 +19,7 @@ contract WaitingPool is IWaitingPool, Initializable {
     uint256 public index;
     uint256 public totalDebt;
     uint256 public capLimit;
+    address public maticToken;
 
     event WithdrawPending(address user, uint256 amount);
     event WithdrawCompleted(address user, uint256 amount);
@@ -27,10 +32,12 @@ contract WaitingPool is IWaitingPool, Initializable {
     /// @dev initialize function - Constructor for Upgradable contract, can be only called once during deployment
     /// @param _masterVault name of the vault token
     /// @param _capLimit symbol of the vault token
-    function initialize(address _masterVault, uint256 _capLimit) external initializer {
+    function initialize(address _masterVault, address _maticToken, uint256 _capLimit) external initializer {
         require(_capLimit > 0, "invalid cap limit");
+        __ReentrancyGuard_init();
         masterVault = IMasterVault(_masterVault);
         capLimit = _capLimit;
+        maticToken = _maticToken;
     }
 
     /// @dev Only masterVault can call to submit a new withdrawal request
@@ -56,7 +63,7 @@ contract WaitingPool is IWaitingPool, Initializable {
         uint256 balance;
         uint256 cap = 0;
         for(uint256 i = index; i < people.length; i++) {
-            balance = address(this).balance;
+            balance = getPoolBalance();
             uint256 userDebt = people[index]._debt;
             address userAddr = people[index]._address;
             if(
@@ -65,14 +72,14 @@ contract WaitingPool is IWaitingPool, Initializable {
                 !people[index]._settled && 
                 cap < capLimit
             ) {
-                bool success = payable(userAddr).send(userDebt);
-                if(success) {
-                    totalDebt -= userDebt;
-                    people[index]._settled = true;
-                    emit WithdrawCompleted(userAddr, userDebt);
-                }
+                totalDebt -= userDebt;
+                people[index]._settled = true;
+                emit WithdrawCompleted(userAddr, userDebt);
+
                 cap++;
                 index++;
+
+                IERC20Upgradeable(maticToken).safeTransfer(userAddr, userDebt);
             } 
             else {
                 return;
@@ -85,11 +92,11 @@ contract WaitingPool is IWaitingPool, Initializable {
 
     /// @dev returns the balance of this contract
     function getPoolBalance() public view returns(uint256) {
-        return address(this).balance;
+        return IERC20Upgradeable(maticToken).balanceOf(address(this));
     }
 
     /// @dev users can withdraw their funds if they were not transferred in tryRemove()
-    function withdrawUnsettled(uint256 _index) external {
+    function withdrawUnsettled(uint256 _index) external nonReentrant {
         address src = msg.sender;
         require(
             !people[_index]._settled && 
@@ -100,7 +107,7 @@ contract WaitingPool is IWaitingPool, Initializable {
         uint256 withdrawAmount = people[_index]._debt;
         totalDebt -= withdrawAmount;
         people[_index]._settled = true;
-        payable(src).transfer(withdrawAmount);
+        IERC20Upgradeable(maticToken).safeTransfer(src, withdrawAmount);
         emit WithdrawCompleted(src, withdrawAmount);
     }
 

@@ -43,16 +43,6 @@ ReentrancyGuardUpgradeable
         _aMATICc = ICertToken(aMATICcAddress);
     }
     // deposit
-    function deposit(uint256 amount)
-    external
-    override
-    nonReentrant
-    returns (uint256)
-    {
-        revert("not-allowed");
-        // return _deposit(msg.sender, amount);
-    }
-    // deposit
     function depositFor(address recipient, uint256 amount)
     external
     override
@@ -106,16 +96,6 @@ ReentrancyGuardUpgradeable
         _aMATICc.transfer(recipient, availableYields);
         emit Claimed(owner, recipient, availableYields);
         return availableYields;
-    }
-    // withdraw
-    function withdraw(address recipient, uint256 amount)
-    external
-    override
-    nonReentrant
-    returns (uint256)
-    {
-        revert("not-allowed");
-        // return _withdraw(msg.sender, recipient, amount);
     }
     // withdraw
     function withdrawFor(

@@ -28,8 +28,8 @@ interface IDavosProvider {
      * Deposit
      */
 
-    // in MATIC
-    function provide() external payable returns (uint256);
+    // in Matic Token
+    function provide(uint256 amount) external returns (uint256);
 
     // in aMATICc
     // function provideInAMATICc(uint256 amount) external returns (uint256);
@@ -45,7 +45,7 @@ interface IDavosProvider {
      * Withdrawal
      */
 
-    // MATIC
+    // Matic Token
     function release(address recipient, uint256 amount)
     external
     returns (uint256);

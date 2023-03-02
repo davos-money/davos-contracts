@@ -13,8 +13,6 @@ contract CerosYieldConverterStrategy is BaseStrategy {
     ICertToken private _certToken;
     IMasterVault public vault;
 
-    address private _swapPool;
-
     event SwapPoolChanged(address swapPool);
     event CeRouterChanged(address ceRouter);
 
@@ -24,23 +22,19 @@ contract CerosYieldConverterStrategy is BaseStrategy {
     /// @param underlyingToken Address of the underlying token(wMatic)
     /// @param certToekn Address of aMATICc token
     /// @param masterVault Address of the masterVault contract
-    /// @param swapPool Address of swapPool contract
     function initialize(
         address destination,
         address feeRecipient,
         address underlyingToken,
         address certToekn,
-        address masterVault,
-        address swapPool
+        address masterVault
     ) public initializer {
         __BaseStrategy_init(destination, feeRecipient, underlyingToken);
         _ceRouter = ICerosRouter(destination);
         _certToken = ICertToken(certToekn);
-        _swapPool = swapPool;
         vault = IMasterVault(masterVault);
         underlying.approve(address(destination), type(uint256).max);
         underlying.approve(address(vault), type(uint256).max);
-        _certToken.approve(_swapPool, type(uint256).max);
     }
 
     /**
@@ -64,41 +58,24 @@ contract CerosYieldConverterStrategy is BaseStrategy {
         require(!depositPaused, "deposits are paused");
         require(amount > 0, "invalid amount");
         _beforeDeposit(amount);
-        return _ceRouter.depositWMatic(amount);
+        return _ceRouter.deposit(amount);
     }
 
     /// @dev withdraws the given amount of underlying tokens from ceros and transfers to masterVault
     /// @param amount amount of underlying tokens
-    function withdraw(uint256 amount) onlyVault external returns(uint256 value) {
-        return _withdraw(amount);
+    /// @param delayed if true, the unstake takes time to reach receiver, thus, can't be MasterVault
+    function withdraw(address recipient, uint256 amount) onlyVault external returns(uint256 value, bool delayed) {
+        return (_withdraw(recipient, amount), true);
     }
 
     /// @dev internal function to withdraw the given amount of underlying tokens from ceros
     ///      and transfers to masterVault
     /// @param amount amount of underlying tokens
     /// @return value - returns the amount of underlying tokens withdrawn from ceros
-    function _withdraw(uint256 amount) internal returns (uint256 value) {
-        require(amount > 0, "invalid amount");
-        uint256 wethBalance = underlying.balanceOf(address(this));
-        if(amount < wethBalance) {
-            SafeERC20Upgradeable.safeTransfer(underlying, address(vault), amount);
-            return amount;
-        }
-        
-        (uint256 amountOut, bool enoughLiquidity) = ISwapPool(_swapPool).getAmountOut(false, ((amount - wethBalance) * _certToken.ratio()) / 1e18, false); // (amount * ratio) / 1e18
-        if (enoughLiquidity) {
-            value = _ceRouter.withdrawWithSlippage(address(this), amount - wethBalance, amountOut);
-            require(value >= amountOut, "invalid out amount");
-            uint256 withdrawAmount = wethBalance + value;
-            if (amount < withdrawAmount) {
-                // transfer extra funds to feeRecipient 
-                SafeERC20Upgradeable.safeTransfer(underlying, feeRecipient, withdrawAmount - amount);
-            } else {
-                amount = withdrawAmount;
-            }
-            SafeERC20Upgradeable.safeTransfer(underlying, address(vault), amount);
-            return amount;
-        }
+    function _withdraw(address recipient, uint256 amount) internal returns (uint256 value) {
+        require(amount > 0, "invalid amount");        
+        _ceRouter.withdrawFor(recipient, amount);
+        return amount;
     }
 
     receive() external payable {
@@ -106,28 +83,13 @@ contract CerosYieldConverterStrategy is BaseStrategy {
     }
 
     /// @dev returns the depositable amount based on liquidity
-    function canDeposit(uint256 amount) public view returns(uint256 correctAmount) {
+    function canDeposit(uint256 amount) public pure returns(uint256 correctAmount) {
         correctAmount = amount;
-        (,bool enoughLiquidity) = ISwapPool(_swapPool).getAmountOut(true, amount, false);
-        if (!enoughLiquidity) { // If liquidity not enough, calculate amountIn for remaining liquidity
-            (uint256 amountIn,) = ISwapPool(_swapPool).getAmountIn(true, ISwapPool(_swapPool).cerosTokenAmount() - 1, false);
-            correctAmount = amountIn;
-        }
     }
 
     /// @dev claims yeild from ceros in aMATICc and transfers to feeRecipient
     function harvest() external onlyStrategist {
         _harvestTo(feeRecipient);
-    }
-
-    /// @dev claims yeild from ceros in aMATICc, converts them to wMATIC and transfers them to feeRecipient
-    function harvestAndSwap() external onlyStrategist {
-        uint256 yield = _harvestTo(address(this));
-        (uint256 amountOut, bool enoughLiquidity) = ISwapPool(_swapPool).getAmountOut(false, yield, true);
-        if (enoughLiquidity && amountOut > 0) {
-            amountOut = ISwapPool(_swapPool).swap(false, yield, address(this));
-            SafeERC20Upgradeable.safeTransfer(underlying, feeRecipient, amountOut);
-        }
     }
 
     /// @dev internal function to claim yeild from ceros in aMATICc and transfers to desired address
@@ -136,21 +98,11 @@ contract CerosYieldConverterStrategy is BaseStrategy {
         if(yield > 0) {
             yield = _ceRouter.claim(to);  // TODO: handle: reverts if no yield
         }
-        uint256 profit = _ceRouter.getProfitFor(address(this));
+        uint256 profit = _ceRouter._profits(address(this));
         if(profit > 0) {
             yield += profit;
             _ceRouter.claimProfit(to);
         }
-    }
-
-    /// @dev only owner can change swap pool address
-    /// @param swapPool new swap pool address
-    function changeSwapPool(address swapPool) external onlyOwner {
-        require(swapPool != address(0));
-        _certToken.approve(_swapPool, 0);
-        _swapPool = swapPool;
-        _certToken.approve(_swapPool, type(uint256).max);
-        emit SwapPoolChanged(swapPool);
     }
 
     /// @dev only owner can change ceRouter

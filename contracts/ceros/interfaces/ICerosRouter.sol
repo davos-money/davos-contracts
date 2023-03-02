@@ -30,9 +30,7 @@ interface ICerosRouter {
 
     event ChangeDex(address dex);
 
-    event ChangeDexFactory(address factory);
-
-    event ChangeSwapPool(address pool);
+    event ChangePool(address pool);
 
     event ChangeDao(address dao);
 
@@ -46,7 +44,7 @@ interface ICerosRouter {
 
     event ChangeProvider(address provider);
 
-    event ChangePairFee(uint24 fee);
+    event ChangePairFee(uint256 fee);
 
     /**
      * Methods
@@ -57,16 +55,7 @@ interface ICerosRouter {
      */
 
     // in MATIC
-    function deposit() external payable returns (uint256);
-
-    function depositWMatic(uint256 amount) external returns (uint256);
-
-    // // in aMATICc
-    // function depositAMATICcFrom(address owner, uint256 amount)
-    // external
-    // returns (uint256);
-
-    // function depositAMATICc(uint256 amount) external returns (uint256);
+    function deposit(uint256 amount) external returns (uint256);
 
     /**
      * Claim
@@ -74,12 +63,6 @@ interface ICerosRouter {
 
     // claim in aMATICc
     function claim(address recipient) external returns (uint256);
-
-    function claimProfit(address recipient) external;
-
-    function getProfitFor(address account) external view returns (uint256);
-
-    function getYieldFor(address account) external view returns(uint256);
 
     /**
      * Withdrawal
@@ -91,19 +74,26 @@ interface ICerosRouter {
     // returns (uint256);
 
     // MATIC
-    // function withdrawFor(address recipient, uint256 amount)
-    // external
-    // returns (uint256);
+    function withdrawFor(address recipient, uint256 amount)
+    external
+    returns (uint256);
 
     // MATIC
-    function withdrawWithSlippage(
-        address recipient,
-        uint256 amount,
-        uint256 slippage
-    ) external returns (uint256);
+    // function withdrawWithSlippage(
+    //     address recipient,
+    //     uint256 amount,
+    //     uint256 slippage
+    // ) external returns (uint256);
 
-    // // aMATICc
-    // function withdrawAMATICc(address recipient, uint256 amount)
-    // external
-    // returns (uint256);
+    // aMATICc
+    function withdrawAMATICc(address recipient, uint256 amount)
+    external
+    returns (uint256);
+
+    function getYieldFor(address account) external view returns(uint256);
+
+    function _profits(address account) external view returns(uint256);
+
+    // claim profit in aMATICc
+    function claimProfit(address recipient) external;
 }
