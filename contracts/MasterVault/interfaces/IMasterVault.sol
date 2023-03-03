@@ -1,39 +1,28 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
-// import "./IERC4626Upgradeable.sol";
-
 interface IMasterVault {
-    event DepositFeeChanged(uint256 newDepositFee);
-    event MaxDepositFeeChanged(uint256 newMaxDepositFee);
-    event WithdrawalFeeChanged(uint256 newWithdrawalFee);
-    event MaxWithdrawalFeeChanged(uint256 newMaxWithdrawalFee);
-    event ProviderChanged(address provider);
-    event RouterChanged(address ceRouter);
-    event ManagerAdded(address newManager);
-    event ManagerRemoved(address manager);
-    event FeeReceiverChanged(address feeReceiver);
-    event WaitingPoolChanged(address waitingPool);
-    event WaitingPoolCapChanged(uint256 cap);
-    event StrategyAllocationChanged(address strategy, uint256 allocation);
-    event SwapPoolChanged(address swapPool);
-    event StrategyAdded(address strategy, uint256 allocation);
-    event StrategyMigrated(address oldStrategy, address newStrategy, uint256 newAllocation);
-    event SwapFeeStatusChanged(uint256 status);
-    event AllocationOnDepositChangeed(uint256 status);
-    
-    // amount: asset that are deposited to strategy
-    // actualAmount: amount - strategyFee, if any
-    event DepositedToStrategy(address strategy, uint256 amount, uint256 actualAmount);
 
-    // amount: asset that needs to be withdrawn from strategy
-    // actualAmount: amount - strategyFee, if any
-    event WithdrawnFromStrategy(address strategy, uint256 amount, uint256 actualAmount);
+    // --- Events ---
+    event DepositFeeChanged(uint256 _newDepositFee);
+    event WithdrawalFeeChanged(uint256 _newWithdrawalFee);
+    event ProviderChanged(address _provider);
+    event ManagerAdded(address _newManager);
+    event ManagerRemoved(address _manager);
+    event FeeReceiverChanged(address _feeReceiver);
+    event WaitingPoolChanged(address _waitingPool);
+    event WaitingPoolCapChanged(uint256 _cap);
+    event StrategyAllocationChanged(address _strategy, uint256 _allocation);
+    event StrategyAdded(address _strategy, uint256 _allocation);
+    event StrategyMigrated(address _oldStrategy, address _newStrategy, uint256 _newAllocation);
+    event AllocationOnDepositChangeed(uint256 _status);
+    event DepositedToStrategy(address _strategy, uint256 _amount, uint256 _actualAmount);
+    event WithdrawnFromStrategy(address _strategy, uint256 _amount, uint256 _actualAmount);
 
-    function withdrawMatic(address account, uint256 amount) external  returns (uint256);
-    function depositMatic(uint256 amount) external returns (uint256);
+    // --- Functions ---
+    function withdrawMatic(address _account, uint256 _amount) external  returns (uint256);
+    function depositMatic(uint256 _amount) external returns (uint256);
     function feeReceiver() external returns (address);
     function withdrawalFee() external view returns (uint256);
-    function strategyParams(address strategy) external view returns(bool active, uint256 allocation, uint256 debt);
+    function strategyParams(address _strategy) external view returns(uint256 allocation, uint256 debt, bool active);
 }

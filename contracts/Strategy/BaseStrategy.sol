@@ -1,20 +1,20 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+
 import "./IBaseStrategy.sol";
 
-abstract contract BaseStrategy is
-IBaseStrategy,
-OwnableUpgradeable,
-PausableUpgradeable,
-ReentrancyGuardUpgradeable {
+abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
+    // --- Wrapper ---
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
+    // --- Vars ---
     address public strategist;
     address public destination;
     address public feeRecipient;
@@ -23,72 +23,76 @@ ReentrancyGuardUpgradeable {
 
     bool public depositPaused;
 
+    // --- Events ---
     event UpdatedStrategist(address strategist);
     event UpdatedFeeRecipient(address feeRecipient);
     event UpdatedPerformanceFee(uint256 performanceFee);
 
-    function __BaseStrategy_init(
-        address destinationAddr,
-        address feeRecipientAddr,
-        address underlyingToken
-    ) internal onlyInitializing {
+    // --- Init ---
+    function __BaseStrategy_init(address _destination, address _feeRecipient, address _underlying) internal onlyInitializing {
+
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
+
         strategist = msg.sender;
-        destination = destinationAddr;
-        feeRecipient = feeRecipientAddr;
-        underlying = IERC20Upgradeable(underlyingToken);
+        destination = _destination;
+        feeRecipient = _feeRecipient;
+        underlying = IERC20Upgradeable(_underlying);
     }
 
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
+    // --- Mods ---
     modifier onlyStrategist() {
+
         require(msg.sender == strategist);
         _;
     }
 
-    function _beforeDeposit(uint256 amount) internal virtual returns (bool) {
+    // --- Admin ---
+    function setStrategist(address _newStrategist) external onlyOwner {
+
+        require(_newStrategist != address(0));
+        strategist = _newStrategist;
+
+        emit UpdatedStrategist(_newStrategist);
+    }
+    
+    function setFeeRecipient(address _newFeeRecipient) external onlyOwner {
+        
+        require(_newFeeRecipient != address(0));
+        feeRecipient = _newFeeRecipient;
+
+        emit UpdatedFeeRecipient(_newFeeRecipient);
     }
 
-    function balanceOfWant() public view returns(uint256) {
-        return underlying.balanceOf(address(this));
-    }
-
-    function balanceOfPool() public view returns(uint256) {
-        return underlying.balanceOf(address(destination));
-    }
-
-    function balanceOf() public view returns(uint256) {
-        return underlying.balanceOf(address(this)) + underlying.balanceOf(address(destination));
-    }
-
+    // --- Strategist ---
     function pause() external onlyStrategist {
+
         depositPaused = true;
     }
 
     function unpause() external onlyStrategist {
+
         depositPaused = false;
     }
 
-    function setStrategist(address newStrategist) external onlyOwner {
-        require(newStrategist != address(0));
-        strategist = newStrategist;
-        emit UpdatedStrategist(newStrategist);
+    // --- Internal ---
+    function _beforeDeposit(uint256 _amount) internal virtual returns (bool) {}
+
+    // --- Views ---
+    function balanceOfWant() public view returns(uint256) {
+
+        return underlying.balanceOf(address(this));
     }
-    
-    function setFeeRecipient(address newFeeRecipient) external onlyOwner {
-        require(newFeeRecipient != address(0));
-        feeRecipient = newFeeRecipient;
-        emit UpdatedFeeRecipient(newFeeRecipient);
+    function balanceOfPool() public view returns(uint256) {
+
+        return underlying.balanceOf(address(destination));
+    }
+    function balanceOf() public view returns(uint256) {
+
+        return underlying.balanceOf(address(this)) + underlying.balanceOf(address(destination));
     }
 
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
+    /// @dev See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
     uint256[45] private __gap;
-
 }

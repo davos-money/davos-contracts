@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.6;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import "./interfaces/ICerosRouter.sol";
+
 import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
-import "./interfaces/ICerosRouter.sol";
 import "./interfaces/IPolygonPool.sol";
 import "./interfaces/ICertToken.sol";
 import "./interfaces/IPriceGetter.sol";
-import "./interfaces/ISwapRouter.sol";
 
 contract CerosRouter is
 ICerosRouter,
@@ -24,7 +26,6 @@ ReentrancyGuardUpgradeable
     IPolygonPool public _pool;
     ICertToken public _certToken; // aMATICc
     IERC20 public _maticToken;
-    IERC20 public _ceToken; // ceAMATICc
     mapping(address => uint256) public _profits;
     address public _strategy;
     uint24 public _pairFee;
@@ -43,7 +44,6 @@ ReentrancyGuardUpgradeable
     function initialize(
         address certToken,
         address maticToken,
-        address ceToken,
         address bondToken,
         address vault,
         address dexAddress,
@@ -57,7 +57,6 @@ ReentrancyGuardUpgradeable
         __ReentrancyGuard_init();
         _certToken = ICertToken(certToken);
         _maticToken = IERC20(maticToken);
-        _ceToken = IERC20(ceToken);
         _vault = IVault(vault);
         _dex = ISwapRouter(dexAddress);
         _pairFee = pairFee;
@@ -201,7 +200,7 @@ ReentrancyGuardUpgradeable
         _pairFee = fee;
         emit ChangePairFee(fee);
     }
-    function changeProvider(address strategy) external onlyOwner {
+    function changeStrategy(address strategy) external onlyOwner {
         _strategy = strategy;
         emit ChangeProvider(strategy);
     }

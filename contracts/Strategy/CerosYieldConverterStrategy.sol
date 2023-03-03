@@ -1,118 +1,125 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../MasterVault/interfaces/IMasterVault.sol";
-import "../ceros/interfaces/ISwapPool.sol";
-import "../ceros/interfaces/ICertToken.sol";
-import "../ceros/interfaces/ICerosRouter.sol";
 import "./BaseStrategy.sol";
+
+import "../MasterVault/interfaces/IMasterVault.sol";
+import "../ceros/interfaces/ICerosRouter.sol";
 
 contract CerosYieldConverterStrategy is BaseStrategy {
 
-    ICerosRouter private _ceRouter;
-    ICertToken private _certToken;
-    IMasterVault public vault;
+    // --- Vars ---
+    IMasterVault public masterVault;
 
-    event SwapPoolChanged(address swapPool);
-    event CeRouterChanged(address ceRouter);
+    // --- Events ---
+    event DestinationChanged(address _cerosRouter);
 
-    /// @dev initialize function - Constructor for Upgradable contract, can be only called once during deployment
-    /// @param destination Address of the ceros router contract
-    /// @param feeRecipient Address of the fee recipient
-    /// @param underlyingToken Address of the underlying token(wMatic)
-    /// @param certToekn Address of aMATICc token
-    /// @param masterVault Address of the masterVault contract
-    function initialize(
-        address destination,
-        address feeRecipient,
-        address underlyingToken,
-        address certToekn,
-        address masterVault
-    ) public initializer {
-        __BaseStrategy_init(destination, feeRecipient, underlyingToken);
-        _ceRouter = ICerosRouter(destination);
-        _certToken = ICertToken(certToekn);
-        vault = IMasterVault(masterVault);
-        underlying.approve(address(destination), type(uint256).max);
-        underlying.approve(address(vault), type(uint256).max);
-    }
+    // --- Mods ---
+    modifier onlyMasterVault() {
 
-    /**
-     * Modifiers
-     */
-    modifier onlyVault() {
-        require(msg.sender == address(vault), "!vault");
+        require(msg.sender == address(masterVault), "Strategy/not-masterVault");
         _;
     }
+    // --- Init ---
+    /** Initializer for upgradeability
+      * @param _destination cerosRouter contract
+      * @param _feeRecipient fee recipient
+      * @param _underlyingToken underlying token 
+      * @param _masterVault masterVault contract
+      */
+    function initialize(address _destination, address _feeRecipient, address _underlyingToken, address _masterVault) public initializer {
 
-    /// @dev deposits the given amount of underlying tokens into ceros
-    /// @param amount amount of underlying tokens
-    function deposit(uint256 amount) external onlyVault returns(uint256 value) {
-        require(amount <= underlying.balanceOf(address(this)), "insufficient balance");
-        return _deposit(amount);
+        __BaseStrategy_init(_destination, _feeRecipient, _underlyingToken);
+
+        masterVault = IMasterVault(_masterVault);
+        underlying.approve(address(_destination), type(uint256).max);
+        underlying.approve(address(_masterVault), type(uint256).max);
     }
 
-    /// @dev internal function to deposit the given amount of underlying tokens into ceros
-    /// @param amount amount of underlying tokens
-    function _deposit(uint256 amount) internal returns (uint256 value) {
-        require(!depositPaused, "deposits are paused");
-        require(amount > 0, "invalid amount");
-        _beforeDeposit(amount);
-        return _ceRouter.deposit(amount);
+    // --- Admin ---
+    /** Change destination contract
+      * @param _destination new cerosRouter contract
+      */
+    function changeDestination(address _destination) external onlyOwner {
+
+        require(_destination != address(0));
+
+        underlying.approve(address(destination), 0);
+        destination = _destination;
+        underlying.approve(address(_destination), type(uint256).max);
+
+        emit DestinationChanged(_destination);
     }
 
-    /// @dev withdraws the given amount of underlying tokens from ceros and transfers to masterVault
-    /// @param amount amount of underlying tokens
-    /// @param delayed if true, the unstake takes time to reach receiver, thus, can't be MasterVault
-    function withdraw(address recipient, uint256 amount) onlyVault external returns(uint256 value, bool delayed) {
-        return (_withdraw(recipient, amount), true);
+    // --- MasterVault ---
+    /** Deposit underlying to destination contract
+      * @param _amount underlying token amount
+      */
+    function deposit(uint256 _amount) external onlyMasterVault returns(uint256 value) {
+
+        require(_amount <= underlying.balanceOf(address(this)), "Strategy/insufficient-balance");
+
+        return _deposit(_amount);
+    }
+    /** Internal -> deposits underlying to destination
+      * @param _amount underlying token amount
+      */
+    function _deposit(uint256 _amount) internal returns (uint256 value) {
+
+        require(!depositPaused, "Strategy/paused");
+        require(_amount > 0, "Strategy/invalid-amount");
+
+        _beforeDeposit(_amount);
+        return ICerosRouter(destination).deposit(_amount);
+    }
+    /** Withdraw underlying from destination to recipient
+      * @dev incase of immediate unstake, 'msg.sender' should be used instead of '_recipient'
+      * @param _recipient receiver of tokens incase of delayed unstake
+      * @param _amount underlying token amount
+      * @return value amount withdrawn from destination
+      * @return delayed if true, the unstake takes time to reach receiver, thus, can't be MasterVault
+      */
+    function withdraw(address _recipient, uint256 _amount) onlyMasterVault external returns(uint256 value, bool delayed) {
+
+        return (_withdraw(_recipient, _amount), true);
+    }
+    /** Internal -> withdraws underlying from destination to recipient
+      * @param _recipient receiver of tokens incase of delayed unstake
+      * @param _amount underlying token amount
+      * @return value amount withdrawn from destination
+      */
+    function _withdraw(address _recipient, uint256 _amount) internal returns (uint256 value) {
+
+        require(_amount > 0, "Strategy/invalid-amount");        
+        ICerosRouter(destination).withdrawFor(_recipient, _amount);
+
+        return _amount;
     }
 
-    /// @dev internal function to withdraw the given amount of underlying tokens from ceros
-    ///      and transfers to masterVault
-    /// @param amount amount of underlying tokens
-    /// @return value - returns the amount of underlying tokens withdrawn from ceros
-    function _withdraw(address recipient, uint256 amount) internal returns (uint256 value) {
-        require(amount > 0, "invalid amount");        
-        _ceRouter.withdrawFor(recipient, amount);
-        return amount;
-    }
-
-    receive() external payable {
-        require(msg.sender == address(underlying)); // only accept ETH from the WETH contract
-    }
-
-    /// @dev returns the depositable amount based on liquidity
-    function canDeposit(uint256 amount) public pure returns(uint256 correctAmount) {
-        correctAmount = amount;
-    }
-
-    /// @dev claims yeild from ceros in aMATICc and transfers to feeRecipient
+    // --- Strategist ---
+    /** Claims yield from destination in aMATICc and transfers to feeRecipient
+      */
     function harvest() external onlyStrategist {
+
         _harvestTo(feeRecipient);
     }
+    /** Internal -> claims yield from destination
+      * @param _to receiver of yield
+      */
+    function _harvestTo(address _to) private returns(uint256 yield) {
 
-    /// @dev internal function to claim yeild from ceros in aMATICc and transfers to desired address
-    function _harvestTo(address to) private returns(uint256 yield) {
-        yield = _ceRouter.getYieldFor(address(this));
-        if(yield > 0) {
-            yield = _ceRouter.claim(to);  // TODO: handle: reverts if no yield
-        }
-        uint256 profit = _ceRouter._profits(address(this));
-        if(profit > 0) {
-            yield += profit;
-            _ceRouter.claimProfit(to);
-        }
+        yield = ICerosRouter(destination).getYieldFor(address(this));
+        if(yield > 0) yield = ICerosRouter(destination).claim(_to);
+
+        uint256 profit = ICerosRouter(destination)._profits(address(this));
+        if(profit > 0) { yield += profit; ICerosRouter(destination).claimProfit(_to); }
     }
 
-    /// @dev only owner can change ceRouter
-    /// @param ceRouter new ceros router address
-    function changeCeRouter(address ceRouter) external onlyOwner {
-        require(ceRouter != address(0));
-        underlying.approve(address(_ceRouter), 0);
-        destination = ceRouter;
-        _ceRouter = ICerosRouter(ceRouter);
-        underlying.approve(address(_ceRouter), type(uint256).max);
-        emit CeRouterChanged(ceRouter);
+    // --- Views ---
+    /** Returns the depositable amount based on liquidity
+      */
+    function canDeposit(uint256 _amount) public pure returns(uint256 correctAmount) {
+
+        correctAmount = _amount;
     }
 }

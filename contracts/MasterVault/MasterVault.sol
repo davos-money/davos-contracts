@@ -1,173 +1,154 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import "../ceros/interfaces/ICerosRouter.sol";
-import "../ceros/interfaces/IDavosProvider.sol";
-import "../ceros/interfaces/ICertToken.sol";
-import "../ceros/interfaces/IDao.sol";
-import "../ceros/interfaces/IPriceGetter.sol";
-import "./interfaces/IWETH.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
 import "./interfaces/IMasterVault.sol";
+
 import "./interfaces/IWaitingPool.sol";
 import "../Strategy/IBaseStrategy.sol";
-contract MasterVault is
-IMasterVault,
-ERC4626Upgradeable,
-OwnableUpgradeable,
-PausableUpgradeable,
-ReentrancyGuardUpgradeable
-{
+
+contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+
+    // ---------------
+    // --- Wrapper ---
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    /**
-     * Variables
-     */
+    // ------------
+    // --- Vars ---
     struct StrategyParams {
-        bool active;
         uint256 allocation;
         uint256 debt;
+        bool active;
     }
 
-    IWaitingPool public waitingPool;
-    
+    IWaitingPool public waitingPool;  // Pending 'withdrawMatic' contract
+    address public provider;          // DavosProvider
     address public feeReceiver;
-    address public _provider;
 
     uint256 public depositFee;
     uint256 public maxDepositFee;
     uint256 public withdrawalFee;
     uint256 public maxWithdrawalFee;
     uint256 public MAX_STRATEGIES;
-    uint256 public totalDebt;          // Amount of tokens that all strategies have borrowed
+    uint256 public totalDebt;         // Matic Tokens in all Strategies
     uint256 public feeEarned;
+    uint256 public allocateOnDeposit;
     address[] public strategies;
 
     mapping(address => bool) public manager;
     mapping (address => StrategyParams) public strategyParams;
 
-    uint256 public allocateOnDeposit;
-    
-    /**
-     * Modifiers
-     */
+    // ------------
+    // --- Mods ---
     modifier onlyProvider() {
-        require(
-            msg.sender == owner() || msg.sender == _provider,
-            "Provider: not allowed"
-        );
+        require(msg.sender == owner() || msg.sender == provider, "MasterVault/not-provider");
         _;
     }
     modifier onlyManager() {
-        require(
-            manager[msg.sender],
-            "Manager: not allowed"
-        );
+        require(manager[msg.sender], "MasterVault/not-manager");
         _;
     }
 
-    /// @dev initialize function - Constructor for Upgradable contract, can be only called once during deployment
-    /// @dev Deploys the contract and sets msg.sender as owner
-    /// @param name name of the vault token
-    /// @param symbol symbol of the vault token
-    /// @param maxDepositFees Fees charged in parts per million; 1% = 10000ppm
-    /// @param maxWithdrawalFees Fees charged in parts per million; 1% = 10000ppm
-    /// @param asset underlying asset address
-    /// @param maxStrategies Number of maximum strategies
-    function initialize(
-        string memory name,
-        string memory symbol,
-        uint256 maxDepositFees,
-        uint256 maxWithdrawalFees,
-        IERC20MetadataUpgradeable asset,
-        uint8 maxStrategies
-    ) public initializer {
-        require(maxDepositFees > 0 && maxDepositFees <= 1e6, "invalid maxDepositFee");
-        require(maxWithdrawalFees > 0 && maxWithdrawalFees <= 1e6, "invalid maxWithdrawalFees");
+    // ------------
+    // --- Init ---
+    /** Initializer for upgradeability
+      * @param _asset underlying asset
+      * @param _name name of MasterVault token
+      * @param _symbol symbol of MasterVault token
+      * @param _maxDepositFees fees charged in parts per million; 1% = 10000ppm
+      * @param _maxWithdrawalFees fees charged in parts per million; 1% = 10000ppm
+      * @param _maxStrategies number of maximum strategies
+      */
+    function initialize(address _asset, string memory _name, string memory _symbol, uint256 _maxDepositFees, uint256 _maxWithdrawalFees, uint8 _maxStrategies) public initializer {
+        
+        require(_maxDepositFees > 0 && _maxDepositFees <= 1e6, "MasterVault/invalid-maxDepositFee");
+        require(_maxWithdrawalFees > 0 && _maxWithdrawalFees <= 1e6, "MasterVault/invalid-maxWithdrawalFees");
 
+        __ERC4626_init(IERC20MetadataUpgradeable(_asset));
+        __ERC20_init(_name, _symbol);
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
-        __ERC20_init(name, symbol);
-        __ERC4626_init(asset);
+        
+        maxDepositFee = _maxDepositFees;
+        maxWithdrawalFee = _maxWithdrawalFees;
+        MAX_STRATEGIES = _maxStrategies;
+
         manager[msg.sender] = true;
-        maxDepositFee = maxDepositFees;
-        maxWithdrawalFee = maxWithdrawalFees;
-        MAX_STRATEGIES = maxStrategies;
         feeReceiver = msg.sender;
     }
-    
-    /// @dev deposits assets and mints shares(amount - swapFee + depositFee) to callers address
-    /// @return shares - number of minted vault tokens
-    function depositMatic(uint256 amount) 
-    external
-    override
-    nonReentrant
-    whenNotPaused 
-    onlyProvider 
-    returns (uint256 shares) {        
-        require(amount > 0, "invalid amount");
-        address src = msg.sender;
-        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), msg.sender, address(this), amount);
 
+    // ----------------
+    // --- Deposits ---
+    /** Deposit underlying assets via DavosProvider
+      * @param _amount amount of Matic Token deposit
+      * @return shares corresponding MasterVault tokens
+      */
+    function depositMatic(uint256 _amount) external override nonReentrant whenNotPaused onlyProvider returns (uint256 shares) {
+
+        require(_amount > 0, "MasterVault/invalid-amount");
+        address src = msg.sender;
+
+        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), src, address(this), _amount);
         shares = _assessFee(shares, depositFee);
 
-        uint256 waitingPoolDebt = waitingPool.totalDebt();
+        uint256 waitingPoolDebt = waitingPool.s_totalDebt();
         uint256 waitingPoolBalance = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
-
-        // check and fullfil the pending withdrawals of the waiting pool first
         if(waitingPoolDebt > 0 && waitingPoolBalance < waitingPoolDebt) {
             uint256 waitingPoolDebtDiff = waitingPoolDebt - waitingPoolBalance;
             uint256 poolAmount = (waitingPoolDebtDiff < shares) ? waitingPoolDebtDiff : shares;
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), poolAmount);
         }
+
         _mint(src, shares);
 
-        if(allocateOnDeposit == 1) {
-            allocate();
-        }
-        emit Deposit(src, src, amount, shares);
+        if(allocateOnDeposit == 1) allocate();
+
+        emit Deposit(src, src, _amount, shares);
     }
+    /** Deposit underlying token into strategy
+      * @param _strategy address of strategy
+      * @param _amount amount of Matic Token deposit
+      */
+    function depositToStrategy(address _strategy, uint256 _amount) public onlyManager {
 
-    /// @dev deposits specific amount of assets into the given strategy
-    /// @param strategy address of the strategy
-    /// @param amount assets to deposit into strategy
-    function depositToStrategy(address strategy, uint256 amount) public onlyManager {
-        require(_depositToStrategy(strategy, amount));
+        require(_depositToStrategy(_strategy, _amount));
     }
+    /** Deposit all underlying token into strategy
+      * @param _strategy address of strategy
+      */
+    function depositAllToStrategy(address _strategy) public onlyManager {
 
-    /// @dev deposits all the assets into the given strategy
-    /// @param strategy address of the strategy
-    function depositAllToStrategy(address strategy) public onlyManager {
-        uint256 amount = totalAssetInVault();
-        require(_depositToStrategy(strategy, amount));
+        require(_depositToStrategy(_strategy, totalAssetInVault()));
     }
+    /** Internal -> deposits underlying to strategy
+      * @param _strategy address of strategy
+      * @param _amount amount of Matic Token deposit
+      */
+    function _depositToStrategy(address _strategy, uint256 _amount) private returns (bool success) {
 
-    /// @dev internal method to deposit assets into the given strategy
-    /// @param strategy address of the strategy
-    /// @param amount assets to deposit into strategy
-    function _depositToStrategy(address strategy, uint256 amount) private returns (bool success) {
-        require(amount > 0, "invalid deposit amount");
-        require(strategyParams[strategy].active, "invalid strategy address");
-        require(totalAssetInVault() >= amount, "insufficient balance");
+        require(_amount > 0, "MasterVault/invalid-amount");
+        require(strategyParams[_strategy].active, "MasterVault/invalid-strategy");
+        require(totalAssetInVault() >= _amount, "MasterVault/insufficient-balance");
 
-        amount = IBaseStrategy(strategy).canDeposit(amount);
-        if(amount <= 0) return false;
+        _amount = IBaseStrategy(_strategy).canDeposit(_amount);
+        if(_amount <= 0) return false;
 
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), strategy, amount);
-        uint256 value = IBaseStrategy(strategy).deposit(amount);
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _strategy, _amount);
+        uint256 value = IBaseStrategy(_strategy).deposit(_amount);
         if(value > 0) {
             totalDebt += value;
-            strategyParams[strategy].debt += value;
-            emit DepositedToStrategy(strategy, amount, value);
+            strategyParams[_strategy].debt += value;
+            emit DepositedToStrategy(_strategy, _amount, value);
             return true;
         }
     }
-
-    /// @dev Tries to allocate funds to strategies based on their allocations.
-    ///      (It will be triggered mostly in case of deposits to avoid unnecessary swapFees)
+    /** Deposits underlying to active strategies based on allocation points
+      * @dev Useful incase of deposits to avoid unnecessary swapFees
+      */
     function allocate() public {
         for(uint8 i = 0; i < strategies.length; i++) {
             if(strategyParams[strategies[i]].active) {
@@ -187,177 +168,173 @@ ReentrancyGuardUpgradeable
         }
     }
 
-    /// @dev burns vault tokens and withdraws(amount - withdrawalFee) to recipient's address
-    /// @param account receipient's address
-    /// @param amount amount of assets to withdraw
-    /// @return shares amount of assets(excluding fee)
-    function withdrawMatic(address account, uint256 amount) 
-    external
-    override
-    nonReentrant 
-    whenNotPaused
-    onlyProvider 
-    returns (uint256 shares) {
-        require(amount > 0, "invalid withdrawal amount");
+    // -----------------
+    // --- Withdraws ---
+    /** Withdraw underlying assets via DavosProvider
+      * @param _account receipient
+      * @param _amount underlying assets to withdraw
+      * @return assets underlying assets excluding any fees
+      */
+    function withdrawMatic(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyProvider returns (uint256 assets) {
+
+        require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
-        shares = amount;
-        _burn(src, shares);
+        assets = _amount;
+
+        _burn(src, assets);
+
         uint256 maticBalance = totalAssetInVault();
-        if(maticBalance < amount) {
-            // Strategy should use 'account' as recipient if delayed unstake, else use 'msg.sender' as recipient
-            (uint256 withdrawn, bool delayed) = _withdrawFromActiveStrategies(account, amount - maticBalance);
-            if(withdrawn == 0) {
-                // deduct withdrawalFee and then submit to waiting pool
-                shares = _assessFee(shares, withdrawalFee);
-                waitingPool.addToQueue(account, shares);
+        if(maticBalance < _amount) {
+            // Strategy should use '_account' as recipient if delayed unstake, else use 'msg.sender' as recipient
+            (uint256 withdrawn, bool delayed) = _withdrawFromActiveStrategies(_account, _amount - maticBalance);
+            if(withdrawn == 0) { 
+                // Submit to waitingPool charging any fees
+                assets = _assessFee(assets, withdrawalFee);
+                waitingPool.addToQueue(_account, assets);
                 if(maticBalance > 0) {
                     SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), maticBalance);
                 }
-                emit Withdraw(src, src, src, amount, shares);
-                return amount;
+                emit Withdraw(src, src, src, _amount, assets);
+                return _amount;
             } else if (delayed) { 
-                // Delayed Unstake: 'withdrawn' goes to 'account' from strategy
-                shares = maticBalance;
+                // Delayed Unstake: 'withdrawn' goes to '_account' from strategy
+                assets = maticBalance;
             } else {
                 // Immediate Unstake: 'withdrawn' comes to MasterVault
-                shares = maticBalance + withdrawn;
+                assets = maticBalance + withdrawn;
             }
         }
-        shares = _assessFee(shares, withdrawalFee);
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), account, shares);
 
-        emit Withdraw(src, src, src, amount, shares);
-        return amount;
+        assets = _assessFee(assets, withdrawalFee);
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _account, assets);
+
+        emit Withdraw(src, src, src, _amount, assets);
+        return _amount;
     }
+    /** Withdraw underlying assets from Strategy
+      * @param _strategy address of strategy
+      * @param _amount underlying assets to withdraw from strategy
+      */
+    function withdrawFromStrategy(address _strategy, uint256 _amount) public onlyManager {
 
-    /// @dev withdraw specific amount of assets from the given strategy
-    /// @param strategy address of the strategy
-    /// @param amount assets to withdraw from the strategy
-    function withdrawFromStrategy(address strategy, uint256 amount) public onlyManager {
-        (uint256 withdrawn,) = _withdrawFromStrategy(address(this), strategy, amount);
-        require(withdrawn > 0, "cannot withdraw from strategy");
+        (uint256 withdrawn,) = _withdrawFromStrategy(address(this), _strategy, _amount);
+        require(withdrawn > 0, "MasterVault/unable-to-withdraw");
     }
+    /** Withdraw all underlying assets from Strategy
+      * @param _strategy address of strategy
+      */
+    function withdrawAllFromStrategy(address _strategy) external onlyManager {
 
-    /// @dev withdraw strategy's total debt
-    /// @param strategy address of the strategy
-    function withdrawAllFromStrategy(address strategy) external onlyManager {
-        (uint256 withdrawn,) = _withdrawFromStrategy(address(this), strategy, strategyParams[strategy].debt);
-        require(withdrawn > 0, "cannot withdraw from strategy");
+        (uint256 withdrawn,) = _withdrawFromStrategy(address(this), _strategy, strategyParams[_strategy].debt);
+        require(withdrawn > 0, "MasterVault/unable-to-withdraw");
     }
+    /** Internal -> withdraws underlying from strategy
+      * @param _recipient direct receiver if strategy has unstake time
+      * @param _strategy address of strategy
+      * @param _amount amount of Matic Token withdrawal
+      */
+    function _withdrawFromStrategy(address _recipient, address _strategy, uint256 _amount) private returns(uint256, bool) {
 
-    /// @dev internal function to withdraw specific amount of assets from the given strategy
-    /// @param strategy address of the strategy
-    /// @param amount assets to withdraw from the strategy
-    /// NOTE: subtracts the given amount of assets instead of value(withdrawn funds) because 
-    ///       of the swapFee that is deducted in the swapPool contract and that fee needs 
-    ///       to be paid by the users only
-    function _withdrawFromStrategy(address recipient, address strategy, uint256 amount) private returns(uint256, bool) {
-        require(amount > 0, "invalid withdrawal amount");
-        // check if strategy have debt >= amount(no need to check if strategy is active)
-        require(strategyParams[strategy].debt >= amount, "insufficient assets in strategy");
-        (uint256 value, bool delayed) = IBaseStrategy(strategy).withdraw(recipient, amount);
-        require(value >= amount, "invalid withdrawn amount");
+        require(_amount > 0, "MasterVault/invalid-amount");
+        require(strategyParams[_strategy].debt >= _amount, "MasterVault/insufficient-assets-in-strategy");
+
+        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw(_recipient, _amount);
+        require(value >= _amount, "MasterVault/invalid-value");
         
-        totalDebt -= amount;
-        strategyParams[strategy].debt -= amount;
-        emit WithdrawnFromStrategy(strategy, amount, value);
-        
+        totalDebt -= _amount;
+        strategyParams[_strategy].debt -= _amount;
+
+        emit WithdrawnFromStrategy(_strategy, _amount, value);
         return (value, delayed);
     }
+    /** Internal -> traverses through all active strategies for withdrawal
+      * @param _recipient direct receiver if strategy has unstake time
+      * @param _amount amount of Matic Token withdrawal
+      */
+    function _withdrawFromActiveStrategies(address _recipient, uint256 _amount) private returns(uint256 withdrawn, bool delayed) {
 
-    /// @dev attemps withdrawal from the strategies
-    /// @param amount assets to withdraw from strategy
-    /// @return withdrawn - assets withdrawn from the strategy
-    function _withdrawFromActiveStrategies(address recipient, uint256 amount) private returns(uint256 withdrawn, bool delayed) {
         for(uint8 i = 0; i < strategies.length; i++) {
-           if(strategyParams[strategies[i]].active && 
-              strategyParams[strategies[i]].debt >= amount) {
-                return _withdrawFromStrategy(recipient, strategies[i], amount);
-           }
+            if(strategyParams[strategies[i]].active && strategyParams[strategies[i]].debt >= _amount)
+                return _withdrawFromStrategy(_recipient, strategies[i], _amount);
         }
     }
+    /** Internal -> charge corresponding fees from amount
+      * @param amount amount to charge fee from
+      * @param fees fee percentage
+      * @return value amount after fee charge
+      */
+    function _assessFee(uint256 amount, uint256 fees) private returns(uint256 value) {
 
-    /// @dev Sends required Matic Token amount to waitingPool to equalize debt
-    /// @notice '_withdrawFromActiveStrategies' might have strategy with unstake delay.
-    function cancelDebt() public onlyManager {
-        uint256 waitingPoolDebt = waitingPool.totalDebt();
-        uint256 waitingPoolBal = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
-        
-        uint256 withdrawn; bool delayed;
-        if (waitingPoolDebt > waitingPoolBal) {
-            uint256 withdrawAmount = waitingPoolDebt - waitingPoolBal;
-            (withdrawn, delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1);
-            if(withdrawn > 0 && !delayed) {
-                SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawn);
-            }
+        if(fees > 0) {
+            uint256 fee = (amount * fees) / 1e6;
+            value = amount - fee;
+            feeEarned += fee;
+        } else return amount;
+    }
+
+    // ---------------
+    // --- Manager ---
+    /** Withdraws all assets from strategy marking it inactive
+      * @param _strategy address of strategy 
+      */
+    function retireStrat(address _strategy) external onlyManager {
+
+        if(_deactivateStrategy(_strategy)) return;
+
+        _withdrawFromStrategy(address(this), _strategy, strategyParams[_strategy].debt);
+        require(_deactivateStrategy(_strategy), "MasterVault/cannot-retire");
+    }
+    /** Withdraws all assets from old strategy to new strategy
+      * @notice allocate() must be triggered afterwards
+      * @notice old strategy might have unstake delay
+      * @param _oldStrategy address of old strategy
+      * @param _newStrategy address of new strategy 
+      * @param _newAllocation underlying assets allocation to '_newStrategy' where 1% = 10000
+      */
+    function migrateStrategy(address _oldStrategy, address _newStrategy, uint256 _newAllocation) external onlyManager {
+
+        require(_oldStrategy != address(0) && _newStrategy != address(0));
+
+        uint256 oldStrategyDebt = strategyParams[_oldStrategy].debt;
+        if(oldStrategyDebt > 0) {
+            (uint256 withdrawn,) = _withdrawFromStrategy(address(this), _oldStrategy, oldStrategyDebt);
+            require(withdrawn > 0, "MasterVault/cannot-withdraw");
         }
-    }
 
-    /// @dev Triggers tryRemove() of waiting pool contract
-    function tryRemove() public onlyManager {
-        waitingPool.tryRemove();
-    }
+        StrategyParams memory params = StrategyParams({allocation: _newAllocation, debt: 0, active: true});
 
-    /// @dev sets new strategy
-    /// @param strategy address of the strategy
-    /// @param allocation percentage of total assets available in the contract 
-    ///                   that needs to be allocated to the given strategy
-    function setStrategy(
-        address strategy,
-        uint256 allocation   // 1% = 10000
-        )
-        external onlyOwner {
-        require(strategy != address(0));
-        require(strategies.length < MAX_STRATEGIES, "max strategies exceeded");
-
-        uint256 totalAllocations;
+        bool isValidStrategy;
         for(uint256 i = 0; i < strategies.length; i++) {
-            if(strategies[i] == strategy) {
-                revert("strategy already exists");
-            }
-            if(strategyParams[strategies[i]].active) {
-                totalAllocations += strategyParams[strategies[i]].allocation;
+            if(strategies[i] == _oldStrategy) {
+                isValidStrategy = true;
+                strategies[i] = _newStrategy;
+                strategyParams[_newStrategy] = params;
+                
+                break;
             }
         }
 
-        require(totalAllocations + allocation <= 1e6, "allocations cannot be more than 100%");
+        require(isValidStrategy, "MasterVault/invalid-oldStrategy");
+        require(_deactivateStrategy(_oldStrategy),"MasterVault/cannot-deactivate");
+        require(_isValidAllocation(), "MasterVault/>100%");
 
-        StrategyParams memory params = StrategyParams({
-            active: true,
-            allocation: allocation,
-            debt: 0
-        });
-
-        strategyParams[strategy] = params;
-        strategies.push(strategy);
-        emit StrategyAdded(strategy, allocation);
+        emit StrategyMigrated(_oldStrategy, _newStrategy, _newAllocation);
     }
-    
-    /// @dev withdraws all the assets from the strategy and marks it inactive
-    /// @param strategy address of the strategy
-    /// NOTE: To avoid any unforeseen issues because of solidity divisions 
-    ///       and always be able to deactivate a strategy, 
-    ///       it withdraws strategy's (debt - 10) assets and set debt to 0.
-    function retireStrat(address strategy) external onlyManager {
-        // require(strategyParams[strategy].active, "strategy is not active");
-        if(_deactivateStrategy(strategy)) {
-            return;
-        }
-        _withdrawFromStrategy(address(this), strategy, strategyParams[strategy].debt);
-        require(_deactivateStrategy(strategy), "cannot retire strategy");
-    }
+    /** Internal -> checks strategy's debt and deactives it
+      * @param _strategy address of strategy 
+      */
+    function _deactivateStrategy(address _strategy) private returns(bool success) {
 
-    /// @dev internal function to check strategy's debt and deactive it.
-    /// @param strategy address of the strategy
-    function _deactivateStrategy(address strategy) private returns(bool success) {
-        if (strategyParams[strategy].debt <= 10) {
-            strategyParams[strategy].active = false;
-            strategyParams[strategy].debt = 0;
+        if (strategyParams[_strategy].debt <= 10) {
+            strategyParams[_strategy].active = false;
+            strategyParams[_strategy].debt = 0;
             return true;
         }
     }
-
+    /** Internal -> Sums up all individual allocation to match total
+      */
     function _isValidAllocation() private view returns(bool) {
+
         uint256 totalAllocations;
         for(uint256 i = 0; i < strategies.length; i++) {
             if(strategyParams[strategies[i]].active) {
@@ -367,188 +344,202 @@ ReentrancyGuardUpgradeable
 
         return totalAllocations <= 1e6;
     }
+    /** Sends required Matic Token amount to waitingPool to equalize debt
+      * @notice '_withdrawFromActiveStrategies' might have strategy with unstake delay
+      */
+    function cancelDebt() public onlyManager {
 
-    /// @dev Returns the amount of assets that can be withdrawn instantly
-    function availableToWithdraw() public view returns(uint256 available) {
-        for(uint8 i = 0; i < strategies.length; i++) {
-            available += IWETH(asset()).balanceOf(strategies[i]);   // excluding the amount that is deposited to strategies
+        uint256 withdrawn; bool delayed;
+
+        uint256 waitingPoolDebt = waitingPool.s_totalDebt();
+        uint256 waitingPoolBal = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
+        if (waitingPoolDebt > waitingPoolBal) {
+            uint256 withdrawAmount = waitingPoolDebt - waitingPoolBal;
+            (withdrawn, delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1);
+            if(withdrawn > 0 && !delayed) SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawn);
         }
-        available += totalAssetInVault();
+    }
+    /** Triggers tryRemove() of waiting pool contract
+      */
+    function tryRemove() public onlyManager {
+
+        waitingPool.tryRemove();
     }
 
-    /// @dev Returns the amount of assets present in the contract(assetBalance - feeEarned)
-    function totalAssetInVault() public view returns(uint256 balance) {
-        return (totalAssets() > feeEarned) ? totalAssets() - feeEarned : 0;
-    }
+    // -------------
+    // --- Admin ---
+    /** Sets a new strategy
+      * @param _strategy address of strategy 
+      * @param _allocation underlying assets allocation to '_strategy' where 1% = 10000
+      */
+    function setStrategy(address _strategy, uint256 _allocation) external onlyOwner {
 
-    /// @dev migrates strategy contract - withdraws everything from the oldStrategy and 
-    ///      overwrites it with new strategy
-    /// @param oldStrategy address of the old strategy
-    /// @param newStrategy address of the new strategy 
-    /// @param newAllocation percentage of total assets available in the contract
-    ///                      that needs to be allocated to the new strategy
-    // NOTE: Assets will be allocated to new strategy when the allocate() function is triggered next time
-    function migrateStrategy(address oldStrategy, address newStrategy, uint256 newAllocation) external onlyManager {
-        require(oldStrategy != address(0));
-        require(newStrategy != address(0));
-        
-        uint256 oldStrategyDebt = strategyParams[oldStrategy].debt;
-        
-        if(oldStrategyDebt > 0) {
-            (uint256 withdrawn,) = _withdrawFromStrategy(address(this), oldStrategy, strategyParams[oldStrategy].debt);
-            require(withdrawn > 0, "cannot withdraw from strategy");
-        }
-        StrategyParams memory params = StrategyParams({
-            active: true,
-            allocation: newAllocation,
-            debt: 0
-        });
-        bool isValidStrategy;
+        require(_strategy != address(0));
+        require(strategies.length < MAX_STRATEGIES, "MasterVault/strategies-maxed");
+
+        uint256 totalAllocations;
         for(uint256 i = 0; i < strategies.length; i++) {
-            if(strategies[i] == oldStrategy) {
-                isValidStrategy = true;
-                strategies[i] = newStrategy;
-                strategyParams[newStrategy] = params;
-                
-                break;
-            }
+            if(strategies[i] == _strategy) revert("MasterVault/already-exists");
+            if(strategyParams[strategies[i]].active) totalAllocations += strategyParams[strategies[i]].allocation;
         }
-        require(isValidStrategy, "invalid oldStrategy address");
-        require(_deactivateStrategy(oldStrategy),"cannot deactivate old strategy");
-        require(_isValidAllocation(), "allocations cannot be more than 100%");
-        emit StrategyMigrated(oldStrategy, newStrategy, newAllocation);
-    }
 
-    /// @dev deducts the fee percentage from the given amount
-    /// @param amount amount to deduct fee from
-    /// @param fees fee percentage
-    function _assessFee(uint256 amount, uint256 fees) private returns(uint256 value) {
-        if(fees > 0) {
-            uint256 fee = (amount * fees) / 1e6;
-            value = amount - fee;
-            feeEarned += fee;
-        } else {
-            return amount;
-        }
-    }
+        require(totalAllocations + _allocation <= 1e6, "MasterVault/>100%");
 
-    receive() external payable {
-        require(msg.sender == asset()); // only accept ETH from the WETH contract
-    }
+        StrategyParams memory params = StrategyParams({allocation: _allocation, debt: 0, active: true});
 
-    /// @dev only owner can call this function to withdraw earned fees
+        strategyParams[_strategy] = params;
+        strategies.push(_strategy);
+        emit StrategyAdded(_strategy, _allocation);
+    }
+    /** Changes allocation of Strategy
+      * @param _strategy address of strategy 
+      * @param _allocation underlying assets new allocation to '_strategy' where 1% = 10000
+      */
+    function changeStrategyAllocation(address _strategy, uint256 _allocation) external onlyOwner {
+
+        require(_strategy != address(0));        
+        strategyParams[_strategy].allocation = _allocation;
+        require(_isValidAllocation(), "MasterVault/>100%");
+
+        emit StrategyAllocationChanged(_strategy, _allocation);
+    }
+    /** Withdraw fees to feeReceiver
+      */
     function withdrawFee() external onlyOwner{
+
         if(feeEarned > 0) {
             uint256 toSend = feeEarned;
             feeEarned = 0;
-            SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), toSend);
+            SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), feeReceiver, toSend);
         }
     }
+    /** Changes allocation mode on deposit
+      * @param _status 0-Disabled, 1-Enabled
+      */
+    function changeAllocateOnDeposit(uint256 _status) external onlyOwner {
 
+        require(_status >= 0 && _status < 2, "MasterVault/range-0-or-1");
+        allocateOnDeposit = _status;
+
+        emit AllocationOnDepositChangeed(_status);
+    }
+    /** Sets a deposit fee where 1% = 10000ppm
+      * @param _newDepositFee new deposit fee percentage
+      */
+    function setDepositFee(uint256 _newDepositFee) external onlyOwner {
+
+        require(maxDepositFee > _newDepositFee,"MasterVault/more-than-maxDepositFee");
+        depositFee = _newDepositFee;
+
+        emit DepositFeeChanged(_newDepositFee);
+    }
+    /** Sets a withdrawal fee where 1% = 10000ppm
+      * @param _newWithdrawalFee new withdrawal fee percentage
+      */
+    function setWithdrawalFee(uint256 _newWithdrawalFee) external onlyOwner {
+
+        require(maxWithdrawalFee > _newWithdrawalFee,"MasterVault/more-than-maxWithdrawalFee");
+        withdrawalFee = _newWithdrawalFee;
+
+        emit WithdrawalFeeChanged(_newWithdrawalFee);
+    }
+    /** Changes provider contract
+      * @param _provider new provider
+      */
+    function changeProvider(address _provider) external onlyOwner {
+
+        require(_provider != address(0));
+        provider = _provider;
+
+        emit ProviderChanged(_provider);
+    }
+    /** Sets waiting pool contract
+      * @param _waitingPool new waiting pool address
+      */
+    function setWaitingPool(address _waitingPool) external onlyOwner {
+
+        require(_waitingPool != address(0));
+        waitingPool = IWaitingPool(_waitingPool);
+
+        emit WaitingPoolChanged(_waitingPool);
+    }
+    /** Sets waiting pool cap
+      * @param _cap new cap limit
+      */
+    function setWaitingPoolCap(uint256 _cap) external onlyOwner {
+
+        waitingPool.setCapLimit(_cap);
+
+        emit WaitingPoolCapChanged(_cap);
+    }
+    /** Changes fee receiver
+      * @param _feeReceiver new fee receiver
+      */
+    function changeFeeReceiver(address payable _feeReceiver) external onlyOwner {
+
+        require(_feeReceiver != address(0));
+        feeReceiver = _feeReceiver;
+
+        emit FeeReceiverChanged(_feeReceiver);
+    }
+    /** Adds a new manager
+      * @param _newManager new manager
+      */
+    function addManager(address _newManager) external onlyOwner {
+
+        require(_newManager != address(0));
+        manager[_newManager] = true;
+
+        emit ManagerAdded(_newManager);
+    }
+    /** Removes an existing manager
+      * @param _manager new manager
+      */
+    function removeManager(address _manager) external onlyOwner {
+
+        require(manager[_manager]);
+        manager[_manager] = false;
+
+        emit ManagerRemoved(_manager);
+    } 
+    /** Pauses MasterVault contract
+      */
     function pause() external onlyOwner whenNotPaused {
+
         _pause();
     }
-
+    /** Unpauses MasterVault contract
+    */
     function unpause() external onlyOwner whenPaused {
+
         _unpause();
     }
 
-    /// @dev only owner can set new deposit fee
-    /// @param newDepositFee new deposit fee percentage
-    function setDepositFee(uint256 newDepositFee) external onlyOwner {
-        require(maxDepositFee > newDepositFee,"more than maxDepositFee");
-        depositFee = newDepositFee;    // 1% = 10000ppm
-        emit DepositFeeChanged(newDepositFee);
+
+    // -------------
+    // --- Views ---
+    /** Returns the amount of assets that can be withdrawn instantly
+      * @return available amount of assets
+      */
+    function availableToWithdraw() public view returns(uint256 available) {
+
+        for(uint8 i = 0; i < strategies.length; i++) available += IERC20Upgradeable(asset()).balanceOf(strategies[i]);
+        available += totalAssetInVault();
+    }
+    /** Returns the amount of underlying assets in MasterVault excluding feeEarned
+      * @return balance amount of assets
+      */
+    function totalAssetInVault() public view returns(uint256 balance) {
+
+        return (totalAssets() > feeEarned) ? totalAssets() - feeEarned : 0;
     }
 
-    /// @dev only owner can set new withdrawal fee
-    /// @param newWithdrawalFee new withdrawal fee percentage
-    function setWithdrawalFee(uint256 newWithdrawalFee) external onlyOwner {
-        require(maxWithdrawalFee > newWithdrawalFee,"more than maxWithdrawalFee");
-        withdrawalFee = newWithdrawalFee;
-        emit WithdrawalFeeChanged(newWithdrawalFee);
-    }
-
-    /// @dev only owner can change Deposit allocation status
-    /// @param _status 0-Disabled, 1-Enabled
-    function changeAllocateOnDeposit(uint256 _status) external onlyOwner {
-        require(_status >= 0 && _status < 2, "status range 0-1");
-        allocateOnDeposit = _status;
-        emit AllocationOnDepositChangeed(_status);
-    }
-
-    /// @dev only owner can set new waiting pool address
-    /// @param _waitingPool new waiting pool address
-    function setWaitingPool(address _waitingPool) external onlyOwner {
-        require(_waitingPool != address(0));
-        waitingPool = IWaitingPool(_waitingPool);
-        emit WaitingPoolChanged(_waitingPool);
-    }
-
-    /// @dev only owner can set new cap limit of waiting pool
-    /// @param _cap new cap limit
-    function setWaitingPoolCap(uint256 _cap) external onlyOwner {
-        waitingPool.setCapLimit(_cap);
-        emit WaitingPoolCapChanged(_cap);
-    }
-
-    /// @dev only owner can add new manager
-    /// @param newManager new manager address
-    function addManager(address newManager) external onlyOwner {
-        require(newManager != address(0));
-        manager[newManager] = true;
-        emit ManagerAdded(newManager);
-    }
-
-    /// @dev only owner can remove manager
-    /// @param _manager manager address
-    function removeManager(address _manager) external onlyOwner {
-        require(manager[_manager]);
-        manager[_manager] = false;
-        emit ManagerRemoved(_manager);
-    } 
-
-    /// @dev only owner can change provider address
-    /// @param provider new provider address
-    function changeProvider(address provider) external onlyOwner {
-        require(provider != address(0));
-        _provider = provider;
-        emit ProviderChanged(provider);
-    }
-
-    /// @dev only owner can change fee receiver address
-    /// @param _feeReceiver new fee receiver address
-    function changeFeeReceiver(address payable _feeReceiver) external onlyOwner {
-        require(_feeReceiver != address(0));
-        feeReceiver = _feeReceiver;
-        emit FeeReceiverChanged(_feeReceiver);
-    }
-
-    /// @dev only owner can change strategy's allocation
-    /// @param strategy strategy address
-    /// @param allocation new allocation - percentage of total assets available in the contract
-    ///                   that needs to be allocated to the new strategy
-    function changeStrategyAllocation(address strategy, uint256 allocation) external onlyOwner {
-        require(strategy != address(0));        
-        strategyParams[strategy].allocation = allocation;
-        require(_isValidAllocation(), "allocations cannot be more than 100%");
-
-        emit StrategyAllocationChanged(strategy, allocation);
-    }
-    function deposit(uint256 assets, address receiver) public override returns (uint256) {
-        // Kept only for the sake of ERC4626 standard
-        revert();
-    }
-    function mint(uint256 shares, address receiver) public override returns (uint256) {
-        // Kept only for the sake of ERC4626 standard
-        revert();
-    }
-    function withdraw(uint256 assets, address receiver, address owner) public override returns (uint256) {
-        // Kept only for the sake of ERC4626 standard
-        revert();
-    }
-    function redeem(uint256 shares, address receiver, address owner) public override returns (uint256) {
-        // Kept only for the sake of ERC4626 standard
-        revert();
-    }
+    // ---------------
+    // --- ERC4626 ---
+    /** Kept only for the sake of ERC4626 standard
+      */
+    function deposit(uint256 assets, address receiver) public override returns (uint256) { revert(); }
+    function mint(uint256 shares, address receiver) public override returns (uint256) { revert(); }
+    function withdraw(uint256 assets, address receiver, address owner) public override returns (uint256) { revert(); }
+    function redeem(uint256 shares, address receiver, address owner) public override returns (uint256) { revert(); }
 }
