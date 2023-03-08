@@ -73,6 +73,10 @@ contract Dog is DogLike, Initializable {
     event Digs(bytes32 indexed ilk, uint256 rad);
     event Cage();
     event Uncage();
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
     function initialize(address vat_) external initializer {

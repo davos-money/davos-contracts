@@ -54,9 +54,13 @@ contract Spotter is Initializable, SpotLike {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed ilk, bytes32 indexed what, uint256 data);
     event File(bytes32 indexed ilk, bytes32 indexed what, address clip);
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(address vat_) public initializer {
+    function initialize(address vat_) external initializer {
         wards[msg.sender] = 1;
         vat = VatLike(vat_);
         par = ONE;

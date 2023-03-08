@@ -27,7 +27,7 @@ contract DGTRewards is IRewards, Initializable {
     modifier auth { require(wards[msg.sender] == 1, "Rewards/not-authorized"); _; }
 
     // --- State Vars/Constants ---
-    uint256 constant YEAR = 365 * 24 * 3600;
+    uint256 constant YEAR = 31556952; //seconds in year (365.2425 * 24 * 3600)
     uint256 constant RAY = 10 ** 27;  
 
     struct Ilk {
@@ -60,9 +60,13 @@ contract DGTRewards is IRewards, Initializable {
         require(pools[token].rho != 0, "Reward/pool-not-init");
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(address vat_, uint256 poolLimit_, uint256 maxPools_) public initializer {
+    function initialize(address vat_, uint256 poolLimit_, uint256 maxPools_) external initializer {
         live = 1;
         wards[msg.sender] = 1;
         vat = VatLike(vat_);

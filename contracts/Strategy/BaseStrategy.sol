@@ -21,11 +21,9 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
 
     IERC20Upgradeable public underlying;
 
-    bool public depositPaused;
-
     // --- Events ---
-    event UpdatedStrategist(address strategist);
-    event UpdatedFeeRecipient(address feeRecipient);
+    event UpdatedStrategist(address indexed strategist);
+    event UpdatedFeeRecipient(address indexed feeRecipient);
     event UpdatedPerformanceFee(uint256 performanceFee);
 
     // --- Init ---
@@ -68,12 +66,12 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
     // --- Strategist ---
     function pause() external onlyStrategist {
 
-        depositPaused = true;
+        _pause();
     }
 
     function unpause() external onlyStrategist {
 
-        depositPaused = false;
+        _unpause();
     }
 
     // --- Internal ---

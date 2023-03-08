@@ -10,26 +10,27 @@ contract DGTOracle is PipLike, OwnableUpgradeable  {
 
     event PriceChanged(uint256 newPrice);
 
-    address private _owner;
     uint256 private price;
 
     // --- Init ---
-    function initialize(uint256 initialPrice) public initializer {
+    function initialize(uint256 _initialPrice) external initializer {
+
         __Ownable_init();
 
-        price = initialPrice;
+        price = _initialPrice;
     }
 
     /**
      * Returns the latest price
      */
     function peek() public view returns (bytes32, bool) {
+
         return (bytes32(price), true);
     }
 
-    function changePriceToken(uint256 price_) external {
-        require(msg.sender == _owner, "DgtOracle/forbidden");
-        price = price_;
+    function changePriceToken(uint256 _price) external onlyOwner {
+
+        price = _price;
         emit PriceChanged(price);
     }
 }

@@ -75,9 +75,13 @@ contract GemJoin is Initializable, GemJoinLike {
     event Exit(address indexed usr, uint256 wad);
     event Cage();
     event UnCage();
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(address vat_, bytes32 ilk_, address gem_) public initializer {
+    function initialize(address vat_, bytes32 ilk_, address gem_) external initializer {
         wards[msg.sender] = 1;
         live = 1;
         vat = VatLike(vat_);
@@ -140,7 +144,7 @@ contract DavosJoin is Initializable, DavosJoinLike {
     event Uncage();
 
     // --- Init ---
-    function initialize(address vat_, address davos_) public initializer {
+    function initialize(address vat_, address davos_) external initializer {
         wards[msg.sender] = 1;
         live = 1;
         vat = VatLike(vat_);

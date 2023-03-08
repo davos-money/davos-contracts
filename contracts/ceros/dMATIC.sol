@@ -25,6 +25,9 @@ contract dMATIC is OwnableUpgradeable, NonTransferableERC20 {
         require(msg.sender == _minter, "Minter: not allowed");
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() { _disableInitializers(); }
 
     function initialize() external initializer {
         __Ownable_init();

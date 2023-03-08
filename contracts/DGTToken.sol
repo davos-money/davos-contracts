@@ -24,8 +24,12 @@ contract DGTToken is ERC20PausableUpgradeable {
         require(wards[msg.sender] == 1, "DgtToken/not-authorized");
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
-    function initialize(uint256 rewardsSupply_, address rewards_) public initializer {
+    function initialize(uint256 rewardsSupply_, address rewards_) external initializer {
         __ERC20_init_unchained("Dgt Reward token", "DGT");
         __ERC20Pausable_init();
         wards[msg.sender] = 1;

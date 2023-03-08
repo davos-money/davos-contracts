@@ -51,7 +51,7 @@ contract aMATICb is OwnableUpgradeable, ERC20ModUpgradeable, IBondToken {
         _;
     }
 
-    function initialize(address operator) public initializer {
+    function initialize(address operator) external initializer {
         __Ownable_init();
         __ERC20_init_unchained("Ankr MATIC Reward Earning Bond", "aMATICb");
         _operator = operator;

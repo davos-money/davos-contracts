@@ -48,6 +48,10 @@ contract Vow is Initializable{
 
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
     function initialize(address vat_, address _davosJoin, address multisig_) external initializer {

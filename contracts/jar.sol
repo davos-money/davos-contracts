@@ -83,6 +83,10 @@ contract Jar is Initializable, ReentrancyGuardUpgradeable {
     event Redeem(address[] indexed user);
     event Cage();
     event UnCage();
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
     function initialize(string memory _name, string memory _symbol, address _davosToken, uint _spread, uint _exitDelay, uint _flashLoanDelay) external initializer {

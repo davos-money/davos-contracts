@@ -10,7 +10,7 @@ interface IDavosProvider {
 
     // --- Functions ---
     function provide(uint256 _amount) external returns (uint256);
-    function release(address _recipient, uint256 _amount) external returns (uint256);
+    function release(address _recipient, uint256 _amount) external payable returns (uint256);
     function liquidation(address _recipient, uint256 _amount) external;
     function daoBurn(address _account, uint256 _value) external;
     function daoMint(address _account, uint256 _value) external;

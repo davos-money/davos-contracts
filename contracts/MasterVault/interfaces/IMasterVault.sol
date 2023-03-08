@@ -20,8 +20,8 @@ interface IMasterVault {
     event WithdrawnFromStrategy(address _strategy, uint256 _amount, uint256 _actualAmount);
 
     // --- Functions ---
-    function withdrawMatic(address _account, uint256 _amount) external  returns (uint256);
     function depositMatic(uint256 _amount) external returns (uint256);
+    function withdrawMatic(address _account, uint256 _amount) external payable returns (uint256);
     function feeReceiver() external returns (address);
     function withdrawalFee() external view returns (uint256);
     function strategyParams(address _strategy) external view returns(uint256 allocation, uint256 debt, bool active);

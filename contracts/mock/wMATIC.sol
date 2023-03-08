@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./ERC20ModUpgradeable.sol";
 
 contract wMATIC is OwnableUpgradeable, ERC20ModUpgradeable {
-    function initialize() public initializer {
+    function initialize() external initializer {
         __Ownable_init();
         __ERC20_init_unchained("Ankr MATIC Reward Bearing Certificate", "aMATICc");
     }

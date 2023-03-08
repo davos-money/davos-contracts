@@ -107,9 +107,13 @@ contract Clipper is Initializable, ClipperLike {
     );
 
     event Yank(uint256 id);
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(address vat_, address spotter_, address dog_, bytes32 ilk_) public initializer {
+    function initialize(address vat_, address spotter_, address dog_, bytes32 ilk_) external initializer {
         vat     = VatLike(vat_);
         spotter = SpotLike(spotter_);
         dog     = DogLike(dog_);

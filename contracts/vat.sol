@@ -72,9 +72,13 @@ contract Vat is VatLike, Initializable {
 
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed ilk, bytes32 indexed what, uint256 data);
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize() public initializer {
+    function initialize() external initializer {
         wards[msg.sender] = 1;
         live = 1;
     }

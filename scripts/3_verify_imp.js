@@ -6,51 +6,35 @@ const {ether} = require("@openzeppelin/test-helpers");
 const network_file_name = `${network.name}_addresses.json`;
 
 const {
-    ceaMATICc,
+    priceGetter,
     ceaMATICcImp,
-    ceVault,
     ceVaultImp,
-    dMatic,
     dMaticImp,
-    cerosRouter,
     cerosRouterImp,
-    masterVault,
     masterVaultImp,
-    waitingPool,
     waitingPoolImp,
-    cerosYieldStr,
     cerosYieldConverterStrategyImp,
-    vat,
-    vatImp,
-    spot,
-    spotImp,
-    davos,
-    davosImp,
-    davosJoin,
-    davosJoinImp,
-    gemJoin,
-    gemJoinImp,
-    jug,
-    jugImp,
-    vow,
-    vowImp,
-    dog,
-    dogImp,
-    clip,
-    clipImp,
-    oracle,
-    abacus,
     abacusImp,
-    rewards,
+    oracle,
+    vatImp,
+    spotImp,
+    davosImp,
+    davosJoinImp,
+    gemJoinImp,
+    jugImp,
+    vowImp,
+    dogImp,
+    clipImp,
     rewardsImp,
-    dgtToken,
-    dgtTokenImp,
-    auctionProxy
-} = require('../' + network_file_name);
+    auctionLib,
+    interactionImp,
+    davosProviderImp
+} = require('./' + network_file_name);
 
 async function main() {
 
     // // Verify all implementations
+    await hre.run("verify:verify", {address: priceGetter});
     await hre.run("verify:verify", {address: ceaMATICcImp});
     await hre.run("verify:verify", {address: ceVaultImp});
     await hre.run("verify:verify", {address: dMaticImp});
@@ -58,6 +42,8 @@ async function main() {
     await hre.run("verify:verify", {address: masterVaultImp});
     await hre.run("verify:verify", {address: waitingPoolImp});
     await hre.run("verify:verify", {address: cerosYieldConverterStrategyImp});
+    await hre.run("verify:verify", {address: abacusImp});
+    await hre.run("verify:verify", {address: oracle});
     await hre.run("verify:verify", {address: vatImp});
     await hre.run("verify:verify", {address: spotImp});
     await hre.run("verify:verify", {address: davosImp});
@@ -67,10 +53,11 @@ async function main() {
     await hre.run("verify:verify", {address: vowImp});
     await hre.run("verify:verify", {address: dogImp});
     await hre.run("verify:verify", {address: clipImp});
-    await hre.run("verify:verify", {address: oracle});
-    await hre.run("verify:verify", {address: abacusImp});
     await hre.run("verify:verify", {address: rewardsImp});
-    await hre.run("verify:verify", {address: dgtTokenImp});   
+    await hre.run("verify:verify", {address: auctionLib});
+    await hre.run("verify:verify", {address: interactionImp});
+    await hre.run("verify:verify", {address: davosProviderImp});
+    // await hre.run("verify:verify", {address: dgtTokenImp});   
 }
 
 main()

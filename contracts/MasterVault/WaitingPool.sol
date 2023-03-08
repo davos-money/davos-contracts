@@ -39,12 +39,16 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
         require(msg.sender == address(s_masterVault));
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
     /** Initializer for upgradeability
       * @param _masterVault masterVault contract
       * @param _maticToken ERC20 matic
-      * @param _capLimit number of indecies to be payed in one call
+      * @param _capLimit number of indices to be payed in one call
       */
     function initialize(address _masterVault, address _maticToken, uint256 _capLimit) external initializer {
 

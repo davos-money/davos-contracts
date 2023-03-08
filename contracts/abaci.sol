@@ -48,9 +48,13 @@ contract LinearDecrease is Initializable, Abacus {
     event Deny(address indexed usr);
 
     event File(bytes32 indexed what, uint256 data);
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize() public initializer {
+    function initialize() external initializer {
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
@@ -118,10 +122,13 @@ contract StairstepExponentialDecrease is Initializable, Abacus {
 
     event File(bytes32 indexed what, uint256 data);
 
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
+
     // --- Init ---
     // @notice: `cut` and `step` values must be correctly set for
     //     this contract to return a valid price
-    function initialize() public initializer {
+    function initialize() external initializer {
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
@@ -209,10 +216,13 @@ contract ExponentialDecrease is Initializable, Abacus {
 
     event File(bytes32 indexed what, uint256 data);
 
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
+
     // --- Init ---
     // @notice: `cut` value must be correctly set for
     //     this contract to return a valid price
-    function initialize() public initializer {
+    function initialize() external initializer {
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }

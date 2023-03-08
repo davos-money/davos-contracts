@@ -5,7 +5,7 @@ interface IBaseStrategy {
 
     // --- Functions ---
     function deposit(uint256 _amount) external returns(uint256);
-    function withdraw(address _recipient, uint256 _amount) external returns(uint256, bool);
+    function withdraw(address _recipient, uint256 _amount) external payable returns(uint256, bool);
     function harvest() external;
     function pause() external;
     function unpause() external;

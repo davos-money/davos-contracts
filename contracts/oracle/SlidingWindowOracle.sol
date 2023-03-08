@@ -46,7 +46,7 @@ contract SlidingWindowOracle is Initializable, UUPSUpgradeable, OwnableUpgradeab
     address factory_,
     uint256 windowSize_,
     uint8 granularity_
-  ) public initializer {
+  ) external initializer {
     __Ownable_init();
     require(granularity_ > 1, "SlidingWindowOracle: GRANULARITY");
     require(

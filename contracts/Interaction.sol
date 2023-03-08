@@ -82,6 +82,10 @@ contract Interaction is Initializable, IDao {
         require(msg.sender == whitelistOperator || wards[msg.sender] == 1, "Interaction/not-operator-or-ward"); 
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     function initialize(
         address vat_,
@@ -91,7 +95,7 @@ contract Interaction is Initializable, IDao {
         address jug_,
         address dog_,
         address rewards_
-    ) public initializer {
+    ) external initializer {
 
         wards[msg.sender] = 1;
 
@@ -167,7 +171,7 @@ contract Interaction is Initializable, IDao {
         emit CollateralDisabled(token, collaterals[token].ilk);
     }
 
-    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+    function stringToBytes32(string memory source) external pure returns (bytes32 result) {
         bytes memory tempEmptyStringTest = bytes(source);
         if (tempEmptyStringTest.length == 0) {
             return 0x0;
@@ -208,22 +212,6 @@ contract Interaction is Initializable, IDao {
         emit Deposit(participant, token, dink, locked(token, participant));
         return dink;
     }
-
-    // function _mul(uint x, int y) internal pure returns (int z) {
-    // unchecked {
-    //     z = int(x) * y;
-    //     require(int(x) >= 0);
-    //     require(y == 0 || z / y == int(x));
-    // }
-    // }
-
-    // function _add(uint x, int y) internal pure returns (uint z) {
-    // unchecked {
-    //     z = x + uint(y);
-    //     require(y >= 0 || z <= x);
-    //     require(y <= 0 || z >= x);
-    // }
-    // }
 
     function borrow(address token, uint256 davosAmount) external returns (uint256) {
         CollateralType memory collateralType = collaterals[token];

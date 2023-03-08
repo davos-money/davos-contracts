@@ -7,8 +7,8 @@ const { poll } = require("ethers/lib/utils");
 async function main() {
 
     // Constant Addresses
-    let davos = "0xEC38621e72D86775a89C7422746de1f52bbA5320",
-    operator = "0x57F9672bA603251C9C03B36cabdBBcA7Ca8Cfcf4",
+    let davos = "0x2C66E8623f304929868804e23600c5dd142143da",
+    operator = "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
     exitDelay = "0", // 0 Days
     spread = "604800", // 7 Days
     flashLoanDelay = "5"; // 5 Seconds

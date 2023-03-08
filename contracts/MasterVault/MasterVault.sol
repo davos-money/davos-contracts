@@ -43,14 +43,18 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
     // ------------
     // --- Mods ---
-    modifier onlyProvider() {
-        require(msg.sender == owner() || msg.sender == provider, "MasterVault/not-provider");
+    modifier onlyOwnerOrProvider() {
+        require(msg.sender == owner() || msg.sender == provider, "MasterVault/not-owner-or-provider");
         _;
     }
     modifier onlyManager() {
         require(manager[msg.sender], "MasterVault/not-manager");
         _;
     }
+    
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
 
     // ------------
     // --- Init ---
@@ -62,7 +66,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _maxWithdrawalFees fees charged in parts per million; 1% = 10000ppm
       * @param _maxStrategies number of maximum strategies
       */
-    function initialize(address _asset, string memory _name, string memory _symbol, uint256 _maxDepositFees, uint256 _maxWithdrawalFees, uint8 _maxStrategies) public initializer {
+    function initialize(address _asset, string memory _name, string memory _symbol, uint256 _maxDepositFees, uint256 _maxWithdrawalFees, uint8 _maxStrategies) external initializer {
         
         require(_maxDepositFees > 0 && _maxDepositFees <= 1e6, "MasterVault/invalid-maxDepositFee");
         require(_maxWithdrawalFees > 0 && _maxWithdrawalFees <= 1e6, "MasterVault/invalid-maxWithdrawalFees");
@@ -87,13 +91,13 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount amount of Matic Token deposit
       * @return shares corresponding MasterVault tokens
       */
-    function depositMatic(uint256 _amount) external override nonReentrant whenNotPaused onlyProvider returns (uint256 shares) {
+    function depositMatic(uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
 
         SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), src, address(this), _amount);
-        shares = _assessFee(shares, depositFee);
+        shares = _assessFee(_amount, depositFee);
 
         uint256 waitingPoolDebt = waitingPool.s_totalDebt();
         uint256 waitingPoolBalance = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
@@ -175,7 +179,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount underlying assets to withdraw
       * @return assets underlying assets excluding any fees
       */
-    function withdrawMatic(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyProvider returns (uint256 assets) {
+    function withdrawMatic(address _account, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
@@ -238,7 +242,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         require(_amount > 0, "MasterVault/invalid-amount");
         require(strategyParams[_strategy].debt >= _amount, "MasterVault/insufficient-assets-in-strategy");
 
-        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw(_recipient, _amount);
+        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, _amount);
         require(value >= _amount, "MasterVault/invalid-value");
         
         totalDebt -= _amount;
@@ -368,11 +372,11 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
     // -------------
     // --- Admin ---
-    /** Sets a new strategy
+    /** Adds a new strategy
       * @param _strategy address of strategy 
       * @param _allocation underlying assets allocation to '_strategy' where 1% = 10000
       */
-    function setStrategy(address _strategy, uint256 _allocation) external onlyOwner {
+    function addStrategy(address _strategy, uint256 _allocation) external onlyOwner {
 
         require(_strategy != address(0));
         require(strategies.length < MAX_STRATEGIES, "MasterVault/strategies-maxed");

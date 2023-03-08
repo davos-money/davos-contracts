@@ -2,98 +2,23 @@
 pragma solidity ^0.8.0;
 
 interface ICerosRouter {
-    /**
-     * Events
-     */
 
-    event Deposit(
-        address indexed account,
-        address indexed token,
-        uint256 amount,
-        uint256 profit
-    );
+    // --- Events ---
+    event Deposit(address indexed _account, address indexed _token, uint256 _amount, uint256 _profit);
+    event Claim(address indexed _recipient, address indexed _token, uint256 _amount);
+    event Withdrawal(address indexed _owner, address indexed _recipient, address indexed _token, uint256 _amount);
+    event ChangeCeVault(address _vault);
+    event ChangeDex(address _dex);
+    event ChangePool(address _pool);
+    event ChangeStrategy(address _strategy);
+    event ChangePairFee(uint256 _fee);
 
-    event Claim(
-        address indexed recipient,
-        address indexed token,
-        uint256 amount
-    );
-
-    event Withdrawal(
-        address indexed owner,
-        address indexed recipient,
-        address indexed token,
-        uint256 amount
-    );
-
-    event ChangeVault(address vault);
-
-    event ChangeDex(address dex);
-
-    event ChangePool(address pool);
-
-    event ChangeDao(address dao);
-
-    event ChangeCeToken(address ceToken);
-
-    event ChangeCeTokenJoin(address ceTokenJoin);
-
-    event ChangeCertToken(address certToken);
-
-    event ChangeCollateralToken(address collateralToken);
-
-    event ChangeProvider(address provider);
-
-    event ChangePairFee(uint256 fee);
-
-    /**
-     * Methods
-     */
-
-    /**
-     * Deposit
-     */
-
-    // in MATIC
-    function deposit(uint256 amount) external returns (uint256);
-
-    /**
-     * Claim
-     */
-
-    // claim in aMATICc
-    function claim(address recipient) external returns (uint256);
-
-    /**
-     * Withdrawal
-     */
-
-    // MATIC
-    // function withdraw(address recipient, uint256 amount)
-    // external
-    // returns (uint256);
-
-    // MATIC
-    function withdrawFor(address recipient, uint256 amount)
-    external
-    returns (uint256);
-
-    // MATIC
-    // function withdrawWithSlippage(
-    //     address recipient,
-    //     uint256 amount,
-    //     uint256 slippage
-    // ) external returns (uint256);
-
-    // aMATICc
-    function withdrawAMATICc(address recipient, uint256 amount)
-    external
-    returns (uint256);
-
-    function getYieldFor(address account) external view returns(uint256);
-
-    function _profits(address account) external view returns(uint256);
-
-    // claim profit in aMATICc
-    function claimProfit(address recipient) external;
+    // --- Functions ---
+    function deposit(uint256 _amount) external returns (uint256);
+    function withdrawAMATICc(address _recipient, uint256 _amount) external returns (uint256);
+    function claim(address _recipient) external returns (uint256);
+    function claimProfit(address _recipient) external;
+    function withdrawFor(address _recipient, uint256 _amount) external payable returns (uint256);   
+    function getYieldFor(address _account) external view returns(uint256);
+    function s_profits(address _account) external view returns(uint256);
 }
