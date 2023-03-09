@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -138,17 +139,17 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         require(strategyParams[_strategy].active, "MasterVault/invalid-strategy");
         require(totalAssetInVault() >= _amount, "MasterVault/insufficient-balance");
 
-        _amount = IBaseStrategy(_strategy).canDeposit(_amount);
-        if(_amount <= 0) return false;
+        (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canDeposit(_amount);
+        if(capacity <= 0 || capacity > _amount || chargedCapacity > capacity) return false;
 
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _strategy, _amount);
-        uint256 value = IBaseStrategy(_strategy).deposit(_amount);
-        if(value > 0) {
-            totalDebt += value;
-            strategyParams[_strategy].debt += value;
-            emit DepositedToStrategy(_strategy, _amount, value);
-            return true;
-        }
+        totalDebt += chargedCapacity;
+        strategyParams[_strategy].debt += chargedCapacity;
+
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _strategy, capacity);
+        IBaseStrategy(_strategy).deposit(capacity);
+        
+        emit DepositedToStrategy(_strategy, _amount, chargedCapacity);
+        return true;
     }
     /** Deposits underlying to active strategies based on allocation points
       * @dev Useful incase of deposits to avoid unnecessary swapFees
@@ -242,14 +243,21 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         require(_amount > 0, "MasterVault/invalid-amount");
         require(strategyParams[_strategy].debt >= _amount, "MasterVault/insufficient-assets-in-strategy");
 
-        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, _amount);
-        require(value >= _amount, "MasterVault/invalid-value");
-        
+        (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canWithdraw(_amount);
+        if(capacity < _amount || chargedCapacity > capacity) return (0, false);
+
         totalDebt -= _amount;
         strategyParams[_strategy].debt -= _amount;
 
-        emit WithdrawnFromStrategy(_strategy, _amount, value);
-        return (value, delayed);
+        uint256 balanceBefore = totalAssetInVault();
+        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, _amount);
+
+        require(value >= chargedCapacity, "MasterVault/preview-withdrawn-mismatch");
+
+        if (!delayed) require((totalAssetInVault() - balanceBefore) >= value, "MasterVault/withdrawn-balanceOf-mismatch");
+        
+        emit WithdrawnFromStrategy(_strategy, _amount, chargedCapacity);
+        return (chargedCapacity, delayed);
     }
     /** Internal -> traverses through all active strategies for withdrawal
       * @param _recipient direct receiver if strategy has unstake time
@@ -518,7 +526,6 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         _unpause();
     }
-
 
     // -------------
     // --- Views ---

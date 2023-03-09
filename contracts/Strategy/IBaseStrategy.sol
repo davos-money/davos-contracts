@@ -13,5 +13,6 @@ interface IBaseStrategy {
     function balanceOfWant() external view returns(uint256);
     function balanceOfPool() external view returns(uint256);
     function setFeeRecipient(address _newFeeRecipient) external;
-    function canDeposit(uint256 _amount) external view returns(uint256 correctAmount);
+    function canDeposit(uint256 _amount) external view returns(uint256 capacity, uint256 chargedCapacity);
+    function canWithdraw(uint256 _amount) external view returns(uint256 capacity, uint256 chargedCapacity);
 }

@@ -24,7 +24,6 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
     // --- Events ---
     event UpdatedStrategist(address indexed strategist);
     event UpdatedFeeRecipient(address indexed feeRecipient);
-    event UpdatedPerformanceFee(uint256 performanceFee);
 
     // --- Init ---
     function __BaseStrategy_init(address _destination, address _feeRecipient, address _underlying) internal onlyInitializing {
@@ -40,9 +39,9 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
     }
 
     // --- Mods ---
-    modifier onlyStrategist() {
+    modifier onlyOwnerOrStrategist() {
 
-        require(msg.sender == strategist);
+        require(msg.sender == owner() || msg.sender == strategist);
         _;
     }
 
@@ -64,12 +63,12 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
     }
 
     // --- Strategist ---
-    function pause() external onlyStrategist {
+    function pause() external onlyOwnerOrStrategist {
 
         _pause();
     }
 
-    function unpause() external onlyStrategist {
+    function unpause() external onlyOwnerOrStrategist {
 
         _unpause();
     }

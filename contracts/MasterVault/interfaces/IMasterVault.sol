@@ -16,8 +16,8 @@ interface IMasterVault {
     event StrategyAdded(address _strategy, uint256 _allocation);
     event StrategyMigrated(address _oldStrategy, address _newStrategy, uint256 _newAllocation);
     event AllocationOnDepositChangeed(uint256 _status);
-    event DepositedToStrategy(address _strategy, uint256 _amount, uint256 _actualAmount);
-    event WithdrawnFromStrategy(address _strategy, uint256 _amount, uint256 _actualAmount);
+    event DepositedToStrategy(address indexed _strategy, uint256 _amount, uint256 _actualAmount);
+    event WithdrawnFromStrategy(address indexed _strategy, uint256 _amount, uint256 _actualAmount);
 
     // --- Functions ---
     function depositMatic(uint256 _amount) external returns (uint256);

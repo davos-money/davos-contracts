@@ -103,7 +103,7 @@ contract CerosYieldConverterStrategy is BaseStrategy {
     // --- Strategist ---
     /** Claims yield from destination in aMATICc and transfers to feeRecipient
       */
-    function harvest() external onlyStrategist {
+    function harvest() external onlyOwnerOrStrategist {
 
         _harvestTo(feeRecipient);
     }
@@ -120,10 +120,26 @@ contract CerosYieldConverterStrategy is BaseStrategy {
     }
 
     // --- Views ---
-    /** Returns the depositable amount based on liquidity
+    /** Returns the depositable capacity and capacity minus fees charged based on liquidity
+      * @param _amount deposit amount to check
+      * @return capacity deposit capacity based on liqudity @dev includes aggregated fees, e.g swap fees
+      * @return chargedCapacity deposit capacity excluding fees @dev (capacity - fees) = chargedCapacity
       */
-    function canDeposit(uint256 _amount) public pure returns(uint256 correctAmount) {
+    function canDeposit(uint256 _amount) external pure override returns(uint256 capacity, uint256 chargedCapacity) {
 
-        correctAmount = _amount;
+        // No strategy fees, thus capacity == chargedCapacity == _amount
+        capacity = _amount;
+        chargedCapacity = _amount;
+    }
+    /** Returns the withdrawable capacity and capacity minus fees charged based on liquidity
+      * @param _amount withdraw amount to check
+      * @return capacity withdraw capacity based on liqudity @dev includes aggregated fees, e.g swap fees
+      * @return chargedCapacity withdraw capacity excluding fees @dev (capacity - fees) = chargedCapacity
+      */
+    function canWithdraw(uint256 _amount) external pure override returns(uint256 capacity, uint256 chargedCapacity) {
+
+        // No strategy fees, thus capacity == chargedCapacity == _amount
+        capacity = _amount;
+        chargedCapacity = _amount;
     }
 }
