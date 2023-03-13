@@ -9,6 +9,8 @@ const {
     toRay,
     advanceTime,
 } = require("./helpers/utils");
+const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+const NULL_ILK = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 describe("Interaction", function () {
 
@@ -23,44 +25,21 @@ describe("Interaction", function () {
     
         [deployer, user1] = await ethers.getSigners();
     
-        const LPFactory = await ethers.getContractFactory("LP");
-        const SwapPoolFactory = await ethers.getContractFactory("SwapPool");
-        const WNativeFactory = await ethers.getContractFactory("WNative");
-        const CerosTokenFactory = await ethers.getContractFactory("CerosToken");
+        const WNativeFactory = await ethers.getContractFactory("Token");
+        const CerosTokenFactory = await ethers.getContractFactory("Token");
     
-        lp = await LPFactory.connect(deployer).deploy();
-        await lp.deployed();
         wNative = await WNativeFactory.connect(deployer).deploy();
         await wNative.deployed();
         cerosToken = await CerosTokenFactory.connect(deployer).deploy();
         await cerosToken.deployed();
     
-        swapPool = await upgrades.deployProxy(
-        SwapPoolFactory,
-        [wNative.address,
-        cerosToken.address,
-        lp.address,
-        false,
-        false],
-        {initializer: "initialize"}
-        );
-        await swapPool.deployed();
+        await wNative.mint(user1.address, mintAmount);
+        await cerosToken.mint(user1.address, mintAmount);
     
-        await wNative.connect(user1).deposit({ value: mintAmount });
-        await cerosToken.connect(user1).mintMe(mintAmount);
-    
-        await wNative.connect(user1).approve(swapPool.address, MaxUint256);
-        await cerosToken.connect(user1).approve(swapPool.address, MaxUint256);
-        
         await cerosToken.setRatio(parseEther("0.6"));
         
-        await swapPool.setFee(100, 3);
-        await swapPool.setFee(100, 4);
-
         // Initialize Contracts
-        await lp.setSwapPool(swapPool.address);
-        await swapPool.connect(user1).addLiquidity(addAmount, addAmount);
-        return [swapPool, wNative, cerosToken];
+        return [wNative, cerosToken];
     } 
 
     const networkSnapshotter = new NetworkSnapshotter();
@@ -97,7 +76,7 @@ describe("Interaction", function () {
         [deployer] = await ethers.getSigners();
         _multisig = deployer.address;
 
-        [swapPool, wMatic, aMaticc] = await deploySwapPool();
+        [wMatic, aMaticc] = await deploySwapPool();
         collateralToken = aMaticc;
 
         _ilkCeMatic = ethers.utils.formatBytes32String("aMATICc");
@@ -121,9 +100,9 @@ describe("Interaction", function () {
         Dog = await hre.ethers.getContractFactory("Dog");
         Clip = await hre.ethers.getContractFactory("Clipper");
         Abacus = await hre.ethers.getContractFactory("LinearDecrease");
-        DgtToken = await hre.ethers.getContractFactory("DgtToken");
-        DgtRewards = await hre.ethers.getContractFactory("DgtRewards");
-        DgtOracle = await hre.ethers.getContractFactory("DgtOracle"); 
+        DgtToken = await hre.ethers.getContractFactory("DGTToken");
+        DgtRewards = await hre.ethers.getContractFactory("DGTRewards");
+        DgtOracle = await hre.ethers.getContractFactory("DGTOracle"); 
         AuctionProxy = await hre.ethers.getContractFactory("AuctionProxy");
 
         const auctionProxy = await this.AuctionProxy.deploy();
@@ -134,13 +113,6 @@ describe("Interaction", function () {
                 AuctionProxy: auctionProxy.address
             }
         });
-
-        MasterVault = await hre.ethers.getContractFactory("MasterVault");
-        WaitingPool = await hre.ethers.getContractFactory("WaitingPool");
-        CerosYieldConverterStrategy = await hre.ethers.getContractFactory("CerosYieldConverterStrategy");
-        PriceGetter = await hre.ethers.getContractFactory("PriceGetter");
-        SwapPool = await ethers.getContractFactory("SwapPool");
-        LP = await ethers.getContractFactory("LP");
 
         dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
         await dMatic.deployed();
@@ -203,7 +175,7 @@ describe("Interaction", function () {
         await interaction.deployed();
         interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-        davosProvider = await upgrades.deployProxy(this.DavosProvider, [dMatic.address, collateralToken.address, interaction.address], {initializer: "initialize"});
+        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, collateralToken.address, interaction.address], {initializer: "initialize"});
         await davosProvider.deployed();
         davosProviderImplementation = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
 
@@ -970,6 +942,20 @@ describe("Interaction", function () {
         it("setRewards(): should let authorized account set core contracts", async function () {
             await interaction.setRewards(signer1.address);
             assert.equal((await interaction.dgtRewards()), signer1.address);
+        });
+        it("rely()/deny(): should rely and deny on an address", async function () {
+            await interaction.rely(signer2.address);
+            expect(await interaction.wards(signer2.address)).to.be.equal(1);
+            await interaction.deny(signer2.address);
+            expect(await interaction.wards(signer2.address)).to.be.equal(0);
+        });
+        it("setCollateralDuty(): should set correct duty rate for collateral", async function () {
+            await setCollateralType();
+            await interaction.setCollateralDuty(aMaticc.address, "1000000003022266000000000000");
+            expect((await jug.ilks(_ilkCeMatic)).duty).to.be.equal("1000000003022266000000000000");
+        });
+        it("revert:: should reverts when new collateral with null ilk is set", async function () {
+            await expect(interaction.setCollateralType(collateralToken.address, gemJoin.address, NULL_ILK, clip.address, _mat)).to.be.revertedWith("Interaction/empty-ilk");
         });
     })
 });

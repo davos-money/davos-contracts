@@ -109,25 +109,32 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         _unpause();
     }
-    function file(bytes32 _what, address _data) external onlyOwner {
+    function changeMatic(address _matic) external onlyOwner {
 
-        require(_data != address(0));
+        s_matic = IERC20Upgradeable(_matic);
+        emit MaticChanged(_matic);
+    }
+    function changeCollateral(address _collateral) external onlyOwner {
 
-        if (_what == "matic") s_matic = IERC20Upgradeable(_data);
-        else if (_what == "collateral") {
-            IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
-            s_collateral = IERC20Upgradeable(_data);
-            IERC20Upgradeable(_data).approve(address(s_interaction), type(uint256).max);
-        }
-        else if (_what == "collateralDerivative") s_collateralDerivative = ICertToken(_data);
-        else if (_what == "masterVault") s_masterVault = IMasterVault(_data);
-        else if (_what == "interaction") {
-            IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
-            s_interaction = IDao(_data);
-            IERC20Upgradeable(_data).approve(address(s_interaction), type(uint256).max);
-        }
-        else revert("DavosProvider/file-unrecognized-param");
+        IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
+        s_collateral = IERC20Upgradeable(_collateral);
+        IERC20Upgradeable(_collateral).approve(address(s_interaction), type(uint256).max);
+        emit CollateralChanged(_collateral);
+    }
+    function changeCollateralDerivative(address _collateralDerivative) external onlyOwner {
 
-        emit File(_what, _data);
+        s_collateralDerivative = ICertToken(_collateralDerivative);
+        emit CollateralDerivativeChanged(_collateralDerivative);
+    }
+    function changeMasterVault(address _masterVault) external onlyOwner {
+
+        s_masterVault = IMasterVault(_masterVault);
+        emit MasterVaultChanged(_masterVault);
+    }
+    function changeInteraction(address _interaction) external onlyOwner {
+        
+        IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
+        s_interaction = IDao(_interaction);
+        IERC20Upgradeable(s_collateral).approve(address(_interaction), type(uint256).max);
     }
 }

@@ -44,22 +44,17 @@ describe('===Jar===', function () {
         this.Jar = await ethers.getContractFactory("Jar");
 
         // Contract deployment
-        davosjoin = await this.DavosJoin.connect(deployer).deploy();
-        await davosjoin.deployed();
-        vat = await this.Vat.connect(deployer).deploy();
+        vat = await upgrades.deployProxy(this.Vat, [], {initializer: "initialize"});
         await vat.deployed();
-        davos = await this.Davos.connect(deployer).deploy();
+        davos = await upgrades.deployProxy(this.Davos, [97, "DAVOS", "10000000" + wad], {initializer: "initialize"});
         await davos.deployed();
-        jar = await this.Jar.connect(deployer).deploy();
+        davosjoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize"});
+        await davosjoin.deployed();
+        jar = await await upgrades.deployProxy(this.Jar, ["StakedDavos", "sDAVOS", davos.address, 10, 0, 5], {initializer: "initialize"});
         await jar.deployed();
 
 
         // Initialize
-        await davosjoin.initialize(vat.address, davos.address);
-        await davos.initialize(97, "DAVOS", "5000" + wad);
-        await jar.initialize("sDavos", "sDAVOS", davos.address, 10, 0, 5);
-        
-        await vat.initialize();
         await vat.init(collateral);
         await vat.rely(davosjoin.address);
         await davos.rely(davosjoin.address);
@@ -115,6 +110,13 @@ describe('===Jar===', function () {
             expect(await jar.live()).to.be.equal("0");
         });
     });   
+    describe('--- uncage()', function () {
+        it('uncages previouly caged', async function () {
+            await jar.cage();
+            await jar.uncage();
+            expect(await jar.live()).to.be.equal(1);
+        });
+    });
     describe('--- rely()', function () {
         it('reverts: Jar/not-authorized', async function () {
             await expect(jar.connect(signer1).rely(signer1.address)).to.be.revertedWith("Jar/not-authorized");
@@ -138,6 +140,12 @@ describe('===Jar===', function () {
     });
 
     describe('---Full Flow', function () {
+        it('reverts: Jar/not-live', async function () {
+            await jar.cage();
+            await expect(jar.connect(signer2).join("100" + wad)).to.be.revertedWith("Jar/not-live");
+            await expect(jar.connect(signer2).exit("100" + wad)).to.be.revertedWith("Jar/not-live");
+            await expect(jar.connect(signer2).redeemBatch([signer1.address])).to.be.revertedWith("Jar/not-live");
+        });
         it('checks join/exit flow', async function () {
 
             await network.provider.send("evm_setAutomine", [false]);
@@ -198,6 +206,7 @@ describe('===Jar===', function () {
                 await jar.connect(deployer).replenish("10" + wad, true);
 
                 await jar.connect(signer2).exit("50" + wad);
+                await jar.connect(signer2).exit("0" + wad);
 
                 await network.provider.send("evm_mine"); // 0th
 

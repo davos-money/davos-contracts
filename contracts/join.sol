@@ -143,6 +143,10 @@ contract DavosJoin is Initializable, DavosJoinLike {
     event Cage();
     event Uncage();
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
+    
     // --- Init ---
     function initialize(address vat_, address davos_) external initializer {
         wards[msg.sender] = 1;

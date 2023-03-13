@@ -23,58 +23,43 @@ describe('===Vow===', function () {
         this.Davos = await ethers.getContractFactory("Davos");
 
         // Contract deployment
-        vow = await this.Vow.connect(deployer).deploy();
-        await vow.deployed();
-        vat = await this.Vat.connect(deployer).deploy();
+        vat = await upgrades.deployProxy(this.Vat, [], {initializer: "initialize"});
         await vat.deployed();
-        davosJoin = await this.DavosJoin.connect(deployer).deploy();
-        await davosJoin.deployed();
-        davos = await this.Davos.connect(deployer).deploy();
+        davos = await upgrades.deployProxy(this.Davos, ["97", "DAVOS", "100" + wad], {initializer: "initialize"});
         await davos.deployed();
+        davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize"});
+        await davosJoin.deployed();
+        vow = await upgrades.deployProxy(this.Vow, [vat.address, davosJoin.address, deployer.address], {initializer: "initialize"});
+        await vow.deployed();
     });
 
     describe('--- initialize()', function () {
         it('initialize', async function () {
-            expect(await vow.live()).to.be.equal("0");
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             expect(await vow.live()).to.be.equal("1");
         });
     });
     describe('--- rely()', function () {
         it('reverts: Vow/not-authorized', async function () {
+            await vow.deny(deployer.address);
             await expect(vow.rely(signer1.address)).to.be.revertedWith("Vow/not-authorized");
             expect(await vow.wards(signer1.address)).to.be.equal("0");
         });
         it('reverts: Vow/not-live', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.cage();
             await expect(vow.rely(signer1.address)).to.be.revertedWith("Vow/not-live");
             expect(await vow.wards(signer1.address)).to.be.equal("0");
         });
         it('relies on address', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.rely(signer1.address);
             expect(await vow.wards(signer1.address)).to.be.equal("1");
         });
     });
     describe('--- deny()', function () {
         it('reverts: Vow/not-authorized', async function () {
+            await vow.deny(deployer.address);
             await expect(vow.deny(signer1.address)).to.be.revertedWith("Vow/not-authorized");
         });
         it('denies an address', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.rely(signer1.address);
             expect(await vow.wards(signer1.address)).to.be.equal("1");
             await vow.deny(signer1.address);
@@ -83,83 +68,47 @@ describe('===Vow===', function () {
     });
     describe('--- file(2a)', function () {
         it('reverts: Vow/not-authorized', async function () {
+            await vow.deny(deployer.address);
             await expect(vow.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("humpy"), "100" + rad)).to.be.revertedWith("Vow/not-authorized");
         });
         it('reverts: Vow/file-unrecognized-param', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await expect(vow.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("humpy"), "100" + rad)).to.be.revertedWith("Vow/file-unrecognized-param");
         });
         it('sets hump', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("hump"), "100" + rad);
             expect(await vow.hump()).to.be.equal("100" + rad);
         });
     });
     describe('--- file(2b)', function () {
         it('reverts: Vow/not-authorized', async function () {
+            await vow.deny(deployer.address);
             await expect(vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("new"), deployer.address)).to.be.revertedWith("Vow/not-authorized");
         });
         it('reverts: Vow/file-unrecognized-param', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await expect(vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("new"), deployer.address)).to.be.revertedWith("Vow/file-unrecognized-param");
         });
         it('sets multisig', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("multisig"), signer1.address);
             expect(await vow.multisig()).to.be.equal(signer1.address);
         });
         it('sets davosJoin', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("davosjoin"), davosJoin.address);
             expect(await vow.davosJoin()).to.be.equal(davosJoin.address);
         });
         it('sets davos', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("davos"), davos.address);
             expect(await vow.davos()).to.be.equal(davos.address);
         });
         it('sets vat', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
             await vow.connect(deployer)["file(bytes32,address)"](await ethers.utils.formatBytes32String("vat"), vat.address);
             expect(await vow.vat()).to.be.equal(vat.address);
         });
     });
     describe('--- heal()', function () {
         it('reverts: Vow/insufficient-surplus', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
             await expect(vow.heal("1" + rad)).to.be.revertedWith("Vow/insufficient-surplus");
         });
         it('reverts: Vow/insufficient-debt', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
             await vat.init(collateral);
             await vat.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("Line"), "200" + rad);
             await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](collateral, await ethers.utils.formatBytes32String("line"), "200" + rad);  
@@ -171,12 +120,7 @@ describe('===Vow===', function () {
 
             await expect(vow.heal("1" + rad)).to.be.revertedWith("Vow/insufficient-debt");
         });
-        it('reverts: Vow/not-authorized', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
+        it('heals vat contract', async function () {
             await vat.init(collateral);
             await vat.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("Line"), "200" + rad);
             await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](collateral, await ethers.utils.formatBytes32String("line"), "200" + rad);  
@@ -197,11 +141,6 @@ describe('===Vow===', function () {
     });
     describe('--- feed()', function () {
         it('feeds surplus davos to vow', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
             await vat.init(collateral);
             await vat.rely(vow.address);
             await vat.rely(davosJoin.address);
@@ -227,11 +166,6 @@ describe('===Vow===', function () {
     });
     describe('--- flap()', function () {
         it('reverts: Vow/insufficient-surplus', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
             await vat.init(collateral);
             await vat.rely(vow.address);
             await vat.rely(davosJoin.address);
@@ -250,11 +184,6 @@ describe('===Vow===', function () {
             await expect(vow.flap()).to.be.revertedWith("Vow/insufficient-surplus");
         });
         it('flaps davos to multisig', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-
             await vat.init(collateral);
             await vat.rely(vow.address);
             await vat.rely(davosJoin.address);
@@ -276,13 +205,15 @@ describe('===Vow===', function () {
     });
     describe('--- cage()', function () {
         it('reverts: Vow/not-live', async function () {
-            await vat.initialize();
-            await davos.initialize("97", "DAVOS", "100" + wad);
-            await davosJoin.initialize(vat.address, davos.address);
-            await vow.initialize(vat.address, davosJoin.address, deployer.address);
-            
             await vow.cage();
             await expect(vow.cage()).to.be.revertedWith("Vow/not-live");
+        });
+    });
+    describe('--- uncage()', function () {
+        it('uncages previouly caged', async function () {
+            await vow.cage();
+            await vow.uncage();
+            await expect(vow.uncage()).to.be.revertedWith("Vow/live");
         });
     });
 });

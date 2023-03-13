@@ -34,8 +34,8 @@
     "_clip_tip": "10",
     "_clip_stopped": "0",
     
-    "_multisig": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
-    "_whitelistOperator" : "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+    "_multisig": "",
+    "_whitelistOperator" : "",
     "_earnOperator" : "",
     
     "_polygonPool": "0xAf2FdE2a233bc2E7B0B8Fa6066aD2df980B6fa67"

@@ -15,7 +15,7 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _cerosStrategyAllocatoin, _mat, _vat_Line, _vat_line, _vat_dust, _spot_par, _jug_base, _dog_Hole, _dog_hole, _dog_chop, _abacus_tau, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _whitelistOperator} = require(`./${hre.network.name}_config.json`);
+    let { _cerosStrategyAllocatoin, _mat, _vat_Line, _vat_line, _vat_dust, _spot_par, _jug_base, _dog_Hole, _dog_hole, _dog_chop, _abacus_tau, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _whitelistOperator, _earnOperator} = require(`./config_${hre.network.name}.json`);
     let _ilkCeMatic = ethers.utils.formatBytes32String("ceMATIC");
 
     // Addresses
@@ -59,13 +59,13 @@ async function main() {
     // Initialization
     console.log("Ceros init...");
     await ceaMATICc.changeVault(ceVault.address, {nonce: _nonce}); _nonce += 1;
-    await ceVault.changeRouter(cerosRouter.address, {nonce: _nonce}); _nonce += 1;
+    await ceVault.changeCerosRouter(cerosRouter.address, {nonce: _nonce}); _nonce += 1;
     await dMatic.changeMinter(davosProvider.address, {nonce: _nonce}); _nonce += 1;
     await cerosRouter.changeStrategy(cerosYieldConverterStrategy.address, {nonce: _nonce}); _nonce += 1;
 
     console.log("MasterVault init...");
     await masterVault.setWaitingPool(waitingPool.address, {nonce: _nonce}); _nonce += 1;
-    await masterVault.setStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, {nonce: _nonce}); _nonce += 1;
+    await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, {nonce: _nonce}); _nonce += 1;
     await masterVault.changeProvider(davosProvider.address, {nonce: _nonce}); _nonce += 1;
 
     console.log("Oracle init...") // Set Price

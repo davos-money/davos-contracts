@@ -51,7 +51,7 @@ async function main() {
         _masterVaultImp : masterVaultImp,
         _waitingPool    : waitingPool.address,
         _waitingPoolImp : waitingPoolImp,
-        _cerosYieldStr  : cerosYieldConverterStrategy.address,
+        _cerosYieldConverterStrategy  : cerosYieldConverterStrategy.address,
         _cerosYieldConverterStrategyImp  : cerosYieldConverterStrategyImp,
         _initialNonce   : initialNonce
     }

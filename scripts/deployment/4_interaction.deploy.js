@@ -41,7 +41,7 @@ async function main() {
     // Deployment
     console.log("Interaction...");
 
-    let rewards = await upgrades.deployProxy(this.DgtRewards, [vat.address, ether(_dgtRewardsPoolLimitInEth).toString(), "5"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let rewards = await upgrades.deployProxy(this.DgtRewards, [_vat, ether(_dgtRewardsPoolLimitInEth).toString(), "5"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await rewards.deployed();
     rewardsImp = await upgrades.erc1967.getImplementationAddress(rewards.address);
     console.log("Rewards         :", rewards.address);

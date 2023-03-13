@@ -6,7 +6,11 @@ interface IDavosProvider {
     // --- Events ---
     event Deposit(address indexed _account, uint256 _amount);
     event Withdrawal(address indexed _owner, address indexed _recipient, uint256 _amount);
-    event File(bytes32 _what, address _data);
+    event MaticChanged(address _matic);
+    event CollateralChanged(address _collateral);
+    event CollateralDerivativeChanged(address _collateralDerivative);
+    event MasterVaultChanged(address _masterVault);
+    event InteractionChanged(address _interaction);
 
     // --- Functions ---
     function provide(uint256 _amount) external returns (uint256);
