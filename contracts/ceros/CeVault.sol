@@ -4,6 +4,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/ICeVault.sol";
@@ -11,6 +12,9 @@ import "./interfaces/ICeVault.sol";
 import "./interfaces/ICertToken.sol";
 
 contract CeVault is ICeVault, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+
+    // --- Wrapper ---
+    using SafeMathUpgradeable for uint256;
 
     // --- Vars ---
     string public s_name;
@@ -70,7 +74,7 @@ contract CeVault is ICeVault, OwnableUpgradeable, PausableUpgradeable, Reentranc
     function _withdraw(address _owner, address _recipient, uint256 _amount) private returns (uint256) {
 
         uint256 ratio = s_aMATICc.ratio();
-        uint256 realAmount = (_amount * ratio) / 1e18;
+        uint256 realAmount = safeCeilMultiplyAndDivide(_amount, ratio, 1e18);
         require(s_aMATICc.balanceOf(address(this)) >= realAmount, "CeVault/insufficient-aMATICc");
 
         uint256 balance = s_ceTokenBalances[_owner];
@@ -99,6 +103,24 @@ contract CeVault is ICeVault, OwnableUpgradeable, PausableUpgradeable, Reentranc
 
         emit Claimed(_owner, _recipient, availableYields);
         return availableYields;
+    }
+
+    // --- Internal ---
+    function safeCeilMultiplyAndDivide(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
+
+        // Ceil (a * b / c)
+        uint256 remainder = a.mod(c);
+        uint256 result = a.div(c);
+        bool safe;
+        (safe, result) = result.tryMul(b);
+        if (!safe) {
+            return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        }
+        (safe, result) = result.tryAdd(remainder.mul(b).add(c.sub(1)).div(c));
+        if (!safe) {
+            return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        }
+        return result;
     }
 
     // --- Admin ---

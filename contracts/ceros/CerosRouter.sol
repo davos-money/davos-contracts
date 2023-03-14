@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/ICerosRouter.sol";
@@ -17,6 +18,9 @@ import "./interfaces/IPriceGetter.sol";
 
 contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     
+    // --- Wrapper ---
+    using SafeMathUpgradeable for uint256;
+
     // --- Vars ---
     ICeVault public s_ceVault;
     ISwapRouter public s_dex;
@@ -77,7 +81,7 @@ contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, R
 
         // Minimum acceptable amount
         uint256 ratio = s_aMATICc.ratio();
-        uint256 minAmount = (_amount * ratio) / 1e18;
+        uint256 minAmount = safeCeilMultiplyAndDivide(_amount, ratio, 1e18);
 
         // From PolygonPool
         uint256 poolAmount = _amount >= s_pool.getMinimumStake() ? minAmount : 0;
@@ -155,6 +159,24 @@ contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, R
 
         emit Withdrawal(msg.sender, _recipient, address(s_maticToken), realAmount);
         return realAmount;
+    }
+
+    // --- Internal ---
+    function safeCeilMultiplyAndDivide(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
+
+        // Ceil (a * b / c)
+        uint256 remainder = a.mod(c);
+        uint256 result = a.div(c);
+        bool safe;
+        (safe, result) = result.tryMul(b);
+        if (!safe) {
+            return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        }
+        (safe, result) = result.tryAdd(remainder.mul(b).add(c.sub(1)).div(c));
+        if (!safe) {
+            return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        }
+        return result;
     }
 
     // --- Admin ---
