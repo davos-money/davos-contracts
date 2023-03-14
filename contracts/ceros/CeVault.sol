@@ -57,7 +57,7 @@ contract CeVault is ICeVault, OwnableUpgradeable, PausableUpgradeable, Reentranc
 
         s_aMATICc.transferFrom(msg.sender, address(this), _amount);
         uint256 ratio = s_aMATICc.ratio();
-        uint256 toMint = (_amount * 1e18) / ratio;
+        uint256 toMint = safeCeilMultiplyAndDivide(_amount, 1e18, ratio);
 
         s_depositors[_account] += _amount;
         s_ceTokenBalances[_account] += toMint;
