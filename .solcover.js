@@ -2,6 +2,9 @@ module.exports = {
     skipFiles: [
         "interfaces",
         "ceros/interfaces",
+        "ceros/dMATIC.sol",
+        "ceros/NonTransferableERC20.sol",
+        "ceros/CeToken.sol",
         "MasterVault/interfaces",
         "mock",
         "uniswapv3PriceGetter",
@@ -11,5 +14,7 @@ module.exports = {
         "oracle/PriceOracle.sol",
         "oracle/PriceOracleTestnet.sol",
         "oracle/SlidingWindowOracle.sol",
-    ],
+        "swapPool/mocks",
+        "swapPool/interfaces"
+    ]
 };

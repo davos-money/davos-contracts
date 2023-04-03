@@ -5,30 +5,34 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IDavosProvider.sol";
 
 import "./interfaces/ICertToken.sol";
-import "../MasterVault/interfaces/IMasterVault.sol";
-import "./interfaces/IDao.sol";
+import "../masterVault/interfaces/IMasterVault.sol";
+import "./interfaces/IInteraction.sol";
+import "./interfaces/IWrapped.sol";
 
+// --- Wrapping adaptor with instances per Underlying for MasterVault ---
 contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
-    // --- Wrapper ---
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    // --- Wrapper --- 'PLACEHOLDER_' slot unused
+    using SafeERC20Upgradeable for IWrapped;
 
     // --- Vars ---
-    IERC20Upgradeable public s_matic;          // ERC20 Matic
-    IERC20Upgradeable public s_collateral;     // ceToken in MasterVault
-    ICertToken public s_collateralDerivative;  // dMATIC
-    IMasterVault public s_masterVault;
-    IDao public s_interaction;
+    IERC20Upgradeable public collateral;     // ceToken in MasterVault
+    ICertToken public collateralDerivative;
+    IMasterVault public masterVault;
+    IInteraction public interaction;
+    address public PLACEHOLDER_1;
+    IWrapped public underlying;              // isNative then Wrapped, else ERC20
+    bool public isNative;
 
     // --- Mods ---
     modifier onlyOwnerOrInteraction() {
-        require(msg.sender == owner() || msg.sender == address(s_interaction), "DavosProvider/not-interaction-or-owner");
+
+        require(msg.sender == owner() || msg.sender == address(interaction), "DavosProvider/not-interaction-or-owner");
         _;
     }
     
@@ -37,29 +41,37 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     constructor() { _disableInitializers(); }
     
     // --- Init ---
-    function initialize(address _matic, address _collateralDerivative, address _masterVault, address _interaction) external initializer {
+    function initialize(address _underlying, address _collateralDerivative, address _masterVault, address _interaction, bool _isNative) external initializer {
 
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
 
-        s_matic = IERC20Upgradeable(_matic);
-        s_collateral = IERC20Upgradeable(_masterVault);
-        s_collateralDerivative = ICertToken(_collateralDerivative);
-        s_masterVault = IMasterVault(_masterVault);
-        s_interaction = IDao(_interaction);
+        underlying = IWrapped(_underlying);
+        collateral = IERC20Upgradeable(_masterVault);
+        collateralDerivative = ICertToken(_collateralDerivative);
+        masterVault = IMasterVault(_masterVault);
+        interaction = IInteraction(_interaction);
+        isNative = _isNative;
 
-        IERC20Upgradeable(s_matic).approve(_masterVault, type(uint256).max);
-        IERC20Upgradeable(s_collateral).approve(_interaction, type(uint256).max);
+        IERC20Upgradeable(underlying).approve(_masterVault, type(uint256).max);
+        IERC20Upgradeable(collateral).approve(_interaction, type(uint256).max);
     }
     
     // --- User ---
-    function provide(uint256 _amount) external override whenNotPaused nonReentrant returns (uint256 value) {
+    function provide(uint256 _amount) external payable override whenNotPaused nonReentrant returns (uint256 value) {
 
-        s_matic.safeTransferFrom(msg.sender, address(this), _amount);
-        value = s_masterVault.depositMatic(_amount);
+        if(isNative) {
+            require(msg.value >= _amount, "DavosProvider/native-less-than-amount");
+            uint256 fees = msg.value - _amount;
+            IWrapped(underlying).deposit{value: _amount}();
+            value = masterVault.depositUnderlying{value: fees}(_amount);
+        } else {
+            underlying.safeTransferFrom(msg.sender, address(this), _amount);
+            value = masterVault.depositUnderlying{value: msg.value}(_amount);
+        }
+
         value = _provideCollateral(msg.sender, value);
-
         emit Deposit(msg.sender, value);
         return value;
     }
@@ -67,7 +79,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         require(_recipient != address(0));
         realAmount = _withdrawCollateral(msg.sender, _amount);
-        realAmount = s_masterVault.withdrawMatic{value: msg.value}(_recipient, realAmount);
+        realAmount = masterVault.withdrawUnderlying{value: msg.value}(_recipient, realAmount);
 
         emit Withdrawal(msg.sender, _recipient, realAmount);
         return realAmount;
@@ -77,27 +89,27 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     function liquidation(address _recipient, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
 
         require(_recipient != address(0));
-        s_masterVault.withdrawMatic(_recipient, _amount);
+        masterVault.withdrawUnderlying(_recipient, _amount);
     }
     function daoBurn(address _account, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
 
         require(_account != address(0));
-        s_collateralDerivative.burn(_account, _amount);
+        collateralDerivative.burn(_account, _amount);
     }
     function daoMint(address _account, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
 
         require(_account != address(0));
-        s_collateralDerivative.mint(_account, _amount);
+        collateralDerivative.mint(_account, _amount);
     }
     function _provideCollateral(address _account, uint256 _amount) internal returns (uint256 deposited) {
 
-        deposited = s_interaction.deposit(_account, address(s_collateral), _amount);
-        s_collateralDerivative.mint(_account, deposited);
+        deposited = interaction.deposit(_account, address(collateral), _amount);
+        collateralDerivative.mint(_account, deposited);
     }
     function _withdrawCollateral(address _account, uint256 _amount) internal returns (uint256 withdrawn) {
         
-        withdrawn = s_interaction.withdraw(_account, address(s_collateral), _amount);
-        s_collateralDerivative.burn(_account, withdrawn);
+        withdrawn = interaction.withdraw(_account, address(collateral), _amount);
+        collateralDerivative.burn(_account, withdrawn);
     }
 
     // --- Admin ---
@@ -109,32 +121,46 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         _unpause();
     }
-    function changeMatic(address _matic) external onlyOwner {
-
-        s_matic = IERC20Upgradeable(_matic);
-        emit MaticChanged(_matic);
-    }
     function changeCollateral(address _collateral) external onlyOwner {
 
-        IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
-        s_collateral = IERC20Upgradeable(_collateral);
-        IERC20Upgradeable(_collateral).approve(address(s_interaction), type(uint256).max);
+        if(address(collateral) != address(0)) 
+            IERC20Upgradeable(collateral).approve(address(interaction), 0);
+        collateral = IERC20Upgradeable(_collateral);
+        IERC20Upgradeable(_collateral).approve(address(interaction), type(uint256).max);
         emit CollateralChanged(_collateral);
     }
     function changeCollateralDerivative(address _collateralDerivative) external onlyOwner {
 
-        s_collateralDerivative = ICertToken(_collateralDerivative);
+        collateralDerivative = ICertToken(_collateralDerivative);
         emit CollateralDerivativeChanged(_collateralDerivative);
     }
     function changeMasterVault(address _masterVault) external onlyOwner {
 
-        s_masterVault = IMasterVault(_masterVault);
+        if(address(underlying) != address(0)) 
+            IERC20Upgradeable(underlying).approve(address(masterVault), 0);
+        masterVault = IMasterVault(_masterVault);
+        IERC20Upgradeable(underlying).approve(address(_masterVault), type(uint256).max);
         emit MasterVaultChanged(_masterVault);
     }
     function changeInteraction(address _interaction) external onlyOwner {
         
-        IERC20Upgradeable(s_collateral).approve(address(s_interaction), 0);
-        s_interaction = IDao(_interaction);
-        IERC20Upgradeable(s_collateral).approve(address(_interaction), type(uint256).max);
+        if(address(collateral) != address(0)) 
+            IERC20Upgradeable(collateral).approve(address(interaction), 0);
+        interaction = IInteraction(_interaction);
+        IERC20Upgradeable(collateral).approve(address(_interaction), type(uint256).max);
+        emit InteractionChanged(_interaction);
+    }
+    function changeUnderlying(address _underlying) external onlyOwner {
+
+        if(address(underlying) != address(0)) 
+            IERC20Upgradeable(underlying).approve(address(masterVault), 0);
+        underlying = IWrapped(_underlying);
+        IERC20Upgradeable(_underlying).approve(address(masterVault), type(uint256).max);
+        emit UnderlyingChanged(_underlying);
+    }
+    function changeNativeStatus(bool _isNative) external onlyOwner {
+
+        isNative = _isNative;
+        emit NativeStatusChanged(_isNative);
     }
 }

@@ -10,7 +10,7 @@ struct CollateralType {
     address clip;
 }
 
-interface IDao {
+interface IInteraction {
 
     event Deposit(address indexed user, address collateral, uint256 amount, uint256 totalAmount);
     event Borrow(address indexed user, address collateral, uint256 collateralAmount, uint256 amount, uint256 liquidationPrice);

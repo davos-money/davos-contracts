@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
@@ -9,7 +8,7 @@ import "./interfaces/IWaitingPool.sol";
 
 import "./interfaces/IMasterVault.sol";
 
-contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable {
+contract WaitingPool is IWaitingPool, Initializable {
 
     // --- Wrapper ---
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -17,17 +16,20 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
     // --- Vars ---
     struct Person {
         address _address;
-        bool _settled;
         uint256 _debt;
+        bool _settled;
     }
 
-    IMasterVault public s_masterVault;
-    address public s_maticToken;
+    IMasterVault public masterVault;
+    Person[] public people;
+    uint256 public index;
+    uint256 public totalDebt;
+    uint256 public capLimit;
+    
+    bool public lock;
 
-    Person[] public s_people;
-    uint256 public s_index;
-    uint256 public s_totalDebt;
-    uint256 public s_capLimit;
+    address public underlying;
+
 
     // --- Events ---
     event WithdrawPending(address user, uint256 amount);
@@ -36,7 +38,7 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
     // --- Mods ---
     modifier onlyMasterVault() {
 
-        require(msg.sender == address(s_masterVault));
+        require(msg.sender == address(masterVault));
         _;
     }
     
@@ -47,18 +49,16 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
     // --- Init ---
     /** Initializer for upgradeability
       * @param _masterVault masterVault contract
-      * @param _maticToken ERC20 matic
+      * @param _underlyingToken ERC20 underlying
       * @param _capLimit number of indices to be payed in one call
       */
-    function initialize(address _masterVault, address _maticToken, uint256 _capLimit) external initializer {
+    function initialize(address _masterVault, address _underlyingToken, uint256 _capLimit) external initializer {
 
         require(_capLimit > 0, "WaitingPool/invalid-cap");
 
-        __ReentrancyGuard_init();
-
-        s_masterVault = IMasterVault(_masterVault);
-        s_maticToken = _maticToken;
-        s_capLimit = _capLimit;
+        masterVault = IMasterVault(_masterVault);
+        underlying = _underlyingToken;
+        capLimit = _capLimit;
     }
 
     // --- MasterVault ---
@@ -70,8 +70,8 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
 
         if(_debt != 0) {
             Person memory p = Person({_address: _person, _settled: false, _debt: _debt});
-            s_totalDebt += _debt;
-            s_people.push(p);
+            totalDebt += _debt;
+            people.push(p);
 
             emit WithdrawPending(_person, _debt);
         }
@@ -82,19 +82,19 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
 
         uint256 balance;
         uint256 cap = 0;
-        for(uint256 i = s_index; i < s_people.length; i++) {
+        for(uint256 i = index; i < people.length; i++) {
             balance = getPoolBalance();
-            uint256 userDebt = s_people[s_index]._debt;
-            address userAddr = s_people[s_index]._address;
-            if(balance >= userDebt && userDebt != 0 && !s_people[s_index]._settled && cap < s_capLimit) {
-                s_totalDebt -= userDebt;
-                s_people[s_index]._settled = true;
+            uint256 userDebt = people[index]._debt;
+            address userAddr = people[index]._address;
+            if(balance >= userDebt && userDebt != 0 && !people[index]._settled && cap < capLimit) {
+                totalDebt -= userDebt;
+                people[index]._settled = true;
                 emit WithdrawCompleted(userAddr, userDebt);
 
                 cap++;
-                s_index++;
+                index++;
 
-                IERC20Upgradeable(s_maticToken).safeTransfer(userAddr, userDebt);
+                IERC20Upgradeable(underlying).safeTransfer(userAddr, userDebt);
             } else return;
         }
     }
@@ -105,28 +105,35 @@ contract WaitingPool is IWaitingPool, Initializable, ReentrancyGuardUpgradeable 
 
         require(_capLimit != 0, "WaitingPool/invalid-cap");
         
-        s_capLimit = _capLimit;
+        capLimit = _capLimit;
     }
 
     // --- User ---
     /** Users can manually withdraw their funds if they were not transferred in tryRemove()
       */
-    function withdrawUnsettled(uint256 _index) external nonReentrant {
+    function withdrawUnsettled(uint256 _index) external {
+        require(!lock, "reentrancy");
+        lock = true;
 
         address src = msg.sender;
-        require(!s_people[_index]._settled && _index < s_index && s_people[_index]._address == src, "WaitingPool/already-settled");
+        require(!people[_index]._settled && _index < index && people[_index]._address == src, "WaitingPool/already-settled");
 
-        uint256 withdrawAmount = s_people[_index]._debt;
-        s_totalDebt -= withdrawAmount;
-        s_people[_index]._settled = true;
+        uint256 withdrawAmount = people[_index]._debt;
+        totalDebt -= withdrawAmount;
+        people[_index]._settled = true;
 
-        IERC20Upgradeable(s_maticToken).safeTransfer(src, withdrawAmount);
+        IERC20Upgradeable(underlying).safeTransfer(src, withdrawAmount);
+        lock = false;
         emit WithdrawCompleted(src, withdrawAmount);
     }
 
     // --- Views ---
     function getPoolBalance() public view returns(uint256) {
 
-        return IERC20Upgradeable(s_maticToken).balanceOf(address(this));
+        return IERC20Upgradeable(underlying).balanceOf(address(this));
+    }
+    function getUnbackedDebt() external view returns(uint256) {
+
+        return IERC20Upgradeable(underlying).balanceOf(address(this)) < totalDebt ? totalDebt - getPoolBalance() : 0;
     }
 }

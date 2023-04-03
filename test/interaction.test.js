@@ -87,7 +87,7 @@ describe("Interaction", function () {
         AMATICb = await hre.ethers.getContractFactory("aMATICb");
         AMATICc = await hre.ethers.getContractFactory("aMATICc");
         DMatic = await hre.ethers.getContractFactory("dMATIC");
-        CerosRouter = await hre.ethers.getContractFactory("CerosRouter");
+        CerosRouter = await hre.ethers.getContractFactory("CerosRouterLS");
         DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
         Vat = await hre.ethers.getContractFactory("Vat");
         Spot = await hre.ethers.getContractFactory("Spotter");
@@ -175,7 +175,7 @@ describe("Interaction", function () {
         await interaction.deployed();
         interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, collateralToken.address, interaction.address], {initializer: "initialize"});
+        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, collateralToken.address, interaction.address, false], {initializer: "initialize"});
         await davosProvider.deployed();
         davosProviderImplementation = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
 
@@ -277,6 +277,13 @@ describe("Interaction", function () {
             await setCollateralType();
             const depositAmount = parseEther("1");
             await aMaticc.connect(signer1).approve(interaction.address, ethers.constants.MaxUint256);
+            
+            await expect(interaction.connect(signer1).deposit(
+                signer1.address,
+                aMaticc.address,
+                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            )).to.be.revertedWith("Interaction/too-much-requested");
+
             await expect(
             tx = await interaction.connect(signer1).deposit(
                 signer1.address,
@@ -286,6 +293,10 @@ describe("Interaction", function () {
             .withArgs(signer1.address, collateralToken.address, depositAmount, depositAmount);
             const deposits = await interaction.deposits(aMaticc.address);
             expect(deposits.eq(depositAmount));
+        });
+
+        it("reverts: borrow 0 amount", async function () {
+            await expect(interaction.borrow(aMaticc.address, 0)).to.be.revertedWith("Interaction/inactive-collateral");
         });
 
         it("revert:: deposit(): only whitelisted account can deposit", async function () {
@@ -391,6 +402,7 @@ describe("Interaction", function () {
             await setCollateralType();
             const depositAmount = parseEther("1000");
             await aMaticc.connect(signer1).approve(interaction.address, ethers.constants.MaxUint256)
+            await expect(interaction.borrow(aMaticc.address, 0)).to.be.revertedWith("Interaction/invalid-davosAmount");
             await expect(
                 interaction.connect(signer1).deposit(
                 signer1.address,
@@ -554,6 +566,7 @@ describe("Interaction", function () {
             await aMaticc.connect(signer1).approve(interaction.address, ethers.constants.MaxUint256);
             await davos.connect(signer1).approve(interaction.address, ethers.constants.MaxUint256);
 
+
             await expect(
                 interaction.connect(signer1).deposit(
                 signer1.address,
@@ -582,6 +595,10 @@ describe("Interaction", function () {
             assert.equal(availableToBorrowAfter, availableToBorrowBefore - borrowAmount);
 
             const paybackAmount = (await interaction.borrowed(collateralToken.address, signer1.address)).sub(parseEther("100")).sub("100");
+            await expect(interaction.connect(signer1).payback(
+                aMaticc.address,
+                0
+            )).to.be.revertedWith("Interaction/invalid-davosAmount");
             await expect(
                 interaction.connect(signer1).payback(
                 aMaticc.address,
@@ -956,6 +973,13 @@ describe("Interaction", function () {
         });
         it("revert:: should reverts when new collateral with null ilk is set", async function () {
             await expect(interaction.setCollateralType(collateralToken.address, gemJoin.address, NULL_ILK, clip.address, _mat)).to.be.revertedWith("Interaction/empty-ilk");
+        });
+        it("deposit while whitelist mode is enabled", async function () {
+            await interaction.enableWhitelist();
+            await expect(interaction.deposit(deployer.address, aMaticc.address, "1")).to.be.revertedWith("Interaction/not-in-whitelist");
+        });
+        it("reverts: 0 davos provider address", async function () {
+            await expect(interaction.setDavosProvider(aMaticc.address, NULL_ADDRESS)).to.be.revertedWith("");
         });
     })
 });

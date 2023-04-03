@@ -16,7 +16,7 @@ import "./interfaces/PipLike.sol";
 import "./interfaces/SpotLike.sol";
 import "./interfaces/IRewards.sol";
 import "./ceros/interfaces/IDavosProvider.sol";
-import "./ceros/interfaces/IDao.sol";
+import "./ceros/interfaces/IInteraction.sol";
 
 import "./libraries/AuctionProxy.sol";
 
@@ -25,7 +25,7 @@ uint256 constant WAD = 10 ** 18;
 uint256 constant RAD = 10 ** 45;
 uint256 constant YEAR = 31556952; //seconds in year (365.2425 * 24 * 3600)
 
-contract Interaction is Initializable, IDao {
+contract Interaction is Initializable, IInteraction {
 
     mapping(address => uint) public wards;
 

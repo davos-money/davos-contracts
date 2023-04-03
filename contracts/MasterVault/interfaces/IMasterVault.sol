@@ -3,6 +3,19 @@ pragma solidity ^0.8.0;
 
 interface IMasterVault {
 
+    // --- Vars ---
+    struct StrategyParams {
+      bool active;
+      Type class;
+      uint256 allocation;
+      uint256 debt;
+    }
+    enum Type {
+      IMMEDIATE,  // Strategy with no unstake delay
+      DELAYED,    // Strategy having unstake delay
+      ABSTRACT    // Strategy agnostic or Type Any
+    }
+
     // --- Events ---
     event DepositFeeChanged(uint256 _newDepositFee);
     event WithdrawalFeeChanged(uint256 _newWithdrawalFee);
@@ -20,9 +33,9 @@ interface IMasterVault {
     event WithdrawnFromStrategy(address indexed _strategy, uint256 _amount, uint256 _actualAmount);
 
     // --- Functions ---
-    function depositMatic(uint256 _amount) external returns (uint256);
-    function withdrawMatic(address _account, uint256 _amount) external payable returns (uint256);
+    function depositUnderlying(uint256 _amount) external payable returns (uint256);
+    function withdrawUnderlying(address _account, uint256 _amount) external payable returns (uint256);
     function feeReceiver() external returns (address);
     function withdrawalFee() external view returns (uint256);
-    function strategyParams(address _strategy) external view returns(uint256 allocation, uint256 debt, bool active);
+    function strategyParams(address _strategy) external view returns(bool active, Type withdraw, uint256 allocation, uint256 debt);
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.0;
 
-interface ICerosRouter {
+interface ICerosRouterLS {
 
     // --- Events ---
     event Deposit(address indexed _account, address indexed _token, uint256 _amount, uint256 _profit);

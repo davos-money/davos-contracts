@@ -45,7 +45,7 @@ describe('===DavosProvider===', function () {
         this.AMATICb = await hre.ethers.getContractFactory("aMATICb");
         this.AMATICc = await hre.ethers.getContractFactory("aMATICc");
         this.DMatic = await hre.ethers.getContractFactory("dMATIC");
-        this.CerosRouter = await hre.ethers.getContractFactory("CerosRouter");
+        this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterLS");
         this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
         this.Vat = await hre.ethers.getContractFactory("Vat");
         this.Spot = await hre.ethers.getContractFactory("Spotter");
@@ -147,7 +147,7 @@ describe('===DavosProvider===', function () {
         await interaction.deployed();
         interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, masterVault.address, interaction.address], {initializer: "initialize"});
+        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
         await davosProvider.deployed();
         davosProviderImplementation = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
 
@@ -252,35 +252,35 @@ describe('===DavosProvider===', function () {
         });
     });
     describe('--- Setters', function () {
-        it('Change matic token', async function () {
+        it('Change underlying token', async function () {
             let newAddress = await this.Token.deploy(); 
             await newAddress.deployed();
-            await davosProvider.changeMatic(newAddress.address);      
-            expect(await davosProvider.s_matic()).to.be.equal(newAddress.address);
+            await davosProvider.changeUnderlying(newAddress.address);      
+            expect(await davosProvider.underlying()).to.be.equal(newAddress.address);
         });
         it('Change collateral', async function () {
             let newAddress = await this.Token.deploy(); 
             await newAddress.deployed();
             await davosProvider.changeCollateral(newAddress.address);      
-            expect(await davosProvider.s_collateral()).to.be.equal(newAddress.address);
+            expect(await davosProvider.collateral()).to.be.equal(newAddress.address);
         });
         it('Change collateralDerivative', async function () {
             let newAddress = await this.Token.deploy(); 
             await newAddress.deployed();
             await davosProvider.changeCollateralDerivative(newAddress.address);      
-            expect(await davosProvider.s_collateralDerivative()).to.be.equal(newAddress.address);
+            expect(await davosProvider.collateralDerivative()).to.be.equal(newAddress.address);
         });
         it('Change masterVault', async function () {
             let newAddress = await this.Token.deploy(); 
             await newAddress.deployed();
             await davosProvider.changeMasterVault(newAddress.address);      
-            expect(await davosProvider.s_masterVault()).to.be.equal(newAddress.address);
+            expect(await davosProvider.masterVault()).to.be.equal(newAddress.address);
         });
         it('Change interaction', async function () {
             let newAddress = await this.Token.deploy(); 
             await newAddress.deployed();
             await davosProvider.changeInteraction(newAddress.address);      
-            expect(await davosProvider.s_interaction()).to.be.equal(newAddress.address);
+            expect(await davosProvider.interaction()).to.be.equal(newAddress.address);
         });
     });
     describe('--- OnlyOwnerOrInteraction', function () {

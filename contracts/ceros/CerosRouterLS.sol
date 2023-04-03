@@ -8,21 +8,21 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./interfaces/ICerosRouter.sol";
+import "./interfaces/ICerosRouterLS.sol";
 
-import "./interfaces/ICeVault.sol";
+import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/IPolygonPool.sol";
 import "./interfaces/ICertToken.sol";
 import "./interfaces/IPriceGetter.sol";
 
-contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract CerosRouterLS is ICerosRouterLS, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     
     // --- Wrapper ---
     using SafeMathUpgradeable for uint256;
 
     // --- Vars ---
-    ICeVault public s_ceVault;
+    IVault public s_ceVault;
     ISwapRouter public s_dex;
     IPolygonPool public s_pool;
     ICertToken public s_aMATICc;
@@ -54,7 +54,7 @@ contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, R
 
         s_aMATICc = ICertToken(_aMATICc);
         s_maticToken = IERC20(_maticToken);
-        s_ceVault = ICeVault(_ceVault);
+        s_ceVault = IVault(_ceVault);
         s_dex = ISwapRouter(_dex);
         s_pairFee = _pairFee;
         s_pool = IPolygonPool(_pool);
@@ -222,7 +222,7 @@ contract CerosRouter is ICerosRouter, OwnableUpgradeable, PausableUpgradeable, R
     function changeCeVault(address _ceVault) external onlyOwner {
 
         s_aMATICc.approve(address(s_ceVault), 0);
-        s_ceVault = ICeVault(_ceVault);
+        s_ceVault = IVault(_ceVault);
         s_aMATICc.approve(address(_ceVault), type(uint256).max);
         emit ChangeCeVault(_ceVault);
     }

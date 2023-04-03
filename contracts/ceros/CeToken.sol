@@ -23,24 +23,27 @@ contract CeToken is OwnableUpgradeable, ERC20Upgradeable {
      * Modifiers
      */
 
-    modifier onlyVault() {
-        require(msg.sender == _vault, "CeToken/not-allowed");
+    modifier onlyMinter() {
+        require(msg.sender == _vault, "Minter: not allowed");
         _;
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() { _disableInitializers(); }
-
-    function initialize(string calldata _name, string calldata _symbol) external initializer {
+    
+    function initialize(string calldata _name, string calldata _symbol)
+        external
+        initializer
+    {
         __Ownable_init();
         __ERC20_init_unchained(_name, _symbol);
     }
 
-    function burn(address account, uint256 amount) external onlyVault {
+    function burn(address account, uint256 amount) external onlyMinter {
         _burn(account, amount);
     }
 
-    function mint(address account, uint256 amount) external onlyVault {
+    function mint(address account, uint256 amount) external onlyMinter {
         _mint(account, amount);
     }
 

@@ -9,8 +9,9 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./interfaces/IMasterVault.sol";
 
 import "./interfaces/IWaitingPool.sol";
-import "../Strategy/IBaseStrategy.sol";
+import "../strategies/IBaseStrategy.sol";
 
+// --- Vault with instances per Underlying to generate yield via strategies ---
 contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
     // ---------------
@@ -18,29 +19,29 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // ------------
-    // --- Vars ---
-    struct StrategyParams {
-        uint256 allocation;
-        uint256 debt;
-        bool active;
-    }
+    // --- Vars --- 'PLACEHOLDER_' slot unused
+    IWaitingPool public waitingPool;  // Pending withdraw contract
+    address private PLACEHOLDER_1;
 
-    IWaitingPool public waitingPool;  // Pending 'withdrawMatic' contract
-    address public provider;          // DavosProvider
     address public feeReceiver;
+    address public provider;          // DavosProvider
+    address private PLACEHOLDER_2;
 
     uint256 public depositFee;
     uint256 public maxDepositFee;
     uint256 public withdrawalFee;
     uint256 public maxWithdrawalFee;
     uint256 public MAX_STRATEGIES;
-    uint256 public totalDebt;         // Matic Tokens in all Strategies
+    uint256 public totalDebt;         // Underlying Tokens in all Strategies
     uint256 public feeEarned;
-    uint256 public allocateOnDeposit;
     address[] public strategies;
 
     mapping(address => bool) public manager;
-    mapping (address => StrategyParams) public strategyParams;
+    mapping(address => StrategyParams) public strategyParams;
+
+    uint256 private PLACEHOLDER_3;
+    uint256 public allocateOnDeposit;
+
 
     // ------------
     // --- Mods ---
@@ -48,8 +49,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         require(msg.sender == owner() || msg.sender == provider, "MasterVault/not-owner-or-provider");
         _;
     }
-    modifier onlyManager() {
-        require(manager[msg.sender], "MasterVault/not-manager");
+    modifier onlyOwnerOrManager() {
+        require(msg.sender == owner() || manager[msg.sender], "MasterVault/not-owner-or-manager");
         _;
     }
     
@@ -82,17 +83,16 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         maxWithdrawalFee = _maxWithdrawalFees;
         MAX_STRATEGIES = _maxStrategies;
 
-        manager[msg.sender] = true;
         feeReceiver = msg.sender;
     }
 
     // ----------------
     // --- Deposits ---
     /** Deposit underlying assets via DavosProvider
-      * @param _amount amount of Matic Token deposit
+      * @param _amount amount of Underlying Token deposit
       * @return shares corresponding MasterVault tokens
       */
-    function depositMatic(uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
+    function depositUnderlying(uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
@@ -100,7 +100,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), src, address(this), _amount);
         shares = _assessFee(_amount, depositFee);
 
-        uint256 waitingPoolDebt = waitingPool.s_totalDebt();
+        uint256 waitingPoolDebt = waitingPool.totalDebt();
         uint256 waitingPoolBalance = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
         if(waitingPoolDebt > 0 && waitingPoolBalance < waitingPoolDebt) {
             uint256 waitingPoolDebtDiff = waitingPoolDebt - waitingPoolBalance;
@@ -114,24 +114,25 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         emit Deposit(src, src, _amount, shares);
     }
-    /** Deposit underlying token into strategy
+    /** Deposit underlying tokens into strategy
       * @param _strategy address of strategy
-      * @param _amount amount of Matic Token deposit
+      * @param _amount amount of Underlying Token deposit
       */
-    function depositToStrategy(address _strategy, uint256 _amount) public onlyManager {
+    function depositToStrategy(address _strategy, uint256 _amount) public onlyOwnerOrManager {
 
         require(_depositToStrategy(_strategy, _amount));
     }
-    /** Deposit all underlying token into strategy
+    /** Deposit all underlying tokens into strategy
       * @param _strategy address of strategy
       */
-    function depositAllToStrategy(address _strategy) public onlyManager {
+    function depositAllToStrategy(address _strategy) public onlyOwnerOrManager {
 
         require(_depositToStrategy(_strategy, totalAssetInVault()));
     }
     /** Internal -> deposits underlying to strategy
       * @param _strategy address of strategy
-      * @param _amount amount of Matic Token deposit
+      * @param _amount amount of Underlying Token deposit
+      * @return success finality state of deposit
       */
     function _depositToStrategy(address _strategy, uint256 _amount) private returns (bool success) {
 
@@ -139,6 +140,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         require(strategyParams[_strategy].active, "MasterVault/invalid-strategy");
         require(totalAssetInVault() >= _amount, "MasterVault/insufficient-balance");
 
+        // 'capacity' is total depositable; 'chargedCapacity' is capacity after charging fee
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canDeposit(_amount);
         if(capacity <= 0 || capacity > _amount || chargedCapacity > capacity) return false;
 
@@ -146,9 +148,9 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         strategyParams[_strategy].debt += chargedCapacity;
 
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _strategy, capacity);
-        IBaseStrategy(_strategy).deposit(capacity);
+        IBaseStrategy(_strategy).deposit{value: msg.value}(capacity);
         
-        emit DepositedToStrategy(_strategy, _amount, chargedCapacity);
+        emit DepositedToStrategy(_strategy, capacity, chargedCapacity);
         return true;
     }
     /** Deposits underlying to active strategies based on allocation points
@@ -180,47 +182,47 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount underlying assets to withdraw
       * @return assets underlying assets excluding any fees
       */
-    function withdrawMatic(address _account, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
+    function withdrawUnderlying(address _account, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
         assets = _amount;
 
-        _burn(src, assets);
+        _burn(src, _amount);
 
-        uint256 maticBalance = totalAssetInVault();
-        if(maticBalance < _amount) {
-            // Strategy should use '_account' as recipient if delayed unstake, else use 'msg.sender' as recipient
-            (uint256 withdrawn, bool delayed) = _withdrawFromActiveStrategies(_account, _amount - maticBalance);
-            if(withdrawn == 0) { 
-                // Submit to waitingPool charging any fees
-                assets = _assessFee(assets, withdrawalFee);
-                waitingPool.addToQueue(_account, assets);
-                if(maticBalance > 0) {
-                    SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), maticBalance);
-                }
-                emit Withdraw(src, src, src, _amount, assets);
-                return _amount;
-            } else if (delayed) { 
-                // Delayed Unstake: 'withdrawn' goes to '_account' from strategy
-                assets = maticBalance;
-            } else {
-                // Immediate Unstake: 'withdrawn' comes to MasterVault
-                assets = maticBalance + withdrawn;
-            }
+        uint256 underlyingBalance = totalAssetInVault();
+        if(underlyingBalance < _amount) {
+
+          uint256 debt = waitingPool.getUnbackedDebt();
+          Type class = debt == 0 ? Type.ABSTRACT : Type.IMMEDIATE;
+          
+          (uint256 withdrawn, bool incomplete, bool delayed) = _withdrawFromActiveStrategies(_account, _amount + debt - underlyingBalance, class);
+
+          if(withdrawn == 0 || debt != 0 || incomplete) {
+            assets = _assessFee(assets, withdrawalFee);
+            waitingPool.addToQueue(_account, assets);
+            if(totalAssetInVault() > 0) 
+              SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), underlyingBalance);
+            emit Withdraw(src, src, src, assets, _amount);
+            return _amount;
+          } else if(delayed) {
+            assets = underlyingBalance;
+          } else {
+            assets = underlyingBalance + withdrawn;
+          }
         }
 
         assets = _assessFee(assets, withdrawalFee);
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _account, assets);
 
-        emit Withdraw(src, src, src, _amount, assets);
+        emit Withdraw(src, src, src, assets, _amount);
         return _amount;
     }
     /** Withdraw underlying assets from Strategy
       * @param _strategy address of strategy
       * @param _amount underlying assets to withdraw from strategy
       */
-    function withdrawFromStrategy(address _strategy, uint256 _amount) public onlyManager {
+    function withdrawFromStrategy(address _strategy, uint256 _amount) public onlyOwnerOrManager {
 
         (uint256 withdrawn,) = _withdrawFromStrategy(address(this), _strategy, _amount);
         require(withdrawn > 0, "MasterVault/unable-to-withdraw");
@@ -228,7 +230,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Withdraw all underlying assets from Strategy
       * @param _strategy address of strategy
       */
-    function withdrawAllFromStrategy(address _strategy) external onlyManager {
+    function withdrawAllFromStrategy(address _strategy) external onlyOwnerOrManager {
 
         (uint256 withdrawn,) = _withdrawFromStrategy(address(this), _strategy, strategyParams[_strategy].debt);
         require(withdrawn > 0, "MasterVault/unable-to-withdraw");
@@ -236,38 +238,44 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Internal -> withdraws underlying from strategy
       * @param _recipient direct receiver if strategy has unstake time
       * @param _strategy address of strategy
-      * @param _amount amount of Matic Token withdrawal
+      * @param _amount amount of Underlying Token withdrawal
+      * @return bool amount of Underlying Tokens withdrawn
+      * @return incomplete 'true' if withdrawn amount less than '_amount'
       */
-    function _withdrawFromStrategy(address _recipient, address _strategy, uint256 _amount) private returns(uint256, bool) {
+    function _withdrawFromStrategy(address _recipient, address _strategy, uint256 _amount) private returns(uint256, bool incomplete) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         require(strategyParams[_strategy].debt >= _amount, "MasterVault/insufficient-assets-in-strategy");
 
+        StrategyParams memory params = strategyParams[_strategy];
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canWithdraw(_amount);
-        if(capacity < _amount || chargedCapacity > capacity) return (0, false);
+        if(capacity <= 0 || chargedCapacity > capacity) return (0, false);
+        else if(capacity < _amount) incomplete = true;
 
-        totalDebt -= _amount;
-        strategyParams[_strategy].debt -= _amount;
+        if(params.class == Type.DELAYED && incomplete) return (0, true);
 
-        uint256 balanceBefore = totalAssetInVault();
-        (uint256 value, bool delayed) = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, _amount);
+        totalDebt -= capacity;
+        strategyParams[_strategy].debt -= capacity;
+
+        uint256 value = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, capacity);
 
         require(value >= chargedCapacity, "MasterVault/preview-withdrawn-mismatch");
 
-        if (!delayed) require((totalAssetInVault() - balanceBefore) >= value, "MasterVault/withdrawn-balanceOf-mismatch");
-        
         emit WithdrawnFromStrategy(_strategy, _amount, chargedCapacity);
-        return (chargedCapacity, delayed);
+        return (chargedCapacity, incomplete);
     }
     /** Internal -> traverses through all active strategies for withdrawal
       * @param _recipient direct receiver if strategy has unstake time
-      * @param _amount amount of Matic Token withdrawal
+      * @param _amount amount of Underlying Tokens withdrawal
       */
-    function _withdrawFromActiveStrategies(address _recipient, uint256 _amount) private returns(uint256 withdrawn, bool delayed) {
+    function _withdrawFromActiveStrategies(address _recipient, uint256 _amount, Type class) private returns(uint256 withdrawn, bool incomplete, bool delayed) {
 
         for(uint8 i = 0; i < strategies.length; i++) {
-            if(strategyParams[strategies[i]].active && strategyParams[strategies[i]].debt >= _amount)
-                return _withdrawFromStrategy(_recipient, strategies[i], _amount);
+            if(strategyParams[strategies[i]].active && (strategyParams[strategies[i]].class == class || class == Type.ABSTRACT) && strategyParams[strategies[i]].debt >= _amount) {
+              _recipient = strategyParams[strategies[i]].class == Type.DELAYED ? _recipient : address(this);
+              delayed = strategyParams[strategies[i]].class == Type.DELAYED ? true : false;
+              (withdrawn, incomplete) = _withdrawFromStrategy(_recipient, strategies[i], _amount);
+            }
         }
     }
     /** Internal -> charge corresponding fees from amount
@@ -289,7 +297,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Withdraws all assets from strategy marking it inactive
       * @param _strategy address of strategy 
       */
-    function retireStrat(address _strategy) external onlyManager {
+    function retireStrat(address _strategy) external onlyOwnerOrManager {
 
         if(_deactivateStrategy(_strategy)) return;
 
@@ -303,7 +311,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _newStrategy address of new strategy 
       * @param _newAllocation underlying assets allocation to '_newStrategy' where 1% = 10000
       */
-    function migrateStrategy(address _oldStrategy, address _newStrategy, uint256 _newAllocation) external onlyManager {
+    function migrateStrategy(address _oldStrategy, address _newStrategy, uint256 _newAllocation, Type _class) external onlyOwnerOrManager {
 
         require(_oldStrategy != address(0) && _newStrategy != address(0));
 
@@ -313,7 +321,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             require(withdrawn > 0, "MasterVault/cannot-withdraw");
         }
 
-        StrategyParams memory params = StrategyParams({allocation: _newAllocation, debt: 0, active: true});
+        StrategyParams memory params = StrategyParams({active: true, class: _class, allocation: _newAllocation, debt: 0});
 
         bool isValidStrategy;
         for(uint256 i = 0; i < strategies.length; i++) {
@@ -356,24 +364,24 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         return totalAllocations <= 1e6;
     }
-    /** Sends required Matic Token amount to waitingPool to equalize debt
+    /** Sends required Underlying Token amount to waitingPool to equalize debt
       * @notice '_withdrawFromActiveStrategies' might have strategy with unstake delay
       */
-    function cancelDebt() public onlyManager {
+    function cancelDebt(Type _class) public onlyOwnerOrManager {
 
         uint256 withdrawn; bool delayed;
 
-        uint256 waitingPoolDebt = waitingPool.s_totalDebt();
+        uint256 waitingPoolDebt = waitingPool.totalDebt();
         uint256 waitingPoolBal = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
         if (waitingPoolDebt > waitingPoolBal) {
             uint256 withdrawAmount = waitingPoolDebt - waitingPoolBal;
-            (withdrawn, delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1);
+            (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1, _class);
             if(withdrawn > 0 && !delayed) SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawn);
         }
     }
     /** Triggers tryRemove() of waiting pool contract
       */
-    function tryRemove() public onlyManager {
+    function tryRemove() public onlyOwnerOrManager {
 
         waitingPool.tryRemove();
     }
@@ -384,7 +392,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _strategy address of strategy 
       * @param _allocation underlying assets allocation to '_strategy' where 1% = 10000
       */
-    function addStrategy(address _strategy, uint256 _allocation) external onlyOwner {
+    function addStrategy(address _strategy, uint256 _allocation, Type _class) external onlyOwner {
 
         require(_strategy != address(0));
         require(strategies.length < MAX_STRATEGIES, "MasterVault/strategies-maxed");
@@ -397,7 +405,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         require(totalAllocations + _allocation <= 1e6, "MasterVault/>100%");
 
-        StrategyParams memory params = StrategyParams({allocation: _allocation, debt: 0, active: true});
+        StrategyParams memory params = StrategyParams({active: true, class: _class, allocation: _allocation, debt: 0});
 
         strategyParams[_strategy] = params;
         strategies.push(_strategy);

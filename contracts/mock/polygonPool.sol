@@ -42,6 +42,9 @@ contract PolygonPool {
     address public cert;
     address public wMATIC;
 
+    bool public return0;
+    bool public giveMore;
+
     constructor(address _cert, address _wMATIC) {
         _minimumStake = 5e15;
         cert = _cert;
@@ -53,18 +56,33 @@ contract PolygonPool {
     }
 
     function stakeAndClaimCerts(uint256 amount) external {
+        if(return0) return;
+
+        uint256 extra;
+        if(giveMore) extra = 100000;
+
         TokenInterface(wMATIC).transferFrom(msg.sender, address(this), amount);
-        uint256 mintAmount = (amount * TokenInterface(cert).ratio()) / 1e18;
+        uint256 mintAmount = ((amount + extra) * TokenInterface(cert).ratio()) / 1e18;
         TokenInterface(cert).mint(msg.sender, mintAmount);
     }
 
     function unstakeCertsFor(address recipient, uint256 shares, uint256 fee, uint256 useBeforeBlock, bytes memory signature) external payable {
+        if(return0) return;
+
         TokenInterface(cert).burn(msg.sender, shares);
-        uint256 mintAmount = (shares * 1e18) / TokenInterface(cert).ratio();
+        uint256 mintAmount = ((shares) * 1e18) / TokenInterface(cert).ratio();
         TokenInterface(wMATIC).transfer(recipient, mintAmount);
     }
 
     function getMinimumStake() external returns(uint256) {
         return _minimumStake;
+    }
+
+    function setReturn0(bool _value) external {
+        return0 = _value;
+    }
+
+    function setGiveMore(bool _value) external {
+        giveMore = _value;
     }
 }

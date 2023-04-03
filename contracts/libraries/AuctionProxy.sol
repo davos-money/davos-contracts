@@ -11,7 +11,7 @@ import "../interfaces/VatLike.sol";
 import "../ceros/interfaces/IDavosProvider.sol";
 import "../oracle/libraries/FullMath.sol";
 
-import { CollateralType } from  "../ceros/interfaces/IDao.sol";
+import { CollateralType } from  "../ceros/interfaces/IInteraction.sol";
 
 uint256 constant RAY = 10**27;
 

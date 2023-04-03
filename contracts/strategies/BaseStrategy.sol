@@ -21,6 +21,8 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
 
     IERC20Upgradeable public underlying;
 
+    bool public PLACEHOLDER_1;
+
     // --- Events ---
     event UpdatedStrategist(address indexed strategist);
     event UpdatedFeeRecipient(address indexed feeRecipient);

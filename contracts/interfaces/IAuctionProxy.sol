@@ -5,7 +5,7 @@ import "./DavosJoinLike.sol";
 import "./VatLike.sol";
 import "./ClipperLike.sol";
 import "./DogLike.sol";
-import { CollateralType } from "./../ceros/interfaces/IDao.sol";
+import { CollateralType } from "./../ceros/interfaces/IInteraction.sol";
 import "../ceros/interfaces/IDavosProvider.sol";
 
 interface IAuctionProxy {

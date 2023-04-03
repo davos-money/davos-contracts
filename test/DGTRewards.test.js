@@ -140,6 +140,18 @@ describe('===DgtRewards===', function () {
             await dgtrewards.setDgtToken(dgttoken.address);
             await expect(dgtrewards.initPool(NULL_ADDRESS, collateral, "1" + ray)).to.be.revertedWith("Reward/invalid-token");
         });
+        it('reverts: Reward/maxPools-exceeded', async function () {
+            dgtrewards = await upgrades.deployProxy(this.DgtRewards, [vat.address, "40" + wad, 0], {initializer: "initialize"});
+            await dgtrewards.deployed();
+            dgttoken = await upgrades.deployProxy(this.DgtToken, ["100" + wad, dgtrewards.address], {initializer: "initialize"});
+            await dgttoken.deployed();
+            await dgtrewards.setDgtToken(dgttoken.address);
+
+            await expect(dgtrewards.setMaxPools(0)).to.be.revertedWith("Reward/invalid-maxPool");
+            await expect(dgtrewards.initPool(gem.address, collateral, "1000000000627937192491029810")).to.be.revertedWith("Reward/maxPools-exceeded");
+            await dgtrewards.setMaxPools(1);
+            await dgtrewards.initPool(gem.address, collateral, "1000000000627937192491029810");
+        });
         it('inits a pool', async function () {
             await dgtrewards.setDgtToken(dgttoken.address);
             await dgtrewards.initPool(gem.address, collateral, "1" + ray);
@@ -325,7 +337,10 @@ describe('===DgtRewards===', function () {
             dgttoken = await upgrades.deployProxy(this.DgtToken, ["100" + wad, dgtrewards.address], {initializer: "initialize"});
             await dgttoken.deployed();
             await dgtrewards.setDgtToken(dgttoken.address);
+
             await dgtrewards.initPool(gem.address, collateral, "1000000000627937192491029810");
+            expect(await dgtrewards.unrealisedRewards(gem.address, signer1.address)).to.be.equal(0);
+
             await dgtoracle.initialize("1" + wad);
             await dgtrewards.setOracle(dgtoracle.address);
             await dgtrewards.rely(interaction.address);
@@ -349,6 +364,11 @@ describe('===DgtRewards===', function () {
             await dgtrewards.drop(gem.address, signer1.address);
 
             expect(await (await dgtrewards.piles(signer1.address, gem.address)).amount).to.be.equal("317108292164");
+            expect(await dgtrewards.claimable(gem.address, signer1.address)).to.be.equal("317108292164");
+            expect(await dgtrewards.pendingRewards(signer1.address)).to.be.equal("317108292164");
+            await expect(dgtrewards.connect(signer1).claim("3171082921643")).to.be.revertedWith("Rewards/not-enough-rewards");
+            await dgtrewards.connect(signer1).claim("317108292164");
+
         });
     });
     describe('--- distributionApy()', function () {
@@ -360,6 +380,11 @@ describe('===DgtRewards===', function () {
             await dgtrewards.setDgtToken(dgttoken.address);
             await dgtrewards.initPool(gem.address, collateral, "1" + ray);
             expect(await dgtrewards.distributionApy(gem.address)).to.be.equal("0");
+        });
+    });
+    describe('--- modifiers()', function () {
+        it('reverts: Reward/pool-not-init', async function () {
+            await expect(dgtrewards.claimable(signer1.address, signer2.address)).to.be.revertedWith("Reward/pool-not-init");
         });
     });
 });
