@@ -12,11 +12,11 @@ import "./interfaces/ICerosRouterLs.sol";
 
 import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
-import "./interfaces/IPolygonPool.sol";
+import "./interfaces/IGlobalPool.sol";
 import "./interfaces/ICertToken.sol";
 import "./interfaces/IPriceGetter.sol";
 
-contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract CerosRouterLsEth is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     
     // --- Wrapper ---
     using SafeMathUpgradeable for uint256;
@@ -24,7 +24,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     // --- Vars ---
     IVault public s_ceVault;
     ISwapRouter public s_dex;
-    IPolygonPool public s_pool;
+    IGlobalPool public s_pool;
     ICertToken public s_aMATICc;
     IERC20 public s_maticToken;
     address public s_strategy;
@@ -57,7 +57,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
         s_ceVault = IVault(_ceVault);
         s_dex = ISwapRouter(_dex);
         s_pairFee = _pairFee;
-        s_pool = IPolygonPool(_pool);
+        s_pool = IGlobalPool(_pool);
         s_priceGetter = IPriceGetter(_priceGetter);
 
         IERC20(s_maticToken).approve(_dex, type(uint256).max);
@@ -84,7 +84,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
         uint256 minAmount = safeCeilMultiplyAndDivide(_amount, ratio, 1e18);
 
         // From PolygonPool
-        uint256 poolAmount = _amount >= s_pool.getMinimumStake() ? minAmount : 0;
+        uint256 poolAmount = minAmount;
 
         // From Dex
         uint256 dexAmount = getAmountOut(address(s_maticToken), address(s_aMATICc), _amount);
@@ -93,7 +93,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
         uint256 realAmount;
         if (poolAmount >= dexAmount) {
             realAmount = poolAmount;
-            s_pool.stakeAndClaimCerts(_amount);
+            s_pool.stakeAndClaimAethC{value: _amount}();
         } else {
             realAmount = swapV3(address(s_maticToken), address(s_aMATICc), _amount, minAmount, address(this));
         }
@@ -154,8 +154,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     function withdrawFor(address _recipient, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrStrategy returns (uint256 realAmount) {
 
         realAmount = s_ceVault.withdrawFor(msg.sender, address(this), _amount);
-        bytes memory bytesData;
-        s_pool.unstakeCertsFor{value: msg.value}(_recipient, realAmount, 0, 0, bytesData); // aMATICc -> MATIC
+        s_pool.unstakeAETHFor(realAmount, _recipient); // aMATICc -> MATIC
 
         emit Withdrawal(msg.sender, _recipient, address(s_maticToken), realAmount);
         return realAmount;
@@ -206,7 +205,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     function changePool(address _pool) external onlyOwner {
 
         s_aMATICc.approve(address(s_pool), 0);
-        s_pool = IPolygonPool(_pool);
+        s_pool = IGlobalPool(_pool);
         s_aMATICc.approve(address(_pool), type(uint256).max);
         emit ChangePool(_pool);
     }
@@ -243,7 +242,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     }
     function getPendingWithdrawalOf(address _account) external view returns (uint256) {
 
-        return s_pool.pendingUnstakesOf(_account);
+        return s_pool.getPendingUnstakesOf(_account);
     }
     function getYieldFor(address _account) external view returns(uint256) {
 

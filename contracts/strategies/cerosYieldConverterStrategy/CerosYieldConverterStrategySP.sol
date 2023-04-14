@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import "../../masterVault/interfaces/IMasterVault.sol";
 import "../../ceros/interfaces/ISwapPool.sol";
 import "../../ceros/interfaces/ICertToken.sol";
-import "../../ceros/interfaces/ICerosRouterSP.sol";
+import "../../ceros/interfaces/ICerosRouterSp.sol";
 import "../BaseStrategy.sol";
 
-contract CerosYieldConverterStrategySP is BaseStrategy {
+contract CerosYieldConverterStrategySp is BaseStrategy {
 
-    ICerosRouterSP private _ceRouter;
+    ICerosRouterSp private _ceRouter;
     ICertToken private _certToken;
     IMasterVault public vault;
 
@@ -36,7 +36,7 @@ contract CerosYieldConverterStrategySP is BaseStrategy {
         address swapPool
     ) public initializer {
         __BaseStrategy_init(destination, feeRecipient, underlyingToken);
-        _ceRouter = ICerosRouterSP(destination);
+        _ceRouter = ICerosRouterSp(destination);
         _certToken = ICertToken(certToekn);
         _swapPool = swapPool;
         vault = IMasterVault(masterVault);
@@ -186,7 +186,7 @@ contract CerosYieldConverterStrategySP is BaseStrategy {
         require(ceRouter != address(0));
         underlying.approve(address(_ceRouter), 0);
         destination = ceRouter;
-        _ceRouter = ICerosRouterSP(ceRouter);
+        _ceRouter = ICerosRouterSp(ceRouter);
         underlying.approve(address(_ceRouter), type(uint256).max);
         emit CeRouterChanged(ceRouter);
     }

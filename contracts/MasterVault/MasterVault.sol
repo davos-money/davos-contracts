@@ -495,7 +495,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Changes fee receiver
       * @param _feeReceiver new fee receiver
       */
-    function changeFeeReceiver(address payable _feeReceiver) external onlyOwner {
+    function changeFeeReceiver(address _feeReceiver) external onlyOwner {
 
         require(_feeReceiver != address(0));
         feeReceiver = _feeReceiver;

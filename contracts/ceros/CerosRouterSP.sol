@@ -8,13 +8,13 @@ import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/ISwapPool.sol";
 import "./interfaces/IPriceGetter.sol";
-import "./interfaces/ICerosRouterSP.sol";
+import "./interfaces/ICerosRouterSp.sol";
 import "./interfaces/ICertToken.sol";
 import "./interfaces/IWrapped.sol";
 import "../masterVault/interfaces/IMasterVault.sol";
 
-contract CerosRouterSP is
-ICerosRouterSP,
+contract CerosRouterSp is
+ICerosRouterSp,
 OwnableUpgradeable,
 PausableUpgradeable,
 ReentrancyGuardUpgradeable

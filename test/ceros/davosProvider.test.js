@@ -45,7 +45,7 @@ describe('===DavosProvider===', function () {
         this.AMATICb = await hre.ethers.getContractFactory("aMATICb");
         this.AMATICc = await hre.ethers.getContractFactory("aMATICc");
         this.DMatic = await hre.ethers.getContractFactory("dMATIC");
-        this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterLS");
+        this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterLs");
         this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
         this.Vat = await hre.ethers.getContractFactory("Vat");
         this.Spot = await hre.ethers.getContractFactory("Spotter");

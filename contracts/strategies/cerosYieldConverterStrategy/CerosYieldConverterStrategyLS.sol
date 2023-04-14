@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "../BaseStrategy.sol";
 
 import "../../masterVault/interfaces/IMasterVault.sol";
-import "../../ceros/interfaces/ICerosRouterLS.sol";
+import "../../ceros/interfaces/ICerosRouterLs.sol";
 
-contract CerosYieldConverterStrategyLS is BaseStrategy {
+contract CerosYieldConverterStrategyLs is BaseStrategy {
 
     // --- Vars ---
     IMasterVault public masterVault;
@@ -74,7 +74,7 @@ contract CerosYieldConverterStrategyLS is BaseStrategy {
         require(_amount > 0, "Strategy/invalid-amount");
 
         _beforeDeposit(_amount);
-        return ICerosRouterLS(destination).deposit(_amount);
+        return ICerosRouterLs(destination).deposit(_amount);
     }
     /** Withdraw underlying from destination to recipient
       * @dev incase of immediate unstake, 'msg.sender' should be used instead of '_recipient'
@@ -95,7 +95,7 @@ contract CerosYieldConverterStrategyLS is BaseStrategy {
     function _withdraw(address _recipient, uint256 _amount) internal returns (uint256 value) {
 
         require(_amount > 0, "Strategy/invalid-amount");        
-        ICerosRouterLS(destination).withdrawFor{value: msg.value}(_recipient, _amount);
+        ICerosRouterLs(destination).withdrawFor{value: msg.value}(_recipient, _amount);
 
         return _amount;
     }
@@ -112,11 +112,11 @@ contract CerosYieldConverterStrategyLS is BaseStrategy {
       */
     function _harvestTo(address _to) private returns(uint256 yield) {
 
-        yield = ICerosRouterLS(destination).getYieldFor(address(this));
-        if(yield > 0) yield = ICerosRouterLS(destination).claim(_to);
+        yield = ICerosRouterLs(destination).getYieldFor(address(this));
+        if(yield > 0) yield = ICerosRouterLs(destination).claim(_to);
 
-        uint256 profit = ICerosRouterLS(destination).s_profits(address(this));
-        if(profit > 0) { yield += profit; ICerosRouterLS(destination).claimProfit(_to); }
+        uint256 profit = ICerosRouterLs(destination).s_profits(address(this));
+        if(profit > 0) { yield += profit; ICerosRouterLs(destination).claimProfit(_to); }
     }
 
     // --- Views ---

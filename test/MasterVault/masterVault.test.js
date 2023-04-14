@@ -111,9 +111,9 @@ describe("MasterVault", function () {
 
     // Get Contracts
     MasterVault = await ethers.getContractFactory("MasterVault");
-    CerosStrategy = await ethers.getContractFactory("CerosYieldConverterStrategyLS");
+    CerosStrategy = await ethers.getContractFactory("CerosYieldConverterStrategyLs");
     WaitingPool = await ethers.getContractFactory("WaitingPool");
-    CeRouter = await ethers.getContractFactory("CerosRouterLS");
+    CeRouter = await ethers.getContractFactory("CerosRouterLs");
     Token = await ethers.getContractFactory("Token");
     CeaMATICc = await hre.ethers.getContractFactory("CeToken");
     CeVault = await hre.ethers.getContractFactory("CeVault");

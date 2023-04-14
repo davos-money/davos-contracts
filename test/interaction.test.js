@@ -87,7 +87,7 @@ describe("Interaction", function () {
         AMATICb = await hre.ethers.getContractFactory("aMATICb");
         AMATICc = await hre.ethers.getContractFactory("aMATICc");
         DMatic = await hre.ethers.getContractFactory("dMATIC");
-        CerosRouter = await hre.ethers.getContractFactory("CerosRouterLS");
+        CerosRouter = await hre.ethers.getContractFactory("CerosRouterLs");
         DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
         Vat = await hre.ethers.getContractFactory("Vat");
         Spot = await hre.ethers.getContractFactory("Spotter");
