@@ -1,6 +1,6 @@
 const { expect, assert } = require("chai");
 const { parseEther } = require("ethers/lib/utils");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const { parse } = require("path");
 const ethUtils = ethers.utils;
 const NetworkSnapshotter = require("../helpers/NetworkSnapshotter");
@@ -82,7 +82,7 @@ describe("MasterVault", function () {
   }
 
   async function impersonateAccount(address) {
-    await hre.network.provider.request({
+    await network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [address],
     });
@@ -115,10 +115,10 @@ describe("MasterVault", function () {
     WaitingPool = await ethers.getContractFactory("WaitingPool");
     CeRouter = await ethers.getContractFactory("CerosRouterLs");
     Token = await ethers.getContractFactory("Token");
-    CeaMATICc = await hre.ethers.getContractFactory("CeToken");
-    CeVault = await hre.ethers.getContractFactory("CeVault");
-    PriceGetter = await hre.ethers.getContractFactory("PriceGetter");
-    Pool = await hre.ethers.getContractFactory("PolygonPool");
+    CeaMATICc = await ethers.getContractFactory("CeToken");
+    CeVault = await ethers.getContractFactory("CeVault");
+    PriceGetter = await ethers.getContractFactory("PriceGetter");
+    Pool = await ethers.getContractFactory("PolygonPool");
     
     // Deploy Contracts
     wMatic = await Token.attach(wMaticAddress);
@@ -187,7 +187,7 @@ describe("MasterVault", function () {
       txFee = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
     });
 
     it("Deposit: valid amount(when swapFee is set in swapPool)", async function () {
@@ -200,7 +200,7 @@ describe("MasterVault", function () {
       txFee = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
     });
 
     it("Deposit: wMatic balance of master vault should increase by deposit amount", async function () {
@@ -222,8 +222,8 @@ describe("MasterVault", function () {
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
       wMaticTokenBalanceAfter = await getTokenBalance(masterVault.address, wMaticAddress);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
-      assert.equal(wMaticTokenBalanceAfter.toString(), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(wMaticTokenBalanceAfter), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
     });
 
     it("Deposit: wMatic balance of master vault should increase by deposit amount(deposit fee: 0)", async function () {
@@ -238,8 +238,8 @@ describe("MasterVault", function () {
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
       wMaticTokenBalanceAfter = await getTokenBalance(masterVault.address, wMaticAddress);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
-      assert.equal(wMaticTokenBalanceAfter.toString(), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(wMaticTokenBalanceAfter), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
     });
 
     it("Deposit: totalsupply of master vault should increase by amount(deposit fee: 0)", async function () {
@@ -257,9 +257,9 @@ describe("MasterVault", function () {
       wMaticTokenBalanceAfter = await getTokenBalance(masterVault.address, wMaticAddress);
       totalSupplyAfter = await masterVault.totalSupply();
 
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
-      assert.equal(wMaticTokenBalanceAfter.toString(), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
-      assert.equal(totalSupplyAfter.toString(), Number(totalSupplyBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(wMaticTokenBalanceAfter), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(totalSupplyAfter), Number(totalSupplyBefore) + Number(depositAmount));
     });
 
     it("Deposit: totalsupply of master vault should increase by amount(deposit fee: 0.1%)", async function () {
@@ -281,10 +281,10 @@ describe("MasterVault", function () {
       wMaticTokenBalanceAfter = await getTokenBalance(masterVault.address, wMaticAddress);
       totalSupplyAfter = await masterVault.totalSupply();
       feeEarned = await masterVault.feeEarned();
-      assert.equal(wMaticTokenBalanceAfter.toString(), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount) - Number(((Number(depositAmount)) * fee) / 1e6));
-      assert.equal(totalSupplyAfter.toString(), Number(totalSupplyBefore) + Number(depositAmount) - Number(((Number(depositAmount)) * fee) / 1e6));
-      assert.equal(feeEarned.toString(), Number(((depositAmount) * fee) / 1e6));
+      assert.equal(Number(wMaticTokenBalanceAfter), Number(wMaticTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount) - Number(((Number(depositAmount)) * fee) / 1e6));
+      assert.equal(Number(totalSupplyAfter), Number(totalSupplyBefore) + Number(depositAmount) - Number(((Number(depositAmount)) * fee) / 1e6));
+      assert.equal(Number(feeEarned), Number(((depositAmount) * fee) / 1e6));
     });
 
     it("Allocate: wMatic balance should match allocation ratios", async function () {
@@ -362,7 +362,7 @@ describe("MasterVault", function () {
       txFee = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
       await masterVault.connect(signer1).withdrawUnderlying(signer1.address, (depositAmount).toString());
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
 
@@ -478,7 +478,7 @@ describe("MasterVault", function () {
       receipt = await tx.wait(1);
       txFee1 = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
 
       maticBalanceBefore = await ethers.provider.getBalance(signer1.address);
       let withdrawAmount = depositAmount;
@@ -489,10 +489,10 @@ describe("MasterVault", function () {
       maticBalanceAfter = await ethers.provider.getBalance(signer1.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
 
-      let event = (receipt.events?.filter((x) => {return x.event == "Withdraw"}));
+      let event = (receipt.events?.filter((x) => {return x.event === "Withdraw"}));
       assert.equal(Number(event[0].args.assets), withdrawAmount - (Number(withdrawAmount) * fee / 1e6));
       // assert.equal(Number(maticBalanceAfter), Number(maticBalanceBefore) + Number(event[0].args.shares) - txFee2);
-      expect(maticBalanceAfter.eq(maticBalanceBefore.add(event[0].args.assets).sub(txFee2)));
+      expect(maticBalanceAfter).eq(maticBalanceBefore.sub(txFee2));
 
     });
 
@@ -513,7 +513,7 @@ describe("MasterVault", function () {
       // receipt = await tx.wait(1);
       // txFee1 = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
 
       maticBalanceBefore = await getTokenBalance(signer1.address, wMatic.address);
       let withdrawAmount = depositAmount;
@@ -527,7 +527,7 @@ describe("MasterVault", function () {
       maticBalanceAfter = await getTokenBalance(signer1.address, wMatic.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
 
-      let event = (receipt.events?.filter((x) => {return x.event == "Withdraw"}));
+      let event = (receipt.events?.filter((x) => {return x.event === "Withdraw"}));
 
       assert.equal(Number(event[0].args.assets), withdrawAmount - (Number(withdrawAmount) * fee / 1e6));
       // assert.equal(Number(vaultTokenBalanceAfter), 0);
@@ -551,7 +551,7 @@ describe("MasterVault", function () {
       // receipt = await tx.wait(1);
       // txFee1 = receipt.gasUsed.mul(receipt.effectiveGasPrice)
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
-      assert.equal(vaultTokenBalanceAfter.toString(), Number(vaultTokenBalanceBefore) + Number(depositAmount));
+      assert.equal(Number(vaultTokenBalanceAfter), Number(vaultTokenBalanceBefore) + Number(depositAmount));
 
       maticBalanceBefore = await getTokenBalance(signer1.address, wMatic.address);
       let withdrawAmount = depositAmount;
@@ -569,7 +569,7 @@ describe("MasterVault", function () {
       maticBalanceAfter = await getTokenBalance(signer1.address, wMatic.address);
       vaultTokenBalanceAfter = await getTokenBalance(signer1.address, masterVault.address);
 
-      let event = (receipt.events?.filter((x) => {return x.event == "Withdraw"}));
+      let event = (receipt.events?.filter((x) => {return x.event === "Withdraw"}));
       assert.equal(Number(event[0].args.assets), depositAmount - (Number(depositAmount) * fee / 1e6));
       assert.equal(Number(vaultTokenBalanceAfter), 0);
       expect(maticBalanceBefore.add(event[0].args.assets)).to.be.equal(maticBalanceAfter);

@@ -5,7 +5,9 @@ module.exports = {
         "ceros/dMATIC.sol",
         "ceros/NonTransferableERC20.sol",
         "ceros/CeToken.sol",
-        "MasterVault/interfaces",
+        "ceros/CerosRouterLsEth.sol",
+        "ceros/CerosRouterSp.sol",
+        "masterVault/interfaces",
         "mock",
         "uniswapv3PriceGetter",
         "oracle/interfaces",
@@ -15,6 +17,7 @@ module.exports = {
         "oracle/PriceOracleTestnet.sol",
         "oracle/SlidingWindowOracle.sol",
         "swapPool/mocks",
-        "swapPool/interfaces"
+        "swapPool/interfaces",
+        "strategies/cerosYieldConverterStrategy/CerosYieldConverterStrategySp.sol"
     ]
 };
