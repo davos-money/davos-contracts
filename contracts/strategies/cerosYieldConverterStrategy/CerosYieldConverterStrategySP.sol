@@ -9,13 +9,13 @@ import "../BaseStrategy.sol";
 
 contract CerosYieldConverterStrategySp is BaseStrategy {
 
-    ICerosRouterSp private _ceRouter;
-    ICertToken private _certToken;
+    ICerosRouterSp public _ceRouter;
+    ICertToken public _certToken;
     IMasterVault public vault;
 
-    address private _swapPool;
+    address public _swapPool;
 
-    bool feeFlag;
+    bool public feeFlag;
 
     event SwapPoolChanged(address swapPool);
     event CeRouterChanged(address ceRouter);

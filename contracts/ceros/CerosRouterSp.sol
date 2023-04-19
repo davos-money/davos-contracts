@@ -238,9 +238,6 @@ ReentrancyGuardUpgradeable
         require(priceGetter != address(0));
         _priceGetter = IPriceGetter(priceGetter);
     }
-    function getSwapPool() external view returns(address) {
-        return address(_pool);
-    }
     function getCeToken() external view returns(address) {
         return address(_ceToken);
     }

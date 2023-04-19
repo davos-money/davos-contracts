@@ -43,7 +43,7 @@ abstract contract BaseStrategy is IBaseStrategy, OwnableUpgradeable, PausableUpg
     // --- Mods ---
     modifier onlyOwnerOrStrategist() {
 
-        require(msg.sender == owner() || msg.sender == strategist);
+        require(msg.sender == owner() || msg.sender == strategist, "BaseStrategy/not-owner-or-strategist");
         _;
     }
 

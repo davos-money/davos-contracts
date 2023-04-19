@@ -8,7 +8,7 @@ const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const DATA = "0x02";
 
-describe('===CerosRouter===', function () {
+describe('===CerosRouterLs===', function () {
     let deployer, signer1, signer2, signer3, multisig;
 
     let amaticc,
@@ -121,6 +121,7 @@ describe('===CerosRouter===', function () {
             await matic.approve(cerosRouter.address, "100000000000000000");
             await cerosRouter.deposit("100000000000000000");
 
+            await expect(cerosRouter.connect(signer2).withdrawFor(deployer.address, "100000000000000000")).to.be.revertedWith("CerosRouter/not-owner-or-strategy");
             await cerosRouter.withdrawFor(deployer.address, "100000000000000000");
             expect(await amaticc.balanceOf(ceVault.address)).to.be.equal(0);
             expect(await matic.balanceOf(deployer.address)).to.be.equal("100000000000000000");

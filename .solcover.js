@@ -6,7 +6,6 @@ module.exports = {
         "ceros/NonTransferableERC20.sol",
         "ceros/CeToken.sol",
         "ceros/CerosRouterLsEth.sol",
-        "ceros/CerosRouterSp.sol",
         "masterVault/interfaces",
         "mock",
         "uniswapv3PriceGetter",
@@ -17,7 +16,6 @@ module.exports = {
         "oracle/PriceOracleTestnet.sol",
         "oracle/SlidingWindowOracle.sol",
         "swapPool/mocks",
-        "swapPool/interfaces",
-        "strategies/cerosYieldConverterStrategy/CerosYieldConverterStrategySp.sol"
+        "swapPool/interfaces"
     ]
 };
