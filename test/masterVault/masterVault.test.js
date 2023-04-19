@@ -3,7 +3,7 @@ const { parseEther } = require("ethers/lib/utils");
 const { ethers, upgrades } = require("hardhat");
 const { parse } = require("path");
 const ethUtils = ethers.utils;
-const NetworkSnapshotter = require("../helpers/NetworkSnapshotter");
+const NetworkSnapshotter = require("../helpers/networkSnapshotter");
 
 async function deploy() {
   const { MaxUint256 } = ethers.constants;

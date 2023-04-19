@@ -2,7 +2,7 @@ const {ethers, upgrades} = require("hardhat");
 const { expect, assert } = require("chai");
 const { ether } = require("@openzeppelin/test-helpers");
 const { parseEther } = ethers.utils;
-const NetworkSnapshotter = require("./helpers/NetworkSnapshotter");
+const NetworkSnapshotter = require("./helpers/networkSnapshotter");
 
 const {
     toWad,
