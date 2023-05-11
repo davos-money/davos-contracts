@@ -14,13 +14,15 @@ async function main() {
     let _nonce = initialNonce
         
     // External
-    let { _aMATICc, _aMATICb, _maticToken, _dex, _dexFactory, _dexPairFee, _polygonPool } = require(`./config_${hre.network.name}.json`);
+    let { _aMATICc, _wMatic, _dex, _dexFactory, _dexPairFee, _swapPool } = require(`./config_${hre.network.name}.json`);
+    // let { _aMATICc, _aMATICb, _maticToken, _dex, _dexFactory, _dexPairFee, _polygonPool } = require(`./config_${hre.network.name}.json`);
 
     // Fetching
     this.CeaMATICc = await hre.ethers.getContractFactory("CeToken");
     this.CeVault = await hre.ethers.getContractFactory("CeVault");
     this.DMatic = await hre.ethers.getContractFactory("dMATIC");
-    this.CerosRouter = await hre.ethers.getContractFactory("CerosRouter");
+    this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterSp");
+    // this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterLs");
     this.PriceGetter = await hre.ethers.getContractFactory("PriceGetter");
 
     // Deployment
@@ -48,7 +50,8 @@ async function main() {
     console.log("dMatic          : " + dMatic.address);
     console.log("imp             : " + dMaticImp);
 
-    let cerosRouter = await upgrades.deployProxy(this.CerosRouter, [_aMATICc, _maticToken, _aMATICb, ceVault.address, _dex, _dexPairFee, _polygonPool, priceGetter.address], {initializer: "initialize", gasLimit: 2000000, nonce: _nonce}); _nonce += 1;
+    let cerosRouter = await upgrades.deployProxy(this.CerosRouter, [_aMATICc, _wMatic, ceaMATICc.address, ceVault.address, _dex, _dexPairFee, _swapPool, priceGetter.address], {initializer: "initialize", gasLimit: 2000000, nonce: _nonce}); _nonce += 1;
+    // let cerosRouter = await upgrades.deployProxy(this.CerosRouter, [_aMATICc, _maticToken, _aMATICb, ceVault.address, _dex, _dexPairFee, _polygonPool, priceGetter.address], {initializer: "initialize", gasLimit: 2000000, nonce: _nonce}); _nonce += 1;
     await cerosRouter.deployed();
     let cerosRouterImp = await upgrades.erc1967.getImplementationAddress(cerosRouter.address);
     console.log("cerosRouter     : " + cerosRouter.address);

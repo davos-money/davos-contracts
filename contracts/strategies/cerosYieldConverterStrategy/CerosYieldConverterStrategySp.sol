@@ -127,17 +127,17 @@ contract CerosYieldConverterStrategySp is BaseStrategy {
         if(_amount < wethBalance) return (_amount, _amount);
         
         uint256 amountin; uint256 amountOut; bool enoughLiquidity; uint256 remaining = _amount - wethBalance;
-        (amountOut, enoughLiquidity) = ISwapPool(_swapPool).getAmountOut(false, (remaining * _certToken.ratio()) / 1e18, feeFlag);
+        (amountOut, enoughLiquidity) = ISwapPool(_swapPool).getAmountOut(false, (remaining * _certToken.ratio()) / 1e18, true);
 
         if (!enoughLiquidity) {
             (amountin,) = ISwapPool(_swapPool).getAmountIn(false, ISwapPool(_swapPool).nativeTokenAmount() - 1, false);
-            (amountOut,) = ISwapPool(_swapPool).getAmountOut(false, amountin, false);
+            (amountOut,) = ISwapPool(_swapPool).getAmountOut(false, amountin, true);
             capacity = wethBalance + amountOut;
-            (amountOut,) = ISwapPool(_swapPool).getAmountOut(true, (amountOut * _certToken.ratio()) / 1e18, false);
+            (amountOut,) = ISwapPool(_swapPool).getAmountOut(false, (amountOut * _certToken.ratio()) / 1e18, feeFlag);
             chargedCapacity = wethBalance + amountOut;
         } else {
-            capacity = wethBalance + amountOut;
-            (amountOut,) = ISwapPool(_swapPool).getAmountOut(true, (amountOut * _certToken.ratio()) / 1e18, false);
+            capacity = _amount;
+            (amountOut,) = ISwapPool(_swapPool).getAmountOut(false, (amountOut * _certToken.ratio()) / 1e18, feeFlag);
             chargedCapacity = wethBalance + amountOut;
         }
     }

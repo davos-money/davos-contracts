@@ -374,9 +374,15 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         uint256 waitingPoolDebt = waitingPool.totalDebt();
         uint256 waitingPoolBal = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
         if (waitingPoolDebt > waitingPoolBal) {
-            uint256 withdrawAmount = waitingPoolDebt - waitingPoolBal;
+          uint256 withdrawAmount = waitingPoolDebt - waitingPoolBal;
+          if (totalAssetInVault() >= withdrawAmount) {
+            SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawAmount);
+          } else {
             (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1, _class);
-            if(withdrawn > 0 && !delayed) SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawn);
+            uint256 amount = totalAssetInVault();
+            if(withdrawn > 0 && !delayed) amount += withdrawn;
+            SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), amount);
+          }
         }
     }
     /** Triggers tryRemove() of waiting pool contract

@@ -15,7 +15,8 @@ async function main() {
     let _nonce = initialNonce
         
     // Config 
-    let { _maticToken, _dgtRewardsPoolLimitInEth, _dgtTokenRewardsSupplyinEth, _dgtOracleInitialPriceInWei} = require(`./config_${hre.network.name}.json`);
+    let { _wMatic, _dgtRewardsPoolLimitInEth, _dgtTokenRewardsSupplyinEth, _dgtOracleInitialPriceInWei} = require(`./config_${hre.network.name}.json`);
+    // let { _maticToken, _dgtRewardsPoolLimitInEth, _dgtTokenRewardsSupplyinEth, _dgtOracleInitialPriceInWei} = require(`./config_${hre.network.name}.json`);
     let _ilkCeMatic = ethers.utils.formatBytes32String("ceMATIC");
 
     // Addresses
@@ -78,7 +79,8 @@ async function main() {
     console.log("Imp             : " + interactionImplAddress);
     console.log("AuctionProxy    : " + auctionProxy.address);
 
-    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_maticToken, _dMatic, _masterVault, interaction.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_wMatic, _dMatic, _masterVault, interaction.address, true], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_maticToken, _dMatic, _masterVault, interaction.address, false], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosProvider.deployed();
     davosProviderImplementation = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
     console.log("davosProvider   : " + davosProvider.address);

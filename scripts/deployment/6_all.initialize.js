@@ -29,11 +29,13 @@ async function main() {
     let ceaMATICc = await hre.ethers.getContractAt("CeToken", _ceaMATICc);
     let ceVault = await hre.ethers.getContractAt("CeVault", _ceVault);
     let dMatic = await hre.ethers.getContractAt("dMATIC", _dMatic);
-    let cerosRouter = await hre.ethers.getContractAt("CerosRouter", _cerosRouter);
+    let cerosRouter = await hre.ethers.getContractAt("CerosRouterSp", _cerosRouter);
+    // let cerosRouter = await hre.ethers.getContractAt("CerosRouterLs", _cerosRouter);
 
     let masterVault = await hre.ethers.getContractAt("MasterVault", _masterVault);
     let waitingPool = await hre.ethers.getContractAt("WaitingPool", _waitingPool);
-    let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategy", _cerosYieldConverterStrategy);
+    let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategySp", _cerosYieldConverterStrategy);
+    // let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategyLs", _cerosYieldConverterStrategy);
 
     let vat = await hre.ethers.getContractAt("Vat", _vat);
     let spot = await hre.ethers.getContractAt("Spotter", _spot);
@@ -59,13 +61,14 @@ async function main() {
     // Initialization
     console.log("Ceros init...");
     await ceaMATICc.changeVault(ceVault.address, {nonce: _nonce}); _nonce += 1;
-    await ceVault.changeCerosRouter(cerosRouter.address, {nonce: _nonce}); _nonce += 1;
+    await ceVault.changeRouter(cerosRouter.address, {nonce: _nonce}); _nonce += 1;
     await dMatic.changeMinter(davosProvider.address, {nonce: _nonce}); _nonce += 1;
-    await cerosRouter.changeStrategy(cerosYieldConverterStrategy.address, {nonce: _nonce}); _nonce += 1;
+    // await cerosRouter.changeStrategy(cerosYieldConverterStrategy.address, {nonce: _nonce}); _nonce += 1;
 
     console.log("MasterVault init...");
     await masterVault.setWaitingPool(waitingPool.address, {nonce: _nonce}); _nonce += 1;
-    await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, {nonce: _nonce}); _nonce += 1;
+    await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 0, {nonce: _nonce}); _nonce += 1;
+    // await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 1, {nonce: _nonce}); _nonce += 1;
     await masterVault.changeProvider(davosProvider.address, {nonce: _nonce}); _nonce += 1;
 
     console.log("Oracle init...") // Set Price
