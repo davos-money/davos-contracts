@@ -39,7 +39,7 @@ contract Davos is Initializable, IDavos {
     }
 
     // --- ERC20 Data ---
-    string  public constant name     = "Davos";
+    string  public constant name     = "Davos.xyz DUSD";
     string  public symbol;
     string  public constant version  = "1";
     uint8   public constant decimals = 18;
@@ -196,5 +196,9 @@ contract Davos is Initializable, IDavos {
             chainId_,
             address(this)
         ));
+    }
+
+    function setSymbol(string memory symbol_) external auth {
+        symbol = symbol_;
     }
 }
