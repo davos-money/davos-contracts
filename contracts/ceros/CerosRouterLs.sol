@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/ICerosRouterLs.sol";
 
@@ -20,6 +21,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     
     // --- Wrapper ---
     using SafeMathUpgradeable for uint256;
+    using SafeERC20 for IERC20;
 
     // --- Vars ---
     IVault public s_ceVault;
@@ -74,7 +76,7 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
         {
             require(_amount > 0, "CerosRouter/invalid-amount");
             uint256 balanceBefore = s_maticToken.balanceOf(address(this));
-            s_maticToken.transferFrom(msg.sender, address(this), _amount);
+            s_maticToken.safeTransferFrom(msg.sender, address(this), _amount);
             uint256 balanceAfter = s_maticToken.balanceOf(address(this));
             require(balanceAfter >= balanceBefore + _amount, "CerosRouter/invalid-transfer");
         }

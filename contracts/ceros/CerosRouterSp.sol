@@ -4,6 +4,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/ISwapRouter.sol";
 import "./interfaces/ISwapPool.sol";
@@ -19,6 +20,8 @@ OwnableUpgradeable,
 PausableUpgradeable,
 ReentrancyGuardUpgradeable
 {
+    using SafeERC20 for IERC20;
+
     /**
      * Variables
      */
@@ -84,7 +87,7 @@ ReentrancyGuardUpgradeable
     nonReentrant
     returns (uint256 value)
     {
-        IERC20(_wMaticAddress).transferFrom(msg.sender, address(this), amount);
+        IERC20(_wMaticAddress).safeTransferFrom(msg.sender, address(this), amount);
         return _deposit(amount);
     }
 
