@@ -18,7 +18,7 @@ interface ICerosRouterLs {
     function withdrawAMATICc(address _recipient, uint256 _amount) external returns (uint256);
     function claim(address _recipient) external returns (uint256);
     function claimProfit(address _recipient) external;
-    function withdrawFor(address _recipient, uint256 _amount) external payable returns (uint256);   
+    function withdrawFor(address _recipient, uint256 _amount) external returns (uint256);   
     function getYieldFor(address _account) external view returns(uint256);
     function s_profits(address _account) external view returns(uint256);
 }

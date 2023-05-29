@@ -60,7 +60,7 @@ contract CerosYieldConverterStrategyLs is BaseStrategy {
     /** Deposit underlying to destination contract
       * @param _amount underlying token amount
       */
-    function deposit(uint256 _amount) external payable onlyMasterVault whenNotPaused returns(uint256 value) {
+    function deposit(uint256 _amount) external onlyMasterVault whenNotPaused returns(uint256 value) {
 
         require(_amount <= underlying.balanceOf(address(this)), "Strategy/insufficient-balance");
 
@@ -83,7 +83,7 @@ contract CerosYieldConverterStrategyLs is BaseStrategy {
       * @return value amount withdrawn from destination
       * return delayed if true, the unstake takes time to reach receiver, thus, can't be MasterVault
       */
-    function withdraw(address _recipient, uint256 _amount) external payable onlyMasterVault whenNotPaused returns(uint256 value) {
+    function withdraw(address _recipient, uint256 _amount) external onlyMasterVault whenNotPaused returns(uint256 value) {
 
         return _withdraw(_recipient, _amount);
     }
@@ -95,7 +95,7 @@ contract CerosYieldConverterStrategyLs is BaseStrategy {
     function _withdraw(address _recipient, uint256 _amount) internal returns (uint256 value) {
 
         require(_amount > 0, "Strategy/invalid-amount");        
-        ICerosRouterLs(destination).withdrawFor{value: msg.value}(_recipient, _amount);
+        ICerosRouterLs(destination).withdrawFor(_recipient, _amount);
 
         return _amount;
     }

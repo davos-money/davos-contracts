@@ -153,7 +153,7 @@ contract CerosRouterLsEth is ICerosRouterLs, OwnableUpgradeable, PausableUpgrade
     }
 
     // --- Strategy ---
-    function withdrawFor(address _recipient, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrStrategy returns (uint256 realAmount) {
+    function withdrawFor(address _recipient, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrStrategy returns (uint256 realAmount) {
 
         realAmount = s_ceVault.withdrawFor(msg.sender, address(this), _amount);
         s_pool.unstakeAETHFor(realAmount, _recipient); // aMATICc -> MATIC

@@ -6,8 +6,8 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/ICerosRouterLs.sol";
 
@@ -21,14 +21,14 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     
     // --- Wrapper ---
     using SafeMathUpgradeable for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // --- Vars ---
     IVault public s_ceVault;
     ISwapRouter public s_dex;
     IPolygonPool public s_pool;
     ICertToken public s_aMATICc;
-    IERC20 public s_maticToken;
+    IERC20Upgradeable public s_maticToken;
     address public s_strategy;
     IPriceGetter public s_priceGetter;
 
@@ -55,15 +55,15 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
         __ReentrancyGuard_init();
 
         s_aMATICc = ICertToken(_aMATICc);
-        s_maticToken = IERC20(_maticToken);
+        s_maticToken = IERC20Upgradeable(_maticToken);
         s_ceVault = IVault(_ceVault);
         s_dex = ISwapRouter(_dex);
         s_pairFee = _pairFee;
         s_pool = IPolygonPool(_pool);
         s_priceGetter = IPriceGetter(_priceGetter);
 
-        IERC20(s_maticToken).approve(_dex, type(uint256).max);
-        IERC20(s_maticToken).approve(_pool, type(uint256).max);
+        IERC20Upgradeable(s_maticToken).approve(_dex, type(uint256).max);
+        IERC20Upgradeable(s_maticToken).approve(_pool, type(uint256).max);
         IERC20(s_aMATICc).approve(_dex, type(uint256).max);
         IERC20(s_aMATICc).approve(_bondToken, type(uint256).max);
         IERC20(s_aMATICc).approve(_pool, type(uint256).max);
@@ -153,11 +153,11 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     }
 
     // --- Strategy ---
-    function withdrawFor(address _recipient, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrStrategy returns (uint256 realAmount) {
+    function withdrawFor(address _recipient, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrStrategy returns (uint256 realAmount) {
 
         realAmount = s_ceVault.withdrawFor(msg.sender, address(this), _amount);
         bytes memory bytesData;
-        s_pool.unstakeCertsFor{value: msg.value}(_recipient, realAmount, 0, 0, bytesData); // aMATICc -> MATIC
+        s_pool.unstakeCertsFor{value: 0}(_recipient, realAmount, 0, 0, bytesData); // aMATICc -> MATIC
 
         emit Withdrawal(msg.sender, _recipient, address(s_maticToken), realAmount);
         return realAmount;
@@ -214,10 +214,10 @@ contract CerosRouterLs is ICerosRouterLs, OwnableUpgradeable, PausableUpgradeabl
     }
     function changeDex(address _dex) external onlyOwner {
 
-        IERC20(s_maticToken).approve(address(s_dex), 0);
+        IERC20Upgradeable(s_maticToken).approve(address(s_dex), 0);
         s_aMATICc.approve(address(s_dex), 0);
         s_dex = ISwapRouter(_dex);
-        IERC20(s_maticToken).approve(address(_dex), type(uint256).max);
+        IERC20Upgradeable(s_maticToken).approve(address(_dex), type(uint256).max);
         s_aMATICc.approve(address(_dex), type(uint256).max);
         emit ChangeDex(_dex);
     }

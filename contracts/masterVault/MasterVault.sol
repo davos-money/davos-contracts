@@ -92,7 +92,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount amount of Underlying Token deposit
       * @return shares corresponding MasterVault tokens
       */
-    function depositUnderlying(uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
+    function depositUnderlying(uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
@@ -148,7 +148,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         strategyParams[_strategy].debt += chargedCapacity;
 
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _strategy, capacity);
-        IBaseStrategy(_strategy).deposit{value: msg.value}(capacity);
+        IBaseStrategy(_strategy).deposit(capacity);
         
         emit DepositedToStrategy(_strategy, capacity, chargedCapacity);
         return true;
@@ -182,7 +182,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount underlying assets to withdraw
       * @return assets underlying assets excluding any fees
       */
-    function withdrawUnderlying(address _account, uint256 _amount) external payable override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
+    function withdrawUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
         address src = msg.sender;
@@ -257,7 +257,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         totalDebt -= capacity;
         strategyParams[_strategy].debt -= capacity;
 
-        uint256 value = IBaseStrategy(_strategy).withdraw{value: msg.value}(_recipient, capacity);
+        uint256 value = IBaseStrategy(_strategy).withdraw(_recipient, capacity);
 
         require(value >= chargedCapacity, "MasterVault/preview-withdrawn-mismatch");
 

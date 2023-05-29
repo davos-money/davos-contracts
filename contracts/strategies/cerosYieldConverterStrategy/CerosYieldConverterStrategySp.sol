@@ -55,7 +55,7 @@ contract CerosYieldConverterStrategySp is BaseStrategy {
 
     /// @dev deposits the given amount of underlying tokens into ceros
     /// @param amount amount of underlying tokens
-    function deposit(uint256 amount) external payable override onlyVault whenNotPaused returns(uint256 value) {
+    function deposit(uint256 amount) external override onlyVault whenNotPaused returns(uint256 value) {
         require(amount <= underlying.balanceOf(address(this)), "insufficient balance");
         return _deposit(amount);
     }
@@ -70,7 +70,7 @@ contract CerosYieldConverterStrategySp is BaseStrategy {
 
     /// @dev withdraws the given amount of underlying tokens from ceros and transfers to masterVault
     /// @param amount amount of underlying tokens
-    function withdraw(address recipient, uint256 amount) external payable override onlyVault whenNotPaused returns(uint256 value) {
+    function withdraw(address recipient, uint256 amount) external override onlyVault whenNotPaused returns(uint256 value) {
         return _withdraw(amount);
     }
 

@@ -62,24 +62,25 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     function provide(uint256 _amount) external payable override whenNotPaused nonReentrant returns (uint256 value) {
 
         if(isNative) {
-            require(msg.value >= _amount, "DavosProvider/native-less-than-amount");
-            uint256 fees = msg.value - _amount;
-            IWrapped(underlying).deposit{value: _amount}();
-            value = masterVault.depositUnderlying{value: fees}(_amount);
+            require(_amount == 0, "DavosProvider/erc20-not-accepted");
+            uint256 native = msg.value;
+            IWrapped(underlying).deposit{value: native}();
+            value = masterVault.depositUnderlying(native);
         } else {
+            require(msg.value == 0, "DavosProvider/native-not-accepted");
             underlying.safeTransferFrom(msg.sender, address(this), _amount);
-            value = masterVault.depositUnderlying{value: msg.value}(_amount);
+            value = masterVault.depositUnderlying(_amount);
         }
 
         value = _provideCollateral(msg.sender, value);
         emit Deposit(msg.sender, value);
         return value;
     }
-    function release(address _recipient, uint256 _amount) external payable override whenNotPaused nonReentrant returns (uint256 realAmount) {
+    function release(address _recipient, uint256 _amount) external override whenNotPaused nonReentrant returns (uint256 realAmount) {
 
         require(_recipient != address(0));
         realAmount = _withdrawCollateral(msg.sender, _amount);
-        realAmount = masterVault.withdrawUnderlying{value: msg.value}(_recipient, realAmount);
+        realAmount = masterVault.withdrawUnderlying(_recipient, realAmount);
 
         emit Withdrawal(msg.sender, _recipient, realAmount);
         return realAmount;

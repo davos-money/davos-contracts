@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 interface IBaseStrategy {
 
     // --- Functions ---
-    function deposit(uint256 _amount) external payable returns(uint256);
-    function withdraw(address _recipient, uint256 _amount) external payable returns(uint256);
+    function deposit(uint256 _amount) external returns(uint256);
+    function withdraw(address _recipient, uint256 _amount) external returns(uint256);
     function harvest() external;
     function pause() external;
     function unpause() external;
