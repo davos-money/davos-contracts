@@ -362,8 +362,8 @@ describe('===DavosProvider===', function () {
             await davosProvider.changeNativeStatus(true);
 
             expect(await collateralToken.balanceOf(masterVault.address)).to.be.equal(0);
-            await expect(davosProvider.provide("2" + wad, {value: "1" + wad})).to.be.revertedWith("DavosProvider/native-less-than-amount");      
-            await davosProvider.provide("1" + wad, {value: "1" + wad});      
+            await expect(davosProvider.provide("2" + wad, {value: "1" + wad})).to.be.revertedWith("DavosProvider/erc20-not-accepted");      
+            await davosProvider.provide(0, {value: "1" + wad});      
             expect(await collateralToken.balanceOf(masterVault.address)).to.be.equal("1" + wad);
         });
     });
