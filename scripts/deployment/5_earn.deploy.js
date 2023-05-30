@@ -14,7 +14,7 @@ async function main() {
     let _nonce = initialNonce
 
     // Addresses
-    let { _davos } = require(`./addresses_${hre.network.name}_3.json`);
+    let { _davos } = require(`./addresses_${hre.network.name}_3_1.json`);
 
     let exitDelay = "0"; // 0 Days
     let spread = "604800"; // 7 Days

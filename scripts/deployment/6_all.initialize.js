@@ -21,7 +21,8 @@ async function main() {
     // Addresses
     let { _ceaMATICc, _ceVault, _dMatic, _cerosRouter, } = require(`./addresses_${hre.network.name}_1.json`);
     let { _masterVault, _waitingPool, _cerosYieldConverterStrategy } = require(`./addresses_${hre.network.name}_2.json`);
-    let { _vat, _spot, _davos, _davosJoin, _gemJoin, _jug, _vow, _dog, _clip, _abacus, _oracle } = require(`./addresses_${hre.network.name}_3.json`);
+    let { _vat, _spot, _davos, _davosJoin, _gemJoin, _jug} = require(`./addresses_${hre.network.name}_3_1.json`);
+    let { _vow, _dog, _clip, _abacus, _oracle } = require(`./addresses_${hre.network.name}_3_2.json`);
     let { _rewards, _interaction, _davosProvider } = require(`./addresses_${hre.network.name}_4.json`);
     let { _jar } = require(`./addresses_${hre.network.name}_5.json`);
 
@@ -29,13 +30,13 @@ async function main() {
     let ceaMATICc = await hre.ethers.getContractAt("CeToken", _ceaMATICc);
     let ceVault = await hre.ethers.getContractAt("CeVault", _ceVault);
     let dMatic = await hre.ethers.getContractAt("dMATIC", _dMatic);
-    let cerosRouter = await hre.ethers.getContractAt("CerosRouterSp", _cerosRouter);
-    // let cerosRouter = await hre.ethers.getContractAt("CerosRouterLs", _cerosRouter);
+    // let cerosRouter = await hre.ethers.getContractAt("CerosRouterSp", _cerosRouter);
+    let cerosRouter = await hre.ethers.getContractAt("CerosRouterLs", _cerosRouter);
 
     let masterVault = await hre.ethers.getContractAt("MasterVault", _masterVault);
     let waitingPool = await hre.ethers.getContractAt("WaitingPool", _waitingPool);
-    let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategySp", _cerosYieldConverterStrategy);
-    // let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategyLs", _cerosYieldConverterStrategy);
+    // let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategySp", _cerosYieldConverterStrategy);
+    let cerosYieldConverterStrategy = await hre.ethers.getContractAt("CerosYieldConverterStrategyLs", _cerosYieldConverterStrategy);
 
     let vat = await hre.ethers.getContractAt("Vat", _vat);
     let spot = await hre.ethers.getContractAt("Spotter", _spot);
@@ -47,8 +48,8 @@ async function main() {
     let dog = await hre.ethers.getContractAt("Dog", _dog);
     let clip = await hre.ethers.getContractAt("Clipper", _clip);
     let abacus = await hre.ethers.getContractAt("LinearDecrease", _abacus);
-    // let oracle = await hre.ethers.getContractAt("MaticOracle", _oracle); // Price Feed
-    let oracle = await hre.ethers.getContractAt("Oracle", _oracle); // Set Price
+    let oracle = await hre.ethers.getContractAt("MaticOracle", _oracle); // Price Feed
+    // let oracle = await hre.ethers.getContractAt("Oracle", _oracle); // Set Price
  
     let rewards = await hre.ethers.getContractAt("DGTRewards", _rewards);
     // this.DgtToken = await hre.ethers.getContractAt("DGTToken", "");
@@ -63,16 +64,16 @@ async function main() {
     await ceaMATICc.changeVault(ceVault.address, {nonce: _nonce}); _nonce += 1;
     await ceVault.changeRouter(cerosRouter.address, {nonce: _nonce}); _nonce += 1;
     await dMatic.changeMinter(davosProvider.address, {nonce: _nonce}); _nonce += 1;
-    // await cerosRouter.changeStrategy(cerosYieldConverterStrategy.address, {nonce: _nonce}); _nonce += 1;
+    await cerosRouter.changeStrategy(cerosYieldConverterStrategy.address, {nonce: _nonce}); _nonce += 1;
 
     console.log("MasterVault init...");
     await masterVault.setWaitingPool(waitingPool.address, {nonce: _nonce}); _nonce += 1;
-    await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 0, {nonce: _nonce}); _nonce += 1;
-    // await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 1, {nonce: _nonce}); _nonce += 1;
+    // await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 0, {nonce: _nonce}); _nonce += 1;
+    await masterVault.addStrategy(cerosYieldConverterStrategy.address, _cerosStrategyAllocatoin, 1, {nonce: _nonce}); _nonce += 1;
     await masterVault.changeProvider(davosProvider.address, {nonce: _nonce}); _nonce += 1;
 
-    console.log("Oracle init...") // Set Price
-    await oracle.setPrice("1160000000000000000"); _nonce += 1;
+    // console.log("Oracle init...") // Set Price
+    // await oracle.setPrice("1160000000000000000"); _nonce += 1;
 
     console.log("Vat init...");
     await vat.rely(gemJoin.address, {nonce: _nonce}); _nonce += 1;

@@ -1,0 +1,42 @@
+{
+    "_aMATICc" : "0x26dcFbFa8Bc267b250432c01C982Eaf81cC5480C", 
+    "_aMATICb" : "0x99534Ef705Df1FFf4e4bD7bbaAF9b0dFf038EbFe",
+    "_maticToken" : "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+    "_dex" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "_dexFactory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+    "_dexPairFee" : "3000",
+    "_chainId": 1,
+    
+    "_maxDepositFee" : 500000, 
+    "_maxWithdrawalFee" : 500000,
+    "_maxStrategies" : 10,
+    "_cerosStrategyAllocatoin" : 800000,
+    "_waitingPoolCap" : 10,
+    
+    "_mat" : "1333333333333333333333333333",
+    "_dgtRewardsPoolLimitInEth" : "100000000",
+    "_dgtTokenRewardsSupplyinEth" : "100000000",
+    "_dgtOracleInitialPriceInWei" : "100000000000000000",
+    "_rewardsRate" : "1000000001847694957439350500",
+    "_vat_Line" : "5000000",
+    "_vat_line" : "5000000",
+    "_vat_dust" : "50",
+    "_spot_par" : "1",
+    "_jug_base" : "1000000000627937192491029810",
+    "_dog_Hole" : "50000000",
+    "_dog_hole" : "50000000",
+    "_dog_chop" : "1100000000000000000",
+    "_abacus_tau": "36000",
+    "_clip_buf"  : "1100000000000000000000000000",
+    "_clip_tail": "10800",
+    "_clip_cusp": "600000000000000000000000000",
+    "_clip_chip": "100000000000000",
+    "_clip_tip": "10",
+    "_clip_stopped": "0",
+    
+    "_multisig": "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
+    "_whitelistOperator" : "0x910a845C872a6Af873D1DEc1f0Cce03034c94893",
+    "_earnOperator" : "0x910a845C872a6Af873D1DEc1f0Cce03034c94893",
+    
+    "_polygonPool": "0xCfD4B4Bc15C8bF0Fd820B0D4558c725727B3ce89"
+}
