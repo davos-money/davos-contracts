@@ -21,9 +21,9 @@ async function main() {
   } = require('./addresses.json');
 
   let {
-    _multisig
+    _multisigP
   } = require('./addresses.json');
-  
+
   /** Load factories */
   let bridgeAdd = await hre.ethers.getContractAt(BRIDGE_ADD_ABI, targetBridge);
   let bridgeWarp = await hre.ethers.getContractAt(BRIDGE_WARP_ABI, targetBridge);
@@ -44,12 +44,12 @@ async function main() {
   console.log("---Bridge warp set !!!")
 
   console.log("---bridgE");
-  await (await bridgE.transferOwnership(_multisig, {nonce: _nonce})).wait(); _nonce += 1;
-  console.log("---bridgE: " + _multisig);
+  await (await bridgE.transferOwnership(_multisigP, {nonce: _nonce})).wait(); _nonce += 1;
+  console.log("---bridgE: " + _multisigP);
 
   console.log("---birdgeproxyadmiN");
   await (await birdgeproxyadmiN.changeProxyAdmin(targetBridge, pproxyAdmin, {nonce: _nonce})).wait(); _nonce += 1;
-  console.log("---birdgeproxyadmiN: " + _multisig);
+  console.log("---birdgeproxyadmiN: " + pproxyAdmin);
 
   console.log("---------------------------");
   console.log("Complete...");
