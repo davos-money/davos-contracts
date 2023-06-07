@@ -113,7 +113,6 @@ contract Davos is Initializable, IDavos {
     function approve(address usr, uint wad) external returns (bool) {
         _approve(msg.sender, usr, wad);
 
-        emit Approval(msg.sender, usr, wad);
         return true;
     }
 

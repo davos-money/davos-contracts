@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IMasterVault_V2 {
+
+    // --- Events ---
+    event Claim(address indexed owner, address indexed receiver, uint256 yield);
+
+    // --- Functions ---
+    function depositUnderlying(address _account, uint256 _amount) external returns (uint256);
+    function withdrawUnderlying(address _account, uint256 _amount) external returns (uint256);
+}

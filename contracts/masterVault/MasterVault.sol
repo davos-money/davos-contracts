@@ -92,12 +92,11 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount amount of Underlying Token deposit
       * @return shares corresponding MasterVault tokens
       */
-    function depositUnderlying(uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
+    function depositUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
 
         require(_amount > 0, "MasterVault/invalid-amount");
-        address src = msg.sender;
 
-        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), src, address(this), _amount);
+        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), _account, address(this), _amount);
         shares = _assessFee(_amount, depositFee);
 
         uint256 waitingPoolDebt = waitingPool.totalDebt();
@@ -108,11 +107,11 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), poolAmount);
         }
 
-        _mint(src, shares);
+        _mint(_account, shares);
 
         if(allocateOnDeposit == 1) allocate();
 
-        emit Deposit(src, src, _amount, shares);
+        emit Deposit(_account, _account, _amount, shares);
     }
     /** Deposit underlying tokens into strategy
       * @param _strategy address of strategy

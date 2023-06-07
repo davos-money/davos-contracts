@@ -6,11 +6,12 @@ import "./ERC20ModUpgradeable.sol";
 
 contract Token is OwnableUpgradeable, ERC20ModUpgradeable {
 
-    uint256 public ratio = 1e18;
+    uint256 public ratio;
     
     function initialize(string memory name, string memory symbol) external initializer {
         __Ownable_init();
         __ERC20_init_unchained(name, symbol);
+        ratio = 1e18;
     }
 
     function burn(address account, uint256 amount) public {
@@ -23,6 +24,10 @@ contract Token is OwnableUpgradeable, ERC20ModUpgradeable {
 
     function setRatio(uint256 _ratio) external {
         ratio = _ratio;
+    }
+
+    function getWstETHByStETH(uint256) external returns(uint256) {
+        return ratio;
     }
 
     function deposit() public payable {
