@@ -54,27 +54,31 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         require(_amount > 0, "MasterVault_V2/invalid-amount");
         require(_account != address(0), "MasterVault_V2/0-address");
-        require(_amount <= maxDeposit(_account), "ERC4626: deposit more than max");
+        require(_amount <= maxDeposit(_account), "MasterVault_V2/deposit-more-than-max");
+
+        claimYield();
 
         uint256 shares = previewDeposit(_amount);
-        _deposit(_msgSender(), _account, _amount, shares);
+        _deposit(_msgSender(), _msgSender(), _amount, shares);
 
         return shares;
     }
     function withdrawUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused returns (uint256 assets) {
 
-        require(_amount <= maxRedeem(_account), "ERC4626: redeem more than max");
+        require(_amount <= maxRedeem(_account), "MasterVault_V2/withdraw-more-than-max");
         require(_account != address(0), "MasterVault_V2/0-address");
+
+        claimYield();
 
         uint256 assets = previewRedeem(_amount);
         _withdraw(_msgSender(), _account, _account, assets, _amount);
 
         return assets;
     }
-    function claimYield() external nonReentrant returns (uint256) {
-
+    function claimYield() public returns (uint256) {
+        
         uint256 availableYields = getVaultYield();
-        require(availableYields > 0, "MasterVault_V2/no-vault-yields");
+        if (availableYields <= 0) return 0;
 
         ILiquidAsset(asset()).safeTransfer(yieldHeritor, availableYields);
 
@@ -86,12 +90,18 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     
     // --- Admin ---
     function changeYieldHeritor(address _yieldHeritor) external onlyOwnerOrProvider {
-        require(_yieldHeritor != address(0), "Should be less than max");
+
+        require(_yieldHeritor != address(0), "MasterVault_V2/0-address");
         yieldHeritor = _yieldHeritor;
+
+        emit YieldHeritor(yieldHeritor, _yieldHeritor);
     }
     function changeYieldMargin(uint256 _yieldMargin) external onlyOwnerOrProvider {
-        require(_yieldMargin <= 10000, "Should be less than max");
+
+        require(_yieldMargin <= 1e4, "MasterVault_V2/should-be-less-than-max");
         yieldMargin = _yieldMargin;
+
+        emit YieldMargin(yieldMargin, _yieldMargin);
     }
     
     // --- Views ---

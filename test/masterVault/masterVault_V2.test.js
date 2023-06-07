@@ -58,7 +58,7 @@ describe('===MasterVault_V2===', function () {
             console.log("S1_Balance: " + await mv.balanceOf(signer1.address));
             console.log("S2_Balance: " + await mv.balanceOf(signer2.address));
             console.log("H_Balance: " + await token.balanceOf(yieldHeritor.address));
-            await expect(mv.claimYield()).to.be.revertedWith("MasterVault_V2/no-vault-yields");
+            await mv.claimYield();
 
             await token.setRatio("940000000000000000");
             console.log("--- Ratio: a 940000000000000000");
@@ -91,7 +91,7 @@ describe('===MasterVault_V2===', function () {
             console.log("H_Balance: " + await token.balanceOf(yieldHeritor.address));
             console.log("Principle : " + await mv.getVaultPrinciple());
             console.log("Yield     : " + await mv.getVaultYield());
-            await expect(mv.claimYield()).to.be.revertedWith("MasterVault_V2/no-vault-yields");
+            await mv.claimYield();
             console.log("Yield     : " + await mv.getVaultYield());
             console.log("Deposit: " + await token.balanceOf(mv.address));
             console.log("Wallet1: " + await token.balanceOf(signer1.address));
