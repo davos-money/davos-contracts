@@ -138,6 +138,10 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         return yield;
     }
 
+    function totalAssets() public view virtual override returns (uint256) {
+        return super.totalAssets() - getVaultYield();
+    }
+
     // ---------------
     // --- ERC4626 ---
     /** Kept only for the sake of ERC4626 standard
