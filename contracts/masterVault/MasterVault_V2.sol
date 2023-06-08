@@ -34,7 +34,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(string memory _name, string memory _symbol, uint256 _yieldMargin, address _underlying, address _provider) external initializer {
+    function initialize(string memory _name, string memory _symbol, uint256 _yieldMargin, address _underlying) external initializer {
 
         __ERC4626_init(IERC20MetadataUpgradeable(_underlying));
         __ERC20_init(_name, _symbol);
@@ -42,7 +42,6 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         __Pausable_init();
         __ReentrancyGuard_init();
 
-        provider = _provider;
         yieldMargin = _yieldMargin;
         yieldRatio = ILiquidAsset(asset()).getWstETHByStETH(1e18);
 
@@ -50,28 +49,33 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     }
 
     // --- Provider ---
-    function depositUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused returns (uint256 shares) {
+    function depositUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
+
+        address src = _msgSender();
 
         require(_amount > 0, "MasterVault_V2/invalid-amount");
         require(_account != address(0), "MasterVault_V2/0-address");
-        require(_amount <= maxDeposit(_account), "MasterVault_V2/deposit-more-than-max");
+        require(_amount <= maxDeposit(src), "MasterVault_V2/deposit-more-than-max");
 
         claimYield();
 
         uint256 shares = previewDeposit(_amount);
-        _deposit(_msgSender(), _msgSender(), _amount, shares);
+
+        _deposit(src, src, _amount, shares);
 
         return shares;
     }
-    function withdrawUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused returns (uint256 assets) {
+    function withdrawUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
 
-        require(_amount <= maxRedeem(_account), "MasterVault_V2/withdraw-more-than-max");
+        address src = _msgSender();
+
+        require(_amount <= maxRedeem(src), "MasterVault_V2/withdraw-more-than-max");
         require(_account != address(0), "MasterVault_V2/0-address");
 
         claimYield();
 
         uint256 assets = previewRedeem(_amount);
-        _withdraw(_msgSender(), _account, _account, assets, _amount);
+        _withdraw(src, _account, src, assets, _amount);
 
         return assets;
     }
@@ -80,15 +84,23 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         uint256 availableYields = getVaultYield();
         if (availableYields <= 0) return 0;
 
-        ILiquidAsset(asset()).safeTransfer(yieldHeritor, availableYields);
+        ILiquidAsset _asset = ILiquidAsset(asset());
+        _asset.safeTransfer(yieldHeritor, availableYields);
 
-        yieldRatio = ILiquidAsset(asset()).getWstETHByStETH(1e18);
+        yieldRatio = _asset.getWstETHByStETH(1e18);
 
         emit Claim(address(this), yieldHeritor, availableYields);
         return availableYields;
     }
     
     // --- Admin ---
+    function changeProvider(address _provider) external onlyOwnerOrProvider {
+
+        require(_provider != address(0), "MasterVault_V2/0-address");
+        provider = _provider;
+
+        emit Provider(provider, _provider);
+    }
     function changeYieldHeritor(address _yieldHeritor) external onlyOwnerOrProvider {
 
         require(_yieldHeritor != address(0), "MasterVault_V2/0-address");
