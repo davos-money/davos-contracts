@@ -33,7 +33,7 @@ describe('===MasterVault_V2===', function () {
         token = await upgrades.deployProxy(this.Token, ["Wrapped Staked Ether", "wstETH"], {initializer: "initialize"});
         await token.deployed();
         await token.setRatio("950000000000000000");
-        mv = await upgrades.deployProxy(this.MasterVault_V2, ["Master Vault Token", "ceMATIC", 1000, token.address, deployer.address], {initializer: "initialize"});
+        mv = await upgrades.deployProxy(this.MasterVault_V2, ["Master Vault Token", "ceMATIC", 1000, token.address], {initializer: "initialize"});
         await mv.deployed();
     });
 
@@ -97,5 +97,43 @@ describe('===MasterVault_V2===', function () {
             console.log("Wallet1: " + await token.balanceOf(signer1.address));
             console.log("Wallet2: " + await token.balanceOf(signer2.address));
         });
+
+        it('redeem not changed after claim', async () => {
+          await mv.changeYieldHeritor(yieldHeritor.address);
+          await mv.changeProvider(signer1.address);
+
+          await token.mint(signer1.address, "7000000000000000000");
+          await token.connect(signer1).approve(mv.address, "7000000000000000000");
+          await mv.connect(signer1).depositUnderlying(signer1.address, "7000000000000000000");
+
+          await token.setRatio("920000000000000000");
+
+          const redeemAmBefore = await mv.previewRedeem(ethers.utils.parseEther('1'));
+
+          await mv.claimYield();
+
+          const redeemAmAfter = await mv.previewRedeem(ethers.utils.parseEther('1'))
+
+          expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after claim')
+        })
+
+        it('redeem not changed after withdraw', async () => {
+          await mv.changeYieldHeritor(yieldHeritor.address);
+          await mv.changeProvider(signer1.address);
+
+          await token.mint(signer1.address, "7000000000000000000");
+          await token.connect(signer1).approve(mv.address, "7000000000000000000");
+          await mv.connect(signer1).depositUnderlying(signer1.address, "7000000000000000000");
+
+          await token.setRatio("920000000000000000");
+
+          const redeemAmBefore = await mv.previewRedeem(ethers.utils.parseEther('1'));
+
+          await mv.connect(signer1).withdrawUnderlying(signer1.address, "7000000000000000000");
+
+          const redeemAmAfter = await mv.previewRedeem(ethers.utils.parseEther('1'))
+
+          expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after withdraw')
+        })
     });
 });
