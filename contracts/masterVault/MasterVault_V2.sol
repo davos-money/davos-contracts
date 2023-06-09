@@ -7,8 +7,8 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IMasterVault_V2.sol";
-
 import "./interfaces/ILiquidAsset.sol";
+import "./interfaces/IRatioAdapter.sol";
 
 // --- MasterVault_V2 (Variant 2) ---
 // --- Vault with instances per Liquid Staked Underlying to generate yield via ratio change and strategies ---
@@ -22,6 +22,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     address public yieldHeritor;     // Yield Recipient
     uint256 public yieldMargin;      // Percentage of Yield protocol gets, 10,000 = 100%
     uint256 public yieldRatio;       // Ratio at which Yield for protocol was last claimed
+    IRatioAdapter public ratioAdapter; // Ratio adapter
 
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
@@ -43,7 +44,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         __ReentrancyGuard_init();
 
         yieldMargin = _yieldMargin;
-        yieldRatio = ILiquidAsset(asset()).getWstETHByStETH(1e18);
+        yieldRatio = ratioAdapter.fromValue(asset(), 1e18);
 
         require(yieldRatio != 0, "MasterVault_V2/asset-ratio-incorrect");
     }
@@ -119,12 +120,12 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     // --- Views ---
     function getVaultPrinciple() public view returns (uint256) {
 
-        uint256 ratio = ILiquidAsset(asset()).getWstETHByStETH(1e18);
+        uint256 ratio = ratioAdapter.fromValue(asset(), 1e18);
         return (totalSupply() * ratio) / 1e18;
     }
     function getVaultYield() public view returns (uint256) {
 
-        uint256 nowRatio = ILiquidAsset(asset()).getWstETHByStETH(1e18); 
+        uint256 nowRatio = ratioAdapter.fromValue(asset(), 1e18);
 
         if (nowRatio > yieldRatio) return 0;
 

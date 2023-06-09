@@ -26,11 +26,11 @@ contract Token is OwnableUpgradeable, ERC20ModUpgradeable {
         ratio = _ratio;
     }
 
-    function getWstETHByStETH(uint256 amount) external returns(uint256) {
+    function getWstETHByStETH(uint256 amount) external view returns(uint256) {
         return amount * ratio / 1e18;
     }
 
-    function getStETHByWstETH(uint256 amount) external returns(uint256) {
+    function getStETHByWstETH(uint256 amount) external view returns(uint256) {
         return amount * 1e18 / ratio;
     }
 
