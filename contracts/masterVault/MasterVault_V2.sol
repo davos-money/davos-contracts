@@ -21,7 +21,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     address public provider;         // DavosProvider
     address public yieldHeritor;     // Yield Recipient
     uint256 public yieldMargin;      // Percentage of Yield protocol gets, 10,000 = 100%
-    uint256 public yieldRatio;       // Ratio at which Yield for protocol was last claimed
+    uint256 public yieldBalance;     // Balance at which Yield for protocol was last claimed
 
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
@@ -123,17 +123,12 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         return (totalSupply() * ratio) / 1e18;
     }
     function getVaultYield() public view returns (uint256) {
+        uint256 totalBalance = ILiquidAsset(asset()).getWstETHByStETH(super.totalAssets());
+        if (totalBalance <= yieldBalance) return 0;
 
-        uint256 nowRatio = ILiquidAsset(asset()).getWstETHByStETH(1e18); 
+        uint256 diffBalance = totalBalance - yieldBalance;
 
-        if (nowRatio > yieldRatio) return 0;
-
-        uint256 diffRatio = yieldRatio - nowRatio;
-
-        if (diffRatio <= 0) return 0;
-
-        uint256 yieldRatio = (diffRatio * yieldMargin) / 1e4;
-        uint256 yield = (totalSupply() * yieldRatio) / 1e18;
+        uint256 yield = diffBalance * yieldMargin / 1e4;
 
         return yield;
     }
