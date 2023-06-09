@@ -18,12 +18,11 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     using SafeERC20Upgradeable for ILiquidAsset;
 
     // --- Vars ---
-    address public provider;         // DavosProvider
-    address public yieldHeritor;     // Yield Recipient
-    uint256 public yieldMargin;      // Percentage of Yield protocol gets, 10,000 = 100%
-    uint256 public yieldBalance;     // Balance at which Yield for protocol was last claimed
-
-    uint256 public totalShares;
+    address public provider;          // DavosProvider
+    address public yieldHeritor;      // Yield Recipient
+    uint256 public yieldMargin;       // Percentage of Yield protocol gets, 10,000 = 100%
+    uint256 public yieldBalance;      // Balance at which Yield for protocol was last claimed
+    uint256 public underlyingBalance; // Total balance of underlying asset
 
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
@@ -58,12 +57,11 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         require(_amount <= maxDeposit(src), "MasterVault_V2/deposit-more-than-max");
 
         _claimYield();
-        totalShares += _amount;
-        yieldBalance = getBalance();
-
         uint256 shares = previewDeposit(_amount);
-
         _deposit(src, src, _amount, shares);
+
+        underlyingBalance += _amount;
+        yieldBalance = getBalance();
 
         return shares;
     }
@@ -77,7 +75,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         uint256 assets = previewRedeem(_amount);
         _claimYield();
 
-        totalShares -= assets;
+        underlyingBalance -= assets;
         yieldBalance = getBalance();
         _withdraw(src, _account, src, assets, _amount);
 
@@ -96,7 +94,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         ILiquidAsset _asset = ILiquidAsset(asset());
         _asset.safeTransfer(yieldHeritor, availableYields);
-        totalShares -= availableYields;
+        underlyingBalance -= availableYields;
 
         emit Claim(address(this), yieldHeritor, availableYields);
         return availableYields;
@@ -142,11 +140,11 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     }
 
     function totalAssets() public view virtual override returns (uint256) {
-        return totalShares - getVaultYield();
+        return underlyingBalance - getVaultYield();
     }
 
     function getBalance() public view returns (uint256) {
-        return ILiquidAsset(asset()).getStETHByWstETH(totalShares);
+        return ILiquidAsset(asset()).getStETHByWstETH(underlyingBalance);
     }
 
     // ---------------

@@ -125,8 +125,8 @@ describe('===MasterVault_V2===', function () {
           await mv.changeYieldHeritor(yieldHeritor.address);
           await mv.changeProvider(signer1.address);
 
-          await token.mint(signer1.address, ethers.utils.parseEther('1'));
-          await token.connect(signer1).approve(mv.address, ethers.utils.parseEther('1'));
+          await token.mint(signer1.address, ethers.utils.parseEther('1000'));
+          await token.connect(signer1).approve(mv.address, ethers.utils.parseEther('1000'));
           await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('1'));
 
           let vy = await mv.getVaultYield();
@@ -149,9 +149,14 @@ describe('===MasterVault_V2===', function () {
           const redeemAmAfter = await mv.previewRedeem(ethers.utils.parseEther('0.5'));
           expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after withdraw');
 
+          await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('1'));
+          const redeemAmAfterDep = await mv.previewRedeem(ethers.utils.parseEther('0.5'));
+          expect(redeemAmAfterDep.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after deposit');
+
           await token.setRatio("900000000000000000");
 
-          await mv.connect(signer1).withdrawUnderlying(signer1.address, ethers.utils.parseEther('0.5'));
+          // withdraw all
+          await mv.connect(signer1).withdrawUnderlying(signer1.address, await mv.balanceOf(signer1.address));
 
           expect((await mv.balanceOf(signer1.address)).toString()).to.be.eq('0', 'signer still have mv balance')
           expect((await token.balanceOf(mv.address)).toString()).to.be.eq('0', 'dust')
