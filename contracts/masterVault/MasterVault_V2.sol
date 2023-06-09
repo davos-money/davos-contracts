@@ -23,6 +23,8 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     uint256 public yieldMargin;      // Percentage of Yield protocol gets, 10,000 = 100%
     uint256 public yieldRatio;       // Ratio at which Yield for protocol was last claimed
 
+    uint256 public totalDeposited;
+
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
         require(msg.sender == owner() || msg.sender == provider, "MasterVault_V2/not-owner-or-provider");
@@ -133,7 +135,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         if (diffRatio <= 0) return 0;
 
         uint256 yieldRatio = (diffRatio * yieldMargin) / 1e4;
-        uint256 yield = (totalSupply() * yieldRatio) / 1e18;
+        uint256 yield = (super.totalAssets() * yieldRatio) / 1e18;
 
         return yield;
     }

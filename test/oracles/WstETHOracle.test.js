@@ -56,33 +56,29 @@ describe('WstETHOracle', function () {
           const amount = ethers.utils.parseEther('1');
 
           await mVault.changeProvider(signer1.address);
-          await token.mint(signer1.address, amount);
-          await token.connect(signer1).approve(mVault.address, amount);
+          await token.mint(signer1.address, ethers.utils.parseEther('10'));
+          await token.connect(signer1).approve(mVault.address, ethers.utils.parseEther('10'));
           await mVault.connect(signer1).depositUnderlying(signer1.address, amount);
 
           let peek = await oracle.peek();
           expect(BigNumber.from(peek[0]).toString()).to.be.eq(ST_ETH_PRICE_18_DECIMALS);
 
-          await token.setRatio("950000000000000000");
-
+          await token.setRatio("990000000000000000");
           peek = await oracle.peek();
-          console.log('new price', BigNumber.from(peek[0]).toString())
+          expect(BigNumber.from(peek[0].toString())).to.be.eq('1009090909090909090899');
 
-          await token.setRatio("940000000000000000");
-
+          await token.setRatio("980000000000000000");
           peek = await oracle.peek();
-          console.log('new price', BigNumber.from(peek[0]).toString())
+          expect(BigNumber.from(peek[0]).toString()).to.be.eq('1018367346938775509756');
 
           await mVault.claimYield();
-
           peek = await oracle.peek();
-          console.log('new price', BigNumber.from(peek[0]).toString());
+          expect(BigNumber.from(peek[0]).toString()).to.be.eq('1018367346938775509756');
 
           // withdraw
-          await mVault.connect(signer1).withdrawUnderlying(deployer.address, amount);
-
+          await mVault.connect(signer1).withdrawUnderlying(deployer.address, ethers.utils.parseEther('0.5'));
           peek = await oracle.peek();
-          console.log('new price', BigNumber.from(peek[0]).toString());
+          expect(BigNumber.from(peek[0]).toString()).to.be.eq('1018367346938775509756');
         });
     });
 });

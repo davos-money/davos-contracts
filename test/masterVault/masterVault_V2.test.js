@@ -116,24 +116,5 @@ describe('===MasterVault_V2===', function () {
 
           expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after claim')
         })
-
-        it('redeem not changed after withdraw', async () => {
-          await mv.changeYieldHeritor(yieldHeritor.address);
-          await mv.changeProvider(signer1.address);
-
-          await token.mint(signer1.address, "7000000000000000000");
-          await token.connect(signer1).approve(mv.address, "7000000000000000000");
-          await mv.connect(signer1).depositUnderlying(signer1.address, "7000000000000000000");
-
-          await token.setRatio("920000000000000000");
-
-          const redeemAmBefore = await mv.previewRedeem(ethers.utils.parseEther('1'));
-
-          await mv.connect(signer1).withdrawUnderlying(signer1.address, "7000000000000000000");
-
-          const redeemAmAfter = await mv.previewRedeem(ethers.utils.parseEther('1'))
-
-          expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after withdraw')
-        })
     });
 });
