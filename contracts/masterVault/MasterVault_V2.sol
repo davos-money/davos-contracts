@@ -22,6 +22,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     address public yieldHeritor;     // Yield Recipient
     uint256 public yieldMargin;      // Percentage of Yield protocol gets, 10,000 = 100%
     uint256 public yieldRatio;       // Ratio at which Yield for protocol was last claimed
+    uint256 public vaultShares;      // Shares minted against asset ratio to keep track of principle
 
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
@@ -59,6 +60,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         claimYield();
 
+        vaultShares += (_amount, 1e18, ILiquidAsset(asset()).getWstETHByStETH(1e18));
         uint256 shares = previewDeposit(_amount);
 
         _deposit(src, src, _amount, shares);
@@ -75,6 +77,8 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         claimYield();
 
         uint256 assets = previewRedeem(_amount);
+        vaultShares -= (assets, 1e18, ILiquidAsset(asset()).getWstETHByStETH(1e18));
+
         _withdraw(src, _account, src, assets, _amount);
 
         return assets;
@@ -120,7 +124,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     function getVaultPrinciple() public view returns (uint256) {
 
         uint256 ratio = ILiquidAsset(asset()).getWstETHByStETH(1e18);
-        return (totalSupply() * ratio) / 1e18;
+        return (vaultShares * ratio) / 1e18;
     }
     function getVaultYield() public view returns (uint256) {
 
@@ -133,7 +137,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         if (diffRatio <= 0) return 0;
 
         uint256 yieldRatio = (diffRatio * yieldMargin) / 1e4;
-        uint256 yield = (totalSupply() * yieldRatio) / 1e18;
+        uint256 yield = (vaultShares * yieldRatio) / 1e18;
 
         return yield;
     }
