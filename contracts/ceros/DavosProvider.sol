@@ -65,7 +65,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
             require(_amount == 0, "DavosProvider/erc20-not-accepted");
             uint256 native = msg.value;
             IWrapped(underlying).deposit{value: native}();
-            // value = masterVault.deposit(native, msg.sender);
+            value = masterVault.deposit(native, msg.sender);
         } else {
             require(msg.value == 0, "DavosProvider/native-not-accepted");
             underlying.safeTransferFrom(msg.sender, address(this), _amount);
