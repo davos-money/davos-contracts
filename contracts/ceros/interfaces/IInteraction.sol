@@ -18,6 +18,7 @@ interface IInteraction {
     event Withdraw(address indexed user, uint256 amount);
     event CollateralEnabled(address token, bytes32 ilk);
     event CollateralDisabled(address token, bytes32 ilk);
+    event CollateralEnable(address token, bytes32 ilk);
     event AuctionStarted(address indexed token, address user, uint256 amount, uint256 price);
     event AuctionFinished(address indexed token, address keeper,  uint256 amount);
     event Liquidation(address indexed user, address indexed collateral, uint256 amount, uint256 leftover);

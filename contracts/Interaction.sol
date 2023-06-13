@@ -156,17 +156,6 @@ contract Interaction is Initializable, IInteraction {
         jug.file(collateralType.ilk, "duty", data);
     }
 
-    function reenableCollateralType(
-        address token,
-        address gemJoin,
-        bytes32 ilk,
-        address clip,
-        uint256 mat) external auth {
-        collaterals[token].live = 1;
-        vat.rely(gemJoin);
-        IERC20Upgradeable(token).safeApprove(gemJoin, type(uint256).max);
-    }
-
     function setDavosProvider(address token, address davosProvider) external auth {
         require(davosProvider != address(0));
         davosProviders[token] = davosProvider;
@@ -180,6 +169,14 @@ contract Interaction is Initializable, IInteraction {
         vat.deny(gemJoin);
         IERC20Upgradeable(token).safeApprove(gemJoin, 0);
         emit CollateralDisabled(token, collaterals[token].ilk);
+    }
+
+    function reenableCollateralType(address token) external auth {
+        collaterals[token].live = 1;
+        address gemJoin = address(collaterals[token].gem);
+        vat.rely(gemJoin);
+        IERC20Upgradeable(token).safeApprove(gemJoin, type(uint256).max);
+        emit CollateralEnabled(token, collaterals[token].ilk);
     }
 
     function stringToBytes32(string memory source) external pure returns (bytes32 result) {
