@@ -55,11 +55,11 @@ async function main() {
     // } else aggregatorAddress = "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8"; // Dummy
 
     // console.log("Oracle init...");
-    // await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault);
+    // await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault, {nonce: _nonce});
 
     console.log("MasterVault_V2 init...");
     await masterVaultAt.changeProvider(_davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await masterVaultAt.changeYieldHeritor(_yieldInheritor); console.log("2");
+    await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); console.log("2");
 
     console.log("DMatic init...");
     await dMaticAt.changeMinter(_davosProvider, {nonce: _nonce}); _nonce += 1;
