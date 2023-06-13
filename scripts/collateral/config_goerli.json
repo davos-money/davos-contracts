@@ -11,7 +11,8 @@
     "_abacus": "0xb7c22Fe50bFB5beF95579673Ad07321D1EF085b4",
 
     "_yieldInheritor": "",
-    
+    "_multisig": "",
+
     "_mat" : "1333333333333333333333333333",
     "_vat_line" : "5000000",
     "_vat_dust" : "50",

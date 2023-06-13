@@ -49,13 +49,13 @@ async function main() {
     let spotAt = await ethers.getContractAt("Spotter", _spot);
     let oracleAt = await ethers.getContractAt("WstETHOracle", _oracle);
 
-    let aggregatorAddress;
-    if (hre.network.name == "ethereum") {
-        aggregatorAddress = "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8";
-    } else aggregatorAddress = "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8"; // Dummy
+    // let aggregatorAddress;
+    // if (hre.network.name == "ethereum") {
+    //     aggregatorAddress = "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8";
+    // } else aggregatorAddress = "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8"; // Dummy
 
-    console.log("Oracle init...");
-    await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault);
+    // console.log("Oracle init...");
+    // await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault);
 
     console.log("MasterVault_V2 init...");
     await masterVaultAt.changeProvider(_davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1");
