@@ -122,6 +122,11 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         emit YieldMargin(yieldMargin, _yieldMargin);
     }
+    function changeAdapter(address adapter) external onlyOwner {
+        require(adapter != address(0), "MasterVault_V2/0-address");
+        emit AdapterChanged(address(ratioAdapter), adapter);
+        ratioAdapter = IRatioAdapter(adapter);
+    }
     
     // --- Views ---
     function getVaultPrinciple() public view returns (uint256) {
@@ -144,7 +149,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     }
 
     function getBalance() public view returns (uint256) {
-        return ratioAdapter.fromValue(asset(), underlyingBalance);
+        return ratioAdapter.toValue(asset(), underlyingBalance);
     }
 
     // ---------------

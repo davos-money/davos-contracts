@@ -8,6 +8,7 @@ interface IMasterVault_V2 {
     event Provider(address oldProvider, address newProvider);
     event YieldHeritor(address oldHeritor, address newHeritor);
     event YieldMargin(uint256 oldMargin, uint256 newMargin);
+    event AdapterChanged(address oldAdapter, address newAdapter);
 
     // --- Functions ---
     function depositUnderlying(address _account, uint256 _amount) external returns (uint256);

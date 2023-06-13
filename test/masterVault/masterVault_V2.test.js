@@ -28,6 +28,7 @@ describe('===MasterVault_V2===', function () {
         // Contract factory
         this.Token = await ethers.getContractFactory("Token");
         this.MasterVault_V2 = await ethers.getContractFactory("MasterVault_V2");
+        this.RatioAdapter = await ethers.getContractFactory("RatioAdapter");
 
         // Contract deployment
         token = await upgrades.deployProxy(this.Token, ["Wrapped Staked Ether", "wstETH"], {initializer: "initialize"});
@@ -35,6 +36,11 @@ describe('===MasterVault_V2===', function () {
         await token.setRatio("950000000000000000");
         mv = await upgrades.deployProxy(this.MasterVault_V2, ["Master Vault Token", "ceMATIC", 1000, token.address], {initializer: "initialize"});
         await mv.deployed();
+
+        const adapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
+        await adapter.deployed();
+        await adapter.setToken(token.address, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
+        await mv.changeAdapter(adapter.address);
     });
 
     describe('--- General', function () {
