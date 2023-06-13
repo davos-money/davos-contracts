@@ -11,6 +11,10 @@ interface IWstETH {
 interface IMasterVault {
     function previewRedeem(uint256 shares) external view returns (uint256);
 }
+interface IRatioAdapter {
+    function fromValue(address token, uint256 amount) external view returns (uint256);
+    function toValue(address token, uint256 amount) external view returns (uint256);
+}
 
 contract WstETHOracle is Initializable{
 

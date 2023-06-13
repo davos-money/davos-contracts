@@ -89,8 +89,8 @@ describe('===MasterVault_V2===', function () {
         //     await mv.claimYield();
         //
         //     console.log("--- All withdraw");
-        //     await mv.connect(signer1).withdrawUnderlying(signer1.address, "7000000000000000000");
-        //     await mv.connect(signer2).withdrawUnderlying(signer2.address, "11000000000000000000");
+        //     await mv.connect(signer1).redeem(signer1.address, "7000000000000000000");
+        //     await mv.connect(signer2).redeem(signer2.address, "11000000000000000000");
         //     console.log("Deposit: " + await token.balanceOf(mv.address));
         //     console.log("S1_Balance: " + await mv.balanceOf(signer1.address));
         //     console.log("S2_Balance: " + await mv.balanceOf(signer2.address));
@@ -110,7 +110,7 @@ describe('===MasterVault_V2===', function () {
 
           await token.mint(signer1.address, ethers.utils.parseEther('10000'));
           await token.connect(signer1).approve(mv.address, ethers.utils.parseEther('10000'));
-          await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('10000'));
+          await mv.connect(signer1).deposit(ethers.utils.parseEther('10000'), signer1.address);
 
           await token.setRatio("940000000000000000");
 
@@ -133,7 +133,7 @@ describe('===MasterVault_V2===', function () {
 
           await token.mint(signer1.address, ethers.utils.parseEther('1000'));
           await token.connect(signer1).approve(mv.address, ethers.utils.parseEther('1000'));
-          await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('1'));
+          await mv.connect(signer1).deposit(ethers.utils.parseEther('1'), signer1.address);
 
           let vy = await mv.getVaultYield();
           expect(vy.toString()).to.be.eq('0', 'initial yield not zero');
@@ -145,7 +145,7 @@ describe('===MasterVault_V2===', function () {
 
           const redeemAmBefore = await mv.previewRedeem(ethers.utils.parseEther('0.5'));
 
-          await mv.connect(signer1).withdrawUnderlying(signer1.address, ethers.utils.parseEther('0.5'));
+          await mv.connect(signer1).redeem(ethers.utils.parseEther('0.5'), signer1.address, signer1.address);
 
           expect((await mv.totalSupply()).toString()).to.be.eq(ethers.utils.parseEther('0.5'))
 
@@ -155,14 +155,14 @@ describe('===MasterVault_V2===', function () {
           const redeemAmAfter = await mv.previewRedeem(ethers.utils.parseEther('0.5'));
           expect(redeemAmBefore.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after withdraw');
 
-          await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('1'));
+          await mv.connect(signer1).deposit(ethers.utils.parseEther('1'), signer1.address);
           const redeemAmAfterDep = await mv.previewRedeem(ethers.utils.parseEther('0.5'));
           expect(redeemAmAfterDep.toString()).to.be.eq(redeemAmAfter.toString(), 'redeem result changed after deposit');
 
           await token.setRatio("900000000000000000");
 
           // withdraw all
-          await mv.connect(signer1).withdrawUnderlying(signer1.address, await mv.balanceOf(signer1.address));
+          await mv.connect(signer1).redeem(await mv.balanceOf(signer1.address), signer1.address, signer1.address);
 
           expect((await mv.balanceOf(signer1.address)).toString()).to.be.eq('0', 'signer still have mv balance')
           expect((await token.balanceOf(mv.address)).toString()).to.be.eq('0', 'dust')
@@ -175,7 +175,7 @@ describe('===MasterVault_V2===', function () {
 
           await token.mint(signer1.address, ethers.utils.parseEther('10000'));
           await token.connect(signer1).approve(mv.address, ethers.utils.parseEther('10000'));
-          await mv.connect(signer1).depositUnderlying(signer1.address, ethers.utils.parseEther('10000'));
+          await mv.connect(signer1).deposit(ethers.utils.parseEther('10000'), signer1.address);
 
           const redeemAmBefore = (await mv.previewRedeem(ethers.utils.parseEther('10000'))).mul(ethers.utils.parseEther('1')).div('950000000000000000');
           expect(redeemAmBefore.toString()).to.be.eq('10526315789473684210526', 'wrong value of token before ratio change') // 10526.315789473684210526

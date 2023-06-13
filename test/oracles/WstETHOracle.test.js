@@ -27,6 +27,7 @@ describe('WstETHOracle', function () {
         this.AggregatorV3 = await ethers.getContractFactory("MockAggregator");
         this.Token = await ethers.getContractFactory("Token");
         this.MasterVaultV2 = await ethers.getContractFactory("MasterVault_V2");
+        this.RatioAdapter = await ethers.getContractFactory("RatioAdapter");
 
         const aggregator = await this.AggregatorV3.deploy(ST_ETH_PRICE); // price is 1000.00000000
         await aggregator.deployed()
@@ -38,6 +39,13 @@ describe('WstETHOracle', function () {
 
         oracle = await upgrades.deployProxy(this.WstETHOracle, [aggregator.address, token.address, mVault.address], {initializer: "initialize"});
         await oracle.deployed();
+
+        const adapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
+        await adapter.deployed();
+        await adapter.setToken(token.address, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
+        await mVault.changeAdapter(adapter.address);
+
+
     });
 
     describe('general', function () {
@@ -58,7 +66,7 @@ describe('WstETHOracle', function () {
           await mVault.changeProvider(signer1.address);
           await token.mint(signer1.address, ethers.utils.parseEther('10'));
           await token.connect(signer1).approve(mVault.address, ethers.utils.parseEther('10'));
-          await mVault.connect(signer1).depositUnderlying(signer1.address, amount);
+          await mVault.connect(signer1).deposit(signer1.address, amount);
 
           let peek = await oracle.peek();
           expect(BigNumber.from(peek[0]).toString()).to.be.eq(ST_ETH_PRICE_18_DECIMALS);
@@ -76,7 +84,7 @@ describe('WstETHOracle', function () {
           expect(BigNumber.from(peek[0]).toString()).to.be.eq('1018367346938775509756');
 
           // withdraw
-          await mVault.connect(signer1).withdrawUnderlying(deployer.address, ethers.utils.parseEther('0.5'));
+          await mVault.connect(signer1).redeem(deployer.address, ethers.utils.parseEther('0.5'));
           peek = await oracle.peek();
           expect(BigNumber.from(peek[0]).toString()).to.be.eq('1018367346938775509756');
         });
