@@ -25,6 +25,15 @@ async function main() {
     this.DMatic = await hre.ethers.getContractFactory("dMATIC");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
+    this.Interaction = await hre.ethers.getContractFactory("Interaction", {
+        unsafeAllow: ['external-library-linking'],
+        libraries: {
+            AuctionProxy: "0x1A80B0512580791dDA042FeF0083e6Ce7cbd5d88"
+        }
+    });
+    let newInt = await this.Interaction.deploy({nonce: _nonce}); _nonce += 1;
+    await newInt.deployed();
+    console.log("Interaction: ", newInt.address);
 
     // Initialize
     console.log("Initializing...");
@@ -40,8 +49,10 @@ async function main() {
     await davosProviderAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("2");
     await dMaticAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
     await gemJoinAt.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
-    await clipAt.rely(_multisig, {nonce: _nonce});
+    await clipAt.rely(_multisig, {nonce: _nonce}); _nonce += 1;
     console.log("Transfer Complete !!!");
+
+    
 }
 
 main()
