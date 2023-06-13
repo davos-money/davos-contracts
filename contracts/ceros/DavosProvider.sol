@@ -6,11 +6,11 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/interfaces/IERC4626Upgradeable.sol";
 
 import "./interfaces/IDavosProvider.sol";
 
 import "./interfaces/ICertToken.sol";
-import "../masterVault/interfaces/IMasterVault.sol";
 import "./interfaces/IInteraction.sol";
 import "./interfaces/IWrapped.sol";
 
@@ -23,7 +23,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     // --- Vars ---
     IERC20Upgradeable public collateral;     // ceToken in MasterVault
     ICertToken public collateralDerivative;
-    IMasterVault public masterVault;
+    IERC4626Upgradeable public masterVault;
     IInteraction public interaction;
     address public PLACEHOLDER_1;
     IWrapped public underlying;              // isNative then Wrapped, else ERC20
@@ -50,7 +50,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         underlying = IWrapped(_underlying);
         collateral = IERC20Upgradeable(_masterVault);
         collateralDerivative = ICertToken(_collateralDerivative);
-        masterVault = IMasterVault(_masterVault);
+        masterVault = IERC4626Upgradeable(_masterVault);
         interaction = IInteraction(_interaction);
         isNative = _isNative;
 
@@ -65,11 +65,11 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
             require(_amount == 0, "DavosProvider/erc20-not-accepted");
             uint256 native = msg.value;
             IWrapped(underlying).deposit{value: native}();
-            value = masterVault.depositUnderlying(msg.sender, native);
+            value = masterVault.deposit(native, msg.sender);
         } else {
             require(msg.value == 0, "DavosProvider/native-not-accepted");
             underlying.safeTransferFrom(msg.sender, address(this), _amount);
-            value = masterVault.depositUnderlying(msg.sender, _amount);
+            value = masterVault.deposit(_amount, msg.sender);
         }
 
         value = _provideCollateral(msg.sender, value);
@@ -80,7 +80,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         require(_recipient != address(0));
         realAmount = _withdrawCollateral(msg.sender, _amount);
-        realAmount = masterVault.withdrawUnderlying(_recipient, realAmount);
+        realAmount = masterVault.redeem(realAmount, _recipient, address(this));
 
         emit Withdrawal(msg.sender, _recipient, realAmount);
         return realAmount;
@@ -90,7 +90,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     function liquidation(address _recipient, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
 
         require(_recipient != address(0));
-        masterVault.withdrawUnderlying(_recipient, _amount);
+        masterVault.redeem(_amount, _recipient, address(this));
     }
     function daoBurn(address _account, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
 
@@ -139,7 +139,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         if(address(underlying) != address(0)) 
             IERC20Upgradeable(underlying).approve(address(masterVault), 0);
-        masterVault = IMasterVault(_masterVault);
+        masterVault = IERC4626Upgradeable(_masterVault);
         IERC20Upgradeable(underlying).approve(address(_masterVault), type(uint256).max);
         emit MasterVaultChanged(_masterVault);
     }
