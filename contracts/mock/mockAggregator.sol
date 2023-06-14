@@ -29,4 +29,8 @@ contract MockAggregator {
     function latestRoundData() external view returns(uint80,uint,uint,uint,uint80) {
         return(0,uint(answer),0,0,0);
     }
+
+    function update(int _answer) external {
+        answer = _answer;
+    }
 }
