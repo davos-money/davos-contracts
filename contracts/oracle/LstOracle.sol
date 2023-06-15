@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 interface IMasterVault {
     function previewRedeem(uint256 shares) external view returns (uint256);
+    function decimals() external view returns (uint256);
 }
 interface IRatioAdapter {
     function fromValue(address token, uint256 amount) external view returns (uint256);

@@ -33,4 +33,8 @@ contract MockAggregator {
     function update(int _answer) external {
         answer = _answer;
     }
+
+    function decimals() external view returns (uint256) {
+        return 8;
+    }
 }

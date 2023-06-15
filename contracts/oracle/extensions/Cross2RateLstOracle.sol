@@ -39,7 +39,7 @@ abstract contract Cross2RateLstOracle is LstOracle {
             return (0, false);
         }
 
-        uint256 price = uint(price1 * (10**10)) * uint(price2 * (10**10)) / 1e18;
+        uint256 price = uint(price1) * uint(price2) * 10**masterVault.decimals() / 10**(priceFeed1.decimals() + priceFeed2.decimals());
 
         return (price, true);
     }
