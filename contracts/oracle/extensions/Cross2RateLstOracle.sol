@@ -5,7 +5,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../LstOracle.sol";
 
-// Abstract contract as base for any liquid staking master vault
+// get price based on cross rate from priceFeed1 to priceFeed2
 abstract contract Cross2RateLstOracle is LstOracle {
 
     AggregatorV3Interface internal priceFeed1; // price feed of LST (ex. rETH/ETH)

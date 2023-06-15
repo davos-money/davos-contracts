@@ -8,13 +8,17 @@ import "./interfaces/IRatioAdapter.sol";
 // utility contract to support different interfaces of get ratio
 contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
 
-    enum Approach { REDIRECT, BY_INCREASING_RATIO, BY_DECREASING_RATIO }
+    enum Approach {
+        REDIRECT, // value conversion can be executed in token contract
+        BY_INCREASING_RATIO, // we can get only ratio that increasing
+        BY_DECREASING_RATIO // we can get only ratio that decreasing (ex. ankrETH)
+    }
 
     struct TokenData {
-        string ratio;
-        string from;
-        string to;
-        Approach approach;
+        string ratio; // method signature to get ratio
+        string from; // method signature to get lst from asset
+        string to; // method signature to get asset from lst
+        Approach approach; // Approach of token
     }
 
     mapping(address => TokenData) internal data;
@@ -28,7 +32,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
         __Ownable_init();
     }
 
-    /// @notice get token amount of value
+    /// @notice get token amount of asset value
     function fromValue(address token, uint256 amount) external view returns (uint256) {
         TokenData memory tokenData = data[token];
         if (tokenData.approach == Approach.REDIRECT) {

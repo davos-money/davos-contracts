@@ -16,7 +16,7 @@ interface IRatioAdapter {
 // Abstract contract as base for any liquid staking master vault
 abstract contract LstOracle is Initializable {
 
-    IMasterVault internal masterVault;
+    IMasterVault internal masterVault; // master vault
 
     function __LstOracle__init(IMasterVault _masterVault) internal onlyInitializing {
         masterVault = _masterVault;

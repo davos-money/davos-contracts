@@ -5,12 +5,12 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../LstOracle.sol";
 
-// Abstract contract as base for any liquid staking master vault
+// get price using conversion of lst to value and using value price feed to USD
 abstract contract CrossRateLstOracle is LstOracle {
 
-    AggregatorV3Interface internal priceFeed;
-    address internal lsToken;
-    IRatioAdapter internal ratioAdapter;
+    AggregatorV3Interface internal priceFeed; // price feed of value (ex. ETH/USD)
+    address internal lsToken; // liquid staked token (ex. wstETH, ankrETH)
+    IRatioAdapter internal ratioAdapter; // ratio adapter for conversion
 
     function __CrossRateLstOracle__init(AggregatorV3Interface _aggregatorAddress, address _lsToken, IRatioAdapter _ratioAdapter) internal onlyInitializing {
         lsToken = _lsToken;

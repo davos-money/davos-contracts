@@ -7,7 +7,7 @@ import "../LstOracle.sol";
 
 abstract contract DirectRateLstOracle is LstOracle {
 
-    AggregatorV3Interface internal priceFeed;
+    AggregatorV3Interface internal priceFeed; // direct price feed of liquid staked token (ex. swETH/USD)
 
     function __DirectRateLstOracle__init(AggregatorV3Interface _aggregatorAddress) internal onlyInitializing {
         priceFeed = _aggregatorAddress;
