@@ -46,7 +46,9 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         __Pausable_init();
         __ReentrancyGuard_init();
 
+        require(_yieldMargin <= 1e4, "MasterVault_V2/should-be-less-than-max");
         yieldMargin = _yieldMargin;
+        emit YieldMargin(0, _yieldMargin);
         yieldBalance = 0;
     }
 
