@@ -24,5 +24,14 @@
     "_clip_cusp": "600000000000000000000000000",
     "_clip_chip": "100000000000000",
     "_clip_tip": "10",
-    "_clip_stopped": "0"
+    "_clip_stopped": "0",
+
+    "_cl_eth_usd": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+    "_cl_steth_usd": "0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e",
+    "_cl_reth_eth": "0x536218f9E9Eb48863970252233c8F271f554C2d0",
+
+    "_reth": "0xae78736cd615f374d3085123a210448e74fc6393",
+    "_wsteth": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+
+    "_master_vault_v2": "0x0730BA2252670Cd71580dadf471f3E137592e800"
 }

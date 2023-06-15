@@ -7,8 +7,8 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IMasterVault_V2.sol";
-
 import "./interfaces/ILiquidAsset.sol";
+import "./interfaces/IRatioAdapter.sol";
 
 // --- MasterVault_V2 (Variant 2) ---
 // --- Vault with instances per Liquid Staked Underlying to generate yield via ratio change and strategies ---
@@ -20,11 +20,12 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     // --- Constants ---
 
     // --- Vars ---
-    address public provider;          // DavosProvider
-    address public yieldHeritor;      // Yield Recipient
-    uint256 public yieldMargin;       // Percentage of Yield protocol gets, 10,000 = 100%
-    uint256 public yieldBalance;      // Balance at which Yield for protocol was last claimed
-    uint256 public underlyingBalance; // Total balance of underlying asset
+    address public provider;           // DavosProvider
+    address public yieldHeritor;       // Yield Recipient
+    uint256 public yieldMargin;        // Percentage of Yield protocol gets, 10,000 = 100%
+    uint256 public yieldBalance;       // Balance at which Yield for protocol was last claimed
+    uint256 public underlyingBalance;  // Total balance of underlying asset
+    IRatioAdapter public ratioAdapter; // knows how to convert assets
 
     // --- Mods ---
     modifier onlyOwnerOrProvider() {
@@ -45,7 +46,9 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
         __Pausable_init();
         __ReentrancyGuard_init();
 
+        require(_yieldMargin <= 1e4, "MasterVault_V2/should-be-less-than-max");
         yieldMargin = _yieldMargin;
+        emit YieldMargin(0, _yieldMargin);
         yieldBalance = 0;
     }
 
@@ -124,7 +127,12 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         emit YieldMargin(yieldMargin, _yieldMargin);
     }
-    
+    function changeAdapter(address adapter) external onlyOwner {
+        require(adapter != address(0), "MasterVault_V2/0-address");
+        emit AdapterChanged(address(ratioAdapter), adapter);
+        ratioAdapter = IRatioAdapter(adapter);
+    }
+
     // --- Views ---
     function getVaultYield() public view returns (uint256) {
         uint256 totalBalance = getBalance();
@@ -134,7 +142,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
 
         uint256 yield = diffBalance * yieldMargin / 1e4;
 
-        return ILiquidAsset(asset()).getWstETHByStETH(yield);
+        return ratioAdapter.fromValue(asset(), yield);
     }
 
     function totalAssets() public view virtual override returns (uint256) {
@@ -142,7 +150,7 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     }
 
     function getBalance() public view returns (uint256) {
-        return ILiquidAsset(asset()).getStETHByWstETH(underlyingBalance);
+        return ratioAdapter.toValue(asset(), underlyingBalance);
     }
 
     // ---------------
