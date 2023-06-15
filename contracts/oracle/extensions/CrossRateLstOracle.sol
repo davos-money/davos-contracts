@@ -31,7 +31,7 @@ abstract contract CrossRateLstOracle is LstOracle {
         }
         // Get Staked Token equivalent to 1 LST and multiply with Staked Token price
         uint256 value = ratioAdapter.toValue(lsToken, 1e18);
-        uint256 lsTokenPrice = (value * uint(price * (10**10))) / 1e18;
+        uint256 lsTokenPrice = value * uint(price) / 10**priceFeed.decimals();
         return (lsTokenPrice, true);
     }
 }

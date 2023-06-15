@@ -24,6 +24,7 @@ abstract contract DirectRateLstOracle is LstOracle {
         if (price < 0) {
             return (0, false);
         }
-        return (uint256(price) * 1e10, true);
+        uint256 lstPrice = uint256(price) * 10**masterVault.decimals() / 10**priceFeed.decimals();
+        return (lstPrice, true);
     }
 }
