@@ -132,10 +132,6 @@ contract MasterVault_V2 is IMasterVault_V2, ERC4626Upgradeable, OwnableUpgradeab
     }
 
     // --- Views ---
-    function getVaultPrinciple() public view returns (uint256) {
-        uint256 ratio = ratioAdapter.fromValue(asset(), 1e18);
-        return (totalSupply() * ratio) / 1e18;
-    }
     function getVaultYield() public view returns (uint256) {
         uint256 totalBalance = getBalance();
         if (totalBalance <= yieldBalance) return 0;

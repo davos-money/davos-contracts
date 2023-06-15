@@ -35,7 +35,7 @@ describe('RethOracle', function () {
 
         const adapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
         await adapter.deployed();
-        await adapter.setToken(token.address, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
+        await adapter.setToken(token.address, 'getRethValue(uint256)', 'getEthValue(uint256)', '', false);
         await mVault.changeAdapter(adapter.address);
 
         oracle = await upgrades.deployProxy(this.RethOracle, [aggregator1.address, aggregator2.address, mVault.address], {initializer: "initialize"});
