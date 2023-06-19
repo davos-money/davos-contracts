@@ -275,6 +275,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
               _recipient = strategyParams[strategies[i]].class == Type.DELAYED ? _recipient : address(this);
               delayed = strategyParams[strategies[i]].class == Type.DELAYED ? true : false;
               (withdrawn, incomplete) = _withdrawFromStrategy(_recipient, strategies[i], _amount);
+              if (withdrawn > 0) break;
             }
         }
     }
@@ -325,12 +326,13 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         bool isValidStrategy;
         for(uint256 i = 0; i < strategies.length; i++) {
+            if(strategies[i] == _newStrategy) {
+              revert("MasterVault/new-strategy-already-exists");
+            }
             if(strategies[i] == _oldStrategy) {
                 isValidStrategy = true;
                 strategies[i] = _newStrategy;
                 strategyParams[_newStrategy] = params;
-                
-                break;
             }
         }
 
@@ -343,13 +345,14 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Internal -> checks strategy's debt and deactives it
       * @param _strategy address of strategy 
       */
-    function _deactivateStrategy(address _strategy) private returns(bool success) {
+    function _deactivateStrategy(address _strategy) private returns(bool) {
 
         if (strategyParams[_strategy].debt <= 10) {
             strategyParams[_strategy].active = false;
             strategyParams[_strategy].debt = 0;
             return true;
         }
+        return false;
     }
     /** Internal -> Sums up all individual allocation to match total
       */

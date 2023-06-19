@@ -146,8 +146,8 @@ contract CerosRouterLsEth is ICerosRouterLs, OwnableUpgradeable, PausableUpgrade
         require(profit > 0, "CerosRouter/no-profits");
         require(s_aMATICc.balanceOf(address(this)) >= profit, "CerosRouter/insufficient-amount");
 
-        s_aMATICc.transfer(_recipient, profit);  // aMATICc
         s_profits[msg.sender] -= profit;
+        s_aMATICc.transfer(_recipient, profit);  // aMATICc
 
         emit Claim(_recipient, address(s_aMATICc), profit);
     }

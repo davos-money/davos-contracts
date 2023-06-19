@@ -141,8 +141,8 @@ ReentrancyGuardUpgradeable
             _certToken.balanceOf(address(this)) >= profit,
             "insufficient amount"
         );
-        _certToken.transfer(recipient, profit);
         _profits[msg.sender] -= profit;
+        _certToken.transfer(recipient, profit);
         emit Claim(recipient, address(_certToken), profit);
     }
     function getAmountOut(address tokenIn, address tokenOut, uint256 amountIn) public view returns (uint256 amountOut) {
