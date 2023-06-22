@@ -82,8 +82,16 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         realAmount = _withdrawCollateral(msg.sender, _amount);
         realAmount = masterVault.withdrawUnderlying(_recipient, realAmount);
 
-        emit Withdrawal(msg.sender, _recipient, realAmount);
-        return realAmount;
+        if(isNative) {
+            IWrapped(underlying).withdraw(realAmount);
+            (bool status, ) = _recipient.call{value: realAmount}("");
+            require(status, "DavosProvider/native-call-failed");
+        } else {
+            underlying.safeTransfer(_recipient, realAmount);
+        }
+
+        emit Withdrawal(msg.sender, _recipient, _amount);
+        return _amount;
     }
     
     // --- Interaction ---
@@ -163,5 +171,10 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
 
         isNative = _isNative;
         emit NativeStatusChanged(_isNative);
+    }
+
+    // --- Defaults ---
+    receive() external payable {
+        require(msg.sender == address(underlying));
     }
 }

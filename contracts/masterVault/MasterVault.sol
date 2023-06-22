@@ -213,10 +213,10 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         }
 
         assets = _assessFee(assets, withdrawalFee);
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _account, assets);
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), src, assets);
 
         emit Withdraw(src, src, src, assets, _amount);
-        return _amount;
+        return assets;
     }
     /** Withdraw underlying assets from Strategy
       * @param _strategy address of strategy
