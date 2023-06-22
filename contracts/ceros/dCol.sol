@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "./NonTransferableERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract dMATIC is OwnableUpgradeable, NonTransferableERC20 {
+contract dCOL is OwnableUpgradeable, NonTransferableERC20 {
     /**
      * Variables
      */
@@ -31,7 +31,7 @@ contract dMATIC is OwnableUpgradeable, NonTransferableERC20 {
 
     function initialize() external initializer {
         __Ownable_init();
-        __ERC20_init_unchained("Davos MATIC", "dMATIC");
+        __ERC20_init_unchained("Davos Collateral", "dCol");
     }
 
     function burn(address account, uint256 amount) external onlyMinter {
