@@ -32,5 +32,7 @@
     "_reth": "0x178E141a0E3b34152f73Ff610437A7bf9B83267A",
     "_wsteth": "0x6320cD32aA674d2898A68ec82e869385Fc5f7E2f",
 
-    "_master_vault_v2": "0x9f787C93A4e1e99189A5BEB85Cf0F6645a850cbC"
+    "_master_vault_v2": "0x9f787C93A4e1e99189A5BEB85Cf0F6645a850cbC",
+
+    "_ratio_adapter": ""
 }
