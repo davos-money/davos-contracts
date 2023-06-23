@@ -128,6 +128,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
         emit TokenSet(token, uint8(tokenData.approach));
     }
 
+    // set provider if we need to proxy calls to external contract
     function setProviderForToken(
         address token,
         address provider
