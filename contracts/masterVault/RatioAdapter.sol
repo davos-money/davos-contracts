@@ -19,7 +19,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
         string from; // method signature to get lst from asset
         string to; // method signature to get asset from lst
         Approach approach; // Approach of token
-        string provider; // target of method call
+        address provider; // target of method call
     }
 
     mapping(address => TokenData) internal data;
@@ -36,16 +36,18 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
     /// @notice get token amount of asset value
     function fromValue(address token, uint256 amount) external view returns (uint256) {
         TokenData memory tokenData = data[token];
+        address provider = tokenData.provider == address(0) ? token : tokenData.provider;
+
         if (tokenData.approach == Approach.REDIRECT) {
-            return _callWithAm(token, tokenData.from, amount);
+            return _callWithAm(provider, tokenData.from, amount);
         }
 
-        uint256 ratio = _call(token, tokenData.ratio);
+        uint256 ratio = _call(provider, tokenData.ratio);
         if (tokenData.approach == Approach.BY_INCREASING_RATIO) {
-            return amount * ratio / 1e18;
+            return amount * 1e18 / ratio;
         }
         if (tokenData.approach == Approach.BY_DECREASING_RATIO) {
-            return amount * 1e18 / ratio;
+            return amount * ratio / 1e18;
         }
 
         return 0;
@@ -62,10 +64,10 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
 
         uint256 ratio = _call(provider, tokenData.ratio);
         if (tokenData.approach == Approach.BY_INCREASING_RATIO) {
-            return amount * 1e18 / ratio;
+            return amount * ratio / 1e18;
         }
         if (tokenData.approach == Approach.BY_DECREASING_RATIO) {
-            return amount * ratio / 1e18;
+            return amount * 1e18 / ratio;
         }
 
         return 0;
@@ -111,7 +113,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
         TokenData memory tokenData;
 
         if (bytes(from).length > 0 && bytes(to).length > 0) {
-            tokenData = TokenData("", from, to, Approach.REDIRECT);
+            tokenData = TokenData("", from, to, Approach.REDIRECT, address(0));
         } else if (bytes(getRatio).length > 0) {
             Approach appr;
             if (isIncreasing) {
@@ -119,7 +121,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
             } else {
                 appr = Approach.BY_DECREASING_RATIO;
             }
-            tokenData = TokenData(getRatio, "", "", appr);
+            tokenData = TokenData(getRatio, "", "", appr, address(0));
         } else {
             revert("RatioAdapter/unknown-approach");
         }
@@ -135,7 +137,7 @@ contract RatioAdapter is OwnableUpgradeable, IRatioAdapter {
     ) external onlyOwner {
         require(token != address(0), "RatioAdapter/0-address");
         require(provider != address(0), "RatioAdapter/0-address");
-        data[token].target = provider;
+        data[token].provider = provider;
         emit RatioProviderSet(token, provider);
     }
 }
