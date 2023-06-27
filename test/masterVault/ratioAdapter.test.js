@@ -129,5 +129,16 @@ describe('===MasterVault_V2===', function () {
       res = await adapter.toValue(token.address, ethers.utils.parseEther('1'));
       expect(res.toString()).to.be.eq('2000000000000000000'); // 1 / 0.5
     });
+
+    it('cbETH', async function () {
+      await adapter.setToken(token.address, '', '', 'exchangeRate()', true);
+      await token.setRatio(ethers.utils.parseEther('2'));
+
+      res = await adapter.fromValue(token.address, ethers.utils.parseEther('1'));
+      expect(res.toString()).to.be.eq('500000000000000000'); // 1 / 2
+
+      res = await adapter.toValue(token.address, ethers.utils.parseEther('1'));
+      expect(res.toString()).to.be.eq('2000000000000000000'); // 1 * 2
+    });
   });
 });

@@ -9,31 +9,39 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _cl_eth_usd, _sfrxeth, _sfrxeth_master_vault_v2, _ratio_adapter } = require(`./config_${hre.network.name}.json`);
+    let { _cl_eth_usd, _cl_cbeth_eth, _cbeth_master_vault_v2, _cbeth, _ratio_adapter } = require(`./config_${hre.network.name}.json`);
     
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
-    this.SfrxEthOracle = await hre.ethers.getContractFactory("SfrxEthOracle");
 
     let ratioAdapter = await this.RatioAdapter.attach(_ratio_adapter);
 
     // Deployment
     console.log("Deploying...");
 
-    let sfrxEthOracle = await upgrades.deployProxy(this.SfrxEthOracle, [_cl_eth_usd, _sfrxeth, _sfrxeth_master_vault_v2, _ratio_adapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await sfrxEthOracle.deployed();
-    let sfrxEthOracleImp = await upgrades.erc1967.getImplementationAddress(sfrxEthOracle.address);
-    console.log("sfrxEthOracle      : " + sfrxEthOracle.address);
-    console.log("Imp             : " + sfrxEthOracleImp);
+    let oracleArgs;
+    if (_cl_cbeth_eth) {
+        this.CbEthOracle = await hre.ethers.getContractFactory("CbEthOracle");
+        oracleArgs = [_cl_cbeth_eth, _cl_eth_usd, _cbeth_master_vault_v2];
+    } else {
+        this.CbEthOracle = await hre.ethers.getContractFactory("CbEthOracleTestnet");
+        oracleArgs = [_cl_eth_usd, _cbeth, _ratio_adapter, _cbeth_master_vault_v2]
+    }
+
+    let cbEthOracle = await upgrades.deployProxy(this.CbEthOracle, oracleArgs, {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await cbEthOracle.deployed();
+    let cbEthOracleImp = await upgrades.erc1967.getImplementationAddress(cbEthOracle.address);
+    console.log("cbEthOracle     : " + cbEthOracle.address);
+    console.log("Imp             : " + cbEthOracleImp);
 
     console.log("Setup contracts...");
-    await ratioAdapter.setToken(_sfrxeth, 'convertToAssets(uint256)', 'convertToShares(uint256)', '', true);
+    await ratioAdapter.setToken(_cbeth, '', '', 'exchangeRate()', true);
 
     // Store Deployed Contracts
     const addresses = {
-        _sfrxEthOracle    : sfrxEthOracle.address,
-        _sfrxEthOracleImp : sfrxEthOracleImp,
+        _cbEthOracle     : cbEthOracle.address,
+        _cbEthOracleImp  : cbEthOracleImp,
         _initialNonce    : initialNonce
     }
 
