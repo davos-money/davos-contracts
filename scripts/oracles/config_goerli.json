@@ -3,5 +3,8 @@
     "_ratio_adapter": "0xa17d1Aac3CE85a8D7531c181289599bB7c0c6b9b",
 
     "_sfrxeth": "",
-    "_sfrxeth_master_vault_v2": ""
+    "_sfrxeth_master_vault_v2": "",
+
+    "_cbeth": "not exists",
+    "_cbeth_master_vault_v2": ""
 }
