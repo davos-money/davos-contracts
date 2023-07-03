@@ -12,8 +12,6 @@ async function main() {
 
     // Signer
     [deployer] = await ethers.getSigners();
-    let initialNonce = await ethers.provider.getTransactionCount(deployer.address);
-    let _nonce = initialNonce
 
     // Config
     let { _underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./config_${hre.network.name}.json`);
@@ -21,47 +19,47 @@ async function main() {
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCOL");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
+    // this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
     // Deployment
     console.log("Deploying...");
 
-    let masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, _underlying], {initializer: "initialize", nonce: _nonce}); _nonce += 1
+    let masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, _underlying], {initializer: "initialize"});
     await masterVault.deployed();
     let masterVaultImp = await upgrades.erc1967.getImplementationAddress(masterVault.address);
     console.log("MasterVault      : " + masterVault.address);
     console.log("Imp              : " + masterVaultImp);
 
-    let dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
     await dMatic.deployed();
     let dMaticImp = await upgrades.erc1967.getImplementationAddress(dMatic.address);
     console.log("dMatic           : " + dMatic.address);
     console.log("imp              : " + dMaticImp);
 
-    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_underlying, dMatic.address, masterVault.address, _interaction, false], {initializer: "initialize", nonce: _nonce}); _nonce += 1
+    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_underlying, dMatic.address, masterVault.address, _interaction, false], {initializer: "initialize"});
     await davosProvider.deployed();
     let davosProviderImp = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
     console.log("DavosProvider    : " + davosProvider.address);
     console.log("imp              : " + davosProviderImp);
 
-    let gemJoin = await upgrades.deployProxy(this.GemJoin, [_vat, _ilk, masterVault.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let gemJoin = await upgrades.deployProxy(this.GemJoin, [_vat, _ilk, masterVault.address], {initializer: "initialize"});
     await gemJoin.deployed();
     gemJoinImp = await upgrades.erc1967.getImplementationAddress(gemJoin.address);
     console.log("GemJoin          :", gemJoin.address);
     console.log("Imp              :", gemJoinImp);
 
-    let clip = await upgrades.deployProxy(this.Clip, [_vat, _spot, _dog, _ilk], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let clip = await upgrades.deployProxy(this.Clip, [_vat, _spot, _dog, _ilk], {initializer: "initialize"});
     await clip.deployed();
     clipImp = await upgrades.erc1967.getImplementationAddress(clip.address);
     console.log("Clip             :", clip.address);
     console.log("Imp              :", clipImp);
 
-    let oracle = await this.WstETHOracle.deploy();
-    await oracle.deployed();
-    console.log("Oracle           :", oracle.address);
+    // let oracle = await this.WstETHOracle.deploy();
+    // await oracle.deployed();
+    // console.log("Oracle           :", oracle.address);
 
     // Store Deployed Contracts
     const addresses = {
@@ -75,8 +73,7 @@ async function main() {
         _gemJoinImp      : gemJoinImp,
         _clip            : clip.address,
         _clipImp         : clipImp,
-        _oracle          : oracle.address,
-        _initialNonce    : initialNonce
+        // _oracle          : oracle.address
     }
 
     const json_addresses = JSON.stringify(addresses);

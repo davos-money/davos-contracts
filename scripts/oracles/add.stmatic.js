@@ -1,5 +1,6 @@
 let hre = require("hardhat");
 let {ethers, upgrades} = require("hardhat");
+const fs = require("fs");
 
 async function main() {
 
@@ -11,12 +12,18 @@ async function main() {
     // Config
     let {
         _cl_matic_usd,
-        _stmatic_master_vault,
-        _ratio_adapter,
+        // _stmatic_master_vault,
+        // _ratio_adapter,
         _stmatic,
         _stmatic_rate_provider,
         _stmatic_fx_tunnel
     } = require(`./config_${hre.network.name}.json`);
+
+    let {_masterVault} = require(`../collateral/addresses_${hre.network.name}.json`)
+    let {_ratioAdapter} = require(`../collateral/adaptor_${hre.network.name}.json`)
+
+    let _stmatic_master_vault = _masterVault;
+    let _ratio_adapter = _ratioAdapter;
 
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
@@ -52,9 +59,10 @@ async function main() {
     console.log("StMaticOracle      : " + stMaticOracle.address);
     console.log("Imp             : " + stMaticOracleImp);
 
-    console.log("Setup contracts...");
-    await ratioAdapter.setToken(_stmatic, "", "", "getRate()", true);
-    await ratioAdapter.setProviderForToken(_stmatic, _stmatic_rate_provider);
+    // console.log("Setup contracts...");
+    // _nonce = await ethers.provider.getTransactionCount(deployer.address);
+    // await ratioAdapter.setToken(_stmatic, "", "", "getRate()", true, {nonce: _nonce}); _nonce += 1;
+    // await ratioAdapter.setProviderForToken(_stmatic, _stmatic_rate_provider, {nonce: _nonce}); _nonce += 1;
 
     // Store Deployed Contracts
     const addresses = {
@@ -65,8 +73,8 @@ async function main() {
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/ratio/addresses_${hre.network.name}.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/ratio/addresses_${hre.network.name}.json`);
+    fs.writeFileSync(`./scripts/oracles/addresses_${hre.network.name}.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/oracles/addresses_${hre.network.name}.json`);
 }
 
 main()

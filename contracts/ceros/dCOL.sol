@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "./NonTransferableERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract dMATIC is OwnableUpgradeable, NonTransferableERC20 {
+contract dCOL is OwnableUpgradeable, NonTransferableERC20 {
     /**
      * Variables
      */

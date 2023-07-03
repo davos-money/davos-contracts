@@ -9,14 +9,18 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _cl_eth_usd, _sfrxeth, _sfrxeth_master_vault_v2, _ratio_adapter } = require(`./config_${hre.network.name}.json`);
+    let { _cl_eth_usd, _sfrxeth } = require(`./config_${hre.network.name}.json`);
+    let {_masterVault} = require(`../collateral/addresses_${hre.network.name}.json`)
+    let {_ratio_adapter} = require(`../collateral/config_${hre.network.name}.json`)
+
+    let _sfrxeth_master_vault_v2 = _masterVault;
     
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
     this.SfrxEthOracle = await hre.ethers.getContractFactory("SfrxEthOracle");
 
-    let masterVaultV2 = await this.MasterVault.attach(_master_vault_v2);
+    let masterVaultV2 = await this.MasterVault.attach(_sfrxeth_master_vault_v2);
     let ratioAdapter = await this.RatioAdapter.attach(_ratio_adapter);
 
     // Deployment
@@ -28,8 +32,8 @@ async function main() {
     console.log("sfrxEthOracle      : " + sfrxEthOracle.address);
     console.log("Imp             : " + sfrxEthOracleImp);
 
-    console.log("Setup contracts...");
-    await ratioAdapter.setToken(_sfrxeth, 'convertToAssets(uint256)', 'convertToShares(uint256)', '', true);
+    // console.log("Setup contracts...");
+    // await ratioAdapter.setToken(_sfrxeth, 'convertToAssets(uint256)', 'convertToShares(uint256)', '', true);
 
     // Store Deployed Contracts
     const addresses = {

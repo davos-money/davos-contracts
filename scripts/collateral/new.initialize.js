@@ -24,10 +24,10 @@ async function main() {
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCOL");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
+    // this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
     // Initialize
     console.log("Initializing...");
@@ -41,13 +41,13 @@ async function main() {
     let interactionAttached = await this.Interaction.attach(_interaction);
 
     let masterVaultAt = await ethers.getContractAt("MasterVault_V2", _masterVault);
-    let dMaticAt = await ethers.getContractAt("dMATIC", _dMatic);
+    let dMaticAt = await ethers.getContractAt("dCOL", _dMatic);
     let clipAt = await ethers.getContractAt("Clipper", _clip);
     let gemJoinAt = await ethers.getContractAt("GemJoin", _gemJoin);
     let vatAt = await ethers.getContractAt("Vat", _vat);
     let dogAt = await ethers.getContractAt("Dog", _dog);
     let spotAt = await ethers.getContractAt("Spotter", _spot);
-    let oracleAt = await ethers.getContractAt("WstETHOracle", _oracle);
+    // let oracleAt = await ethers.getContractAt("WstETHOracle", _oracle);
 
     // let aggregatorAddress;
     // if (hre.network.name == "ethereum") {
@@ -59,28 +59,28 @@ async function main() {
 
     console.log("MasterVault_V2 init...");
     await masterVaultAt.changeProvider(_davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); console.log("2");
+    await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); _nonce += 1; console.log("2");
 
     console.log("DMatic init...");
     await dMaticAt.changeMinter(_davosProvider, {nonce: _nonce}); _nonce += 1;
 
-    console.log("Vat init...");
-    await vatAt.rely(gemJoinAt.address, {nonce: _nonce}); _nonce += 1; console.log("1")
-    await vatAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("2")
-    await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad, {nonce: _nonce}); _nonce += 1; console.log("3")
-    await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad, {nonce: _nonce}); _nonce += 1; console.log("4")
+    // console.log("Vat init...");
+    // await vatAt.rely(gemJoinAt.address, {nonce: _nonce}); _nonce += 1; console.log("1")
+    // await vatAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("2")
+    // await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad, {nonce: _nonce}); _nonce += 1; console.log("3")
+    // await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad, {nonce: _nonce}); _nonce += 1; console.log("4")
     
-    console.log("Spot init...");
-    await spotAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), _oracle, {nonce: _nonce}); _nonce += 1;
+    // console.log("Spot init...");
+    // await spotAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), _oracle, {nonce: _nonce}); _nonce += 1;
 
     console.log("Gemjoin init...");
     await gemJoinAt.rely(_interaction, {nonce: _nonce}); _nonce += 1;
 
-    console.log("Dog init...");
-    await dogAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("1")
-    await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad, {nonce: _nonce}); _nonce += 1; console.log("2")
-    await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("chop"), _dog_chop, {nonce: _nonce}); _nonce += 1; console.log("3")
-    await dogAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("clip"), _clip, {nonce: _nonce}); _nonce += 1; console.log("4")
+    // console.log("Dog init...");
+    // await dogAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("1")
+    // await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad, {nonce: _nonce}); _nonce += 1; console.log("2")
+    // await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("chop"), _dog_chop, {nonce: _nonce}); _nonce += 1; console.log("3")
+    // await dogAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("clip"), _clip, {nonce: _nonce}); _nonce += 1; console.log("4")
 
     console.log("Clip init...");
     await clipAt.rely(_interaction, {nonce: _nonce}); _nonce += 1; console.log("1")
@@ -96,12 +96,12 @@ async function main() {
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), _vow, {nonce: _nonce}); _nonce += 1; console.log("11")
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), _abacus, {nonce: _nonce}); _nonce += 1; console.log("12")
 
-    console.log("Interaction init...");
-    await interactionAttached.setDavosProvider(_masterVault, _davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1")
-    await interactionAttached.setCollateralType(_masterVault, _gemJoin, _ilk, _clip, _mat, {nonce: _nonce}); _nonce += 1; console.log("2")
-    await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 300000}); _nonce += 1; console.log("3")
-    await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 200000}); _nonce += 1; console.log("4")
-    await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 250000}); _nonce += 1; console.log("5")
+    // console.log("Interaction init...");
+    // await interactionAttached.setDavosProvider(_masterVault, _davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1")
+    // await interactionAttached.setCollateralType(_masterVault, _gemJoin, _ilk, _clip, _mat, {nonce: _nonce}); _nonce += 1; console.log("2")
+    // await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 300000}); _nonce += 1; console.log("3")
+    // await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 200000}); _nonce += 1; console.log("4")
+    // await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 250000}); _nonce += 1; console.log("5")
 }
 
 main()
