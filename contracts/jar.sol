@@ -23,7 +23,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
 /*
    "Put rewards in the jar and close it".
@@ -33,7 +32,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgrad
    after exit delay.
 */
 
-contract Jar is Initializable, ReentrancyGuardUpgradeable, ERC4626Upgradeable {
+contract Jar is Initializable, ReentrancyGuardUpgradeable {
     // --- Wrapper ---
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -240,9 +239,5 @@ contract Jar is Initializable, ReentrancyGuardUpgradeable, ERC4626Upgradeable {
         }
        
         emit Redeem(accounts);
-    }
-
-    function putRewards(uint256 _amount ) external { 
-        IERC20Upgradeable(DAVOS).safeTransferFrom(msg.sender, address(this), _amount); 
     }
 }
