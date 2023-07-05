@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// jar.sol -- Davos distribution farming
+/// jar_v2.sol -- Davos distribution farming
 
 // Copyright (C) 2022
 //
@@ -25,13 +25,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
-/*
-   "Put rewards in the jar and close it".
-   This contract lets you deposit DAVOSs from davos.sol and earn
-   DAVOS rewards. The DAVOS rewards are deposited into this contract
-   and distributed over a timeline. Users can redeem rewards
-   after exit delay.
-*/
 
 contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable  {
     // --- Wrapper ---
@@ -49,8 +42,8 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         _;
     }
 
-    address public DAVOS;        // The DAVOS Stable Coin
-    uint public live;     // Active Flag
+    address public DAVOS;  // The DAVOS Stable Coin
+    uint public live;  // Active Flag
 
     
     // --- Events ---
