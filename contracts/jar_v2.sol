@@ -32,7 +32,6 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
 
     
     mapping (address => uint) public wards;
-    mapping(address => uint) public operators;  // Operators of contract
 
     // --- Auth ---
     function rely(address guy) external auth { wards[guy] = 1; }
@@ -42,28 +41,18 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         _;
     }
 
-    address public DAVOS;  // The DAVOS Stable Coin
     uint public live;  // Active Flag
-
-    
-    // --- Events ---
-    event Cage();
-    event UnCage();
-    event OperatorSet(address operator);
-    event OperatorUnset(address operator);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     // --- Constructor ---
     constructor() { _disableInitializers(); }
 
     // --- Init ---
-    function initialize(string memory _name, string memory _symbol, address _davosToken) external initializer {
+    function initialize(string memory _name, string memory _symbol, address _underlying) external initializer {
+        __ERC4626_init(IERC20MetadataUpgradeable(_underlying));
+        __ERC20_init(_name, _symbol);
         __ReentrancyGuard_init();
         wards[msg.sender] = 1;
-        decimals = 18;
-        name = _name;
-        symbol = _symbol;
-        DAVOS = _davosToken;
         live = 1;
     }
 
@@ -72,16 +61,7 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         return a < b ? a : b;
     }
 
-    function addOperator(address _operator) external auth {
-        operators[_operator] = 1;
-        emit OperatorSet(_operator);
-    }
-    function removeOperator(address _operator) external auth {
-        operators[_operator] = 0;
-        emit OperatorUnset(_operator);
-    }
-
-    function putRewards(uint256 _amount ) external { 
-        IERC20Upgradeable(DAVOS).safeTransferFrom(msg.sender, address(this), _amount); 
+    function putRewards(uint256 _amount ) external auth { 
+        IERC20Upgradeable(asset()).safeTransferFrom(msg.sender, address(this), _amount); 
     }
 }
