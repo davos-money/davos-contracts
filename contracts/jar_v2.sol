@@ -25,11 +25,9 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
-
 contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable  {
     // --- Wrapper ---
     using SafeERC20Upgradeable for IERC20Upgradeable;
-
     
     mapping (address => uint) public wards;
 
@@ -41,8 +39,6 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         _;
     }
 
-    uint public live;  // Active Flag
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     // --- Constructor ---
     constructor() { _disableInitializers(); }
@@ -53,12 +49,6 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         __ERC20_init(_name, _symbol);
         __ReentrancyGuard_init();
         wards[msg.sender] = 1;
-        live = 1;
-    }
-
-    // --- Math ---
-    function _min(uint a, uint b) internal pure returns (uint) {
-        return a < b ? a : b;
     }
 
     function putRewards(uint256 _amount ) external auth { 
