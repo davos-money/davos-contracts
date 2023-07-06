@@ -51,7 +51,7 @@ contract Jar_V2 is Initializable, ERC4626Upgradeable, ReentrancyGuardUpgradeable
         wards[msg.sender] = 1;
     }
 
-    function putRewards(uint256 _amount ) external auth { 
+    function putRewards(uint256 _amount) external auth { 
         IERC20Upgradeable(asset()).safeTransferFrom(msg.sender, address(this), _amount); 
     }
 }
