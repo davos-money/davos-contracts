@@ -19,6 +19,7 @@ interface IMasterVault {
     // --- Events ---
     event DepositFeeChanged(uint256 _newDepositFee);
     event WithdrawalFeeChanged(uint256 _newWithdrawalFee);
+    event ToleranceChanged(uint256 _tolerance);
     event ProviderChanged(address _provider);
     event ManagerAdded(address _newManager);
     event ManagerRemoved(address _manager);

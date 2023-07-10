@@ -41,6 +41,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
     uint256 private PLACEHOLDER_3;
     uint256 public allocateOnDeposit;
+    uint256 public tolerance;
 
 
     // ------------
@@ -144,6 +145,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canDeposit(_amount);
         if(capacity <= 0 || capacity > _amount || chargedCapacity > capacity) return false;
 
+        require(tolerable(capacity, chargedCapacity), "MasterVault/not-tolerable");
+
         totalDebt += chargedCapacity;
         strategyParams[_strategy].debt += chargedCapacity;
 
@@ -208,6 +211,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
           } else if(delayed) {
             assets = underlyingBalance;
           } else {
+            require(tolerable(_amount + debt - underlyingBalance, withdrawn), "MasterVault/not-tolerable");
             assets = underlyingBalance + withdrawn;
           }
         }
@@ -249,7 +253,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         StrategyParams memory params = strategyParams[_strategy];
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canWithdraw(_amount);
-        if(capacity <= 0 || chargedCapacity > capacity) return (0, false);
+        if(capacity <= 0 || chargedCapacity > capacity) return (0, true);
         else if(capacity < _amount) incomplete = true;
 
         if(params.class == Type.DELAYED && incomplete) return (0, true);
@@ -277,7 +281,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
               (withdrawn, incomplete) = _withdrawFromStrategy(_recipient, strategies[i], _amount);
               if (withdrawn > 0) break;
             }
-        }
+        } 
+        incomplete = true;
     }
     /** Internal -> charge corresponding fees from amount
       * @param amount amount to charge fee from
@@ -291,6 +296,13 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             value = amount - fee;
             feeEarned += fee;
         } else return amount;
+    }
+
+    function tolerable(uint256 amount, uint256 actual) private view returns(bool) {
+
+        if(amount == 0 || actual > amount) return false;
+
+        actual >= amount - ((amount * tolerance) / 1e6) ? true : false;
     }
 
     // ---------------
@@ -381,8 +393,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
           if (totalAssetInVault() >= withdrawAmount) {
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawAmount);
           } else {
-            (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1, _class);
             uint256 amount = totalAssetInVault();
+            (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount - amount + 1, _class);
             if(withdrawn > 0 && !delayed) amount += withdrawn;
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), amount);
           }
@@ -471,6 +483,16 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         withdrawalFee = _newWithdrawalFee;
 
         emit WithdrawalFeeChanged(_newWithdrawalFee);
+    }
+    /** Sets tolerance where 1% = 10000ppm
+      * @param _tolerance new tolerance percentage
+      */
+    function setTolerance(uint256 _tolerance) external onlyOwner {
+
+      require(_tolerance <= 1e6,"MasterVault/max-tolerance");
+      tolerance = _tolerance;
+
+      emit ToleranceChanged(_tolerance);
     }
     /** Changes provider contract
       * @param _provider new provider

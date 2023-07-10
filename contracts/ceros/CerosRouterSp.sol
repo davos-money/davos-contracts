@@ -40,6 +40,10 @@ ReentrancyGuardUpgradeable
      * Modifiers
      */
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // --- Constructor ---
+    constructor() { _disableInitializers(); }
+
     function initialize(
         address certToken,
         address wMaticToken,
