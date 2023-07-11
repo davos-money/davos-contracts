@@ -207,7 +207,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             if(totalAssetInVault() > 0) 
               SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), underlyingBalance);
             emit Withdraw(src, src, src, assets, _amount);
-            return _amount;
+            return assets;
           } else if(delayed) {
             assets = underlyingBalance;
           } else {
@@ -273,7 +273,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount amount of Underlying Tokens withdrawal
       */
     function _withdrawFromActiveStrategies(address _recipient, uint256 _amount, Type class) private returns(uint256 withdrawn, bool incomplete, bool delayed) {
-
+        
+        incomplete = true;
         for(uint8 i = 0; i < strategies.length; i++) {
             if(strategyParams[strategies[i]].active && (strategyParams[strategies[i]].class == class || class == Type.ABSTRACT) && strategyParams[strategies[i]].debt >= _amount) {
               _recipient = strategyParams[strategies[i]].class == Type.DELAYED ? _recipient : address(this);
@@ -282,7 +283,6 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
               if (withdrawn > 0) break;
             }
         } 
-        incomplete = true;
     }
     /** Internal -> charge corresponding fees from amount
       * @param amount amount to charge fee from
@@ -302,7 +302,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         if(amount == 0 || actual > amount) return false;
 
-        actual >= amount - ((amount * tolerance) / 1e6) ? true : false;
+        return actual >= amount - ((amount * tolerance) / 1e6);
     }
 
     // ---------------
