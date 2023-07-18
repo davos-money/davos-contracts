@@ -17,10 +17,10 @@ async function main() {
         
     // Config 
     let { _chainId, _multisig} = require(`./config_${hre.network.name}.json`);
-    let _ilkCeMatic = ethers.utils.formatBytes32String("ceMATIC");
+    // let _ilkCeMatic = ethers.utils.formatBytes32String("ceMATIC");
 
     // Addresses
-    let { _masterVault } = require(`./addresses_${hre.network.name}_2.json`);
+    // let { _masterVault } = require(`./addresses_${hre.network.name}_2.json`);
 
     // Fetching
     this.Vat = await hre.ethers.getContractFactory("Vat");
@@ -66,7 +66,7 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DAVOS", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davos.deployed();
     davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
     console.log("davos           :", davos.address);
@@ -78,11 +78,11 @@ async function main() {
     console.log("DavosJoin       :", davosJoin.address);
     console.log("DavosJoinImp    :", davosJoinImp)
 
-    let gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, _ilkCeMatic, _masterVault], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await gemJoin.deployed();
-    gemJoinImp = await upgrades.erc1967.getImplementationAddress(gemJoin.address);
-    console.log("GemJoin         :", gemJoin.address);
-    console.log("GemJoinImp      :", gemJoinImp);
+    // let gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, _ilkCeMatic, _masterVault], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await gemJoin.deployed();
+    // gemJoinImp = await upgrades.erc1967.getImplementationAddress(gemJoin.address);
+    // console.log("GemJoin         :", gemJoin.address);
+    // console.log("GemJoinImp      :", gemJoinImp);
 
     let jug = await upgrades.deployProxy(this.Jug, [vat.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await jug.deployed();
@@ -102,11 +102,11 @@ async function main() {
     console.log("Dog             :", dog.address);
     console.log("DogImp          :", dogImpl);
 
-    let clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, _ilkCeMatic], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await clip.deployed();
-    clipImp = await upgrades.erc1967.getImplementationAddress(clip.address);
-    console.log("Clip            :", clip.address);
-    console.log("ClipImp         :", clipImp);
+    // let clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, _ilkCeMatic], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await clip.deployed();
+    // clipImp = await upgrades.erc1967.getImplementationAddress(clip.address);
+    // console.log("Clip            :", clip.address);
+    // console.log("ClipImp         :", clipImp);
 
     let abacus = await upgrades.deployProxy(this.Abacus, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await abacus.deployed();
@@ -123,9 +123,9 @@ async function main() {
     // console.log("Deployed: oracle: " + oracle.address);
     // console.log("Imp             : " + oracleImplementation);
 
-    let oracle = await this.Oracle.deploy({nonce: _nonce}); _nonce += 1;
-    await oracle.deployed();
-    console.log("Deployed: oracle: " + oracle.address);
+    // let oracle = await this.Oracle.deploy({nonce: _nonce}); _nonce += 1;
+    // await oracle.deployed();
+    // console.log("Deployed: oracle: " + oracle.address);
 
     // Store Deployed Contracts
     const addresses = {
@@ -137,21 +137,21 @@ async function main() {
         _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
-        _gemJoin        : gemJoin.address,
-        _gemJoinImp     : gemJoinImp,
+        // _gemJoin        : gemJoin.address,
+        // _gemJoinImp     : gemJoinImp,
         _jug            : jug.address,
         _jugImp         : jugImp,
         _vow            : vow.address,
         _vowImp         : vowImp,
         _dog            : dog.address,
         _dogImp         : dogImpl,
-        _clip           : clip.address,
-        _clipImp        : clipImp,
+        // _clip           : clip.address,
+        // _clipImp        : clipImp,
         _abacus         : abacus.address,
         _abacusImp      : abacusImp,
-        _oracle         : oracle.address,
+        // _oracle         : oracle.address,
         // _oracleImp      : oracleImplementation,
-        _ilk            : _ilkCeMatic,
+        // _ilk            : _ilkCeMatic,
         _initialNonce   : initialNonce
     }
 

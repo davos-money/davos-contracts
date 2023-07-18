@@ -1,17 +1,5 @@
 {
-    "_aMATICc" : "0x148BF822CAE6a61B2F278801eF4369FddD2a80DF", 
-    "_aMATICb" : "0x691EE9707B34771b0C280ffC48659b77F8aF7458",
-    "_maticToken" : "0x499d11E0b6eAC7c0593d8Fb292DCBbF815Fb29Ae",
-    "_dex" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    "_dexFactory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
-    "_dexPairFee" : "3000",
-    "_chainId": 5,
-    
-    "_maxDepositFee" : 500000, 
-    "_maxWithdrawalFee" : 500000,
-    "_maxStrategies" : 10,
-    "_cerosStrategyAllocatoin" : 900000,
-    "_waitingPoolCap" : 10,
+    "_chainId": 10,
     
     "_mat" : "1515151515151515151515151515",
     "_dgtRewardsPoolLimitInEth" : "100000000",
@@ -34,9 +22,7 @@
     "_clip_tip": "10",
     "_clip_stopped": "0",
     
-    "_multisig": "",
-    "_whitelistOperator" : "",
-    "_earnOperator" : "",
-    
-    "_polygonPool": "0xAf2FdE2a233bc2E7B0B8Fa6066aD2df980B6fa67"
+    "_multisig": "0xd41773c62c84f828D5Db0F9B8B0274cB5aB352Bd",
+    "_whitelistOperator" : "0xd41773c62c84f828D5Db0F9B8B0274cB5aB352Bd",
+    "_earnOperator" : "0xd41773c62c84f828D5Db0F9B8B0274cB5aB352Bd"
 }

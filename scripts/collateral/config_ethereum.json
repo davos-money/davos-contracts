@@ -1,22 +1,22 @@
 {
-    "_ilk": "0x4d56545f77737445544800000000000000000000000000000000000000000000",
+    "_ilk": "",
 
-    "_underlying": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
-    "_auctionProxy": "0x1A80B0512580791dDA042FeF0083e6Ce7cbd5d88",
-    "_interaction": "0x2F2E746b2e9ef33c2AC6348985f100AF8DBC944d",
-    "_vat": "0x1c539E755A1BdaBB168aA9ad60B31548991981F9",
-    "_spot": "0x55C9dd38733fd168d27F1ca68118515B2c6A29aE",
-    "_dog": "0xA534E0f7b1c6a4bE0490a224baCc83220e3ABdE0",
-    "_vow": "0xb2565e05816963CFD957d8baEab95033470352bb",
-    "_abacus": "0x6cFca08A8535A1029F906b1D7aCeb421372c240F",
+    "_underlying": "",
+    "_auctionProxy": "",
+    "_interaction": "",
+    "_vat": "",
+    "_spot": "",
+    "_dog": "",
+    "_vow": "",
+    "_abacus": "",
 
-    "_yieldInheritor": "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
-    "_multisig": "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
+    "_yieldInheritor": "",
+    "_multisig": "",
     
-    "_mat" : "1333333333333333333333333333",
+    "_mat" : "1515151515151515151515151515",
     "_vat_line" : "5000000",
-    "_vat_dust" : "50",
-    "_jug_duty" : "1000000001516911765932351184",
+    "_vat_dust" : "100",
+    "_jug_duty" : "1000000001243680656318820313",
     "_dog_hole" : "50000000",
     "_dog_chop" : "1100000000000000000",
     "_clip_buf"  : "1100000000000000000000000000",
@@ -33,7 +33,7 @@
     "_reth": "0xae78736cd615f374d3085123a210448e74fc6393",
     "_wsteth": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
 
-    "_master_vault_v2": "0x0730BA2252670Cd71580dadf471f3E137592e800",
+    "_master_vault_v2": "",
 
-    "_ratio_adapter": "",
+    "_ratio_adapter": ""
 }

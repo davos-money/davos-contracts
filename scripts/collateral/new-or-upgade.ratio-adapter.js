@@ -34,7 +34,7 @@ async function main() {
     // Deployment
     console.log("Deploying...");
 
-    if (!!_ratio_adapter) {
+    if (!_ratio_adapter) {
         ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1
         await ratioAdapter.deployed();
         ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);

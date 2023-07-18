@@ -2,6 +2,7 @@ let hre = require("hardhat");
 let {ethers, upgrades} = require("hardhat");
 const fs = require("fs");
 const ether = require("@openzeppelin/test-helpers/src/ether");
+const { error } = require("console");
 
 let wad = "000000000000000000", // 18 Decimals
     ray = "000000000000000000000000000", // 27 Decimals
@@ -16,8 +17,22 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./config_${hre.network.name}.json`);
+    let _underlying; 
+    let _ilk = ethers.utils.formatBytes32String("MVT_rETH");
+
+    if (hre.network.name == "arbitrum") {
+        _underlying = "0xEC70Dcb4A1EFa46b8F2D97C310C9c4790ba5ffA8";
+    } else if (hre.network.name == "optimism") {
+        _underlying = "0x9Bcef72be871e61ED4fBbc7630889beE758eb81D";
+    } else if (hre.network.name == "arbitrumTestnet") {
+        _underlying = "0x95fBfEeCcce94a3E8382bEdc10a877aB3A68b95e";
+    } else {
+        throw "STOPPED";
+    }
     
+    let { _vat, _spot, _dog } = require(`../deployment/addresses_${hre.network.name}_3.json`);
+    let { _interaction } = require(`../deployment/addresses_${hre.network.name}_4.json`);
+
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");

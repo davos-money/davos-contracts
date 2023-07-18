@@ -16,7 +16,23 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let {_underlying, _interaction, _auctionProxy, _vat, _spot, _dog, _vow, _abacus, _ilk} = require(`./config_${hre.network.name}.json`);
+    // Config
+    let _underlying; 
+    let _ilk = ethers.utils.formatBytes32String("MVT_rETH");
+
+    if (hre.network.name == "arbitrum") {
+        _underlying = "0xEC70Dcb4A1EFa46b8F2D97C310C9c4790ba5ffA8";
+    } else if (hre.network.name == "optimism") {
+        _underlying = "0x9Bcef72be871e61ED4fBbc7630889beE758eb81D";
+    } else if (hre.network.name == "arbitrumTestnet") {
+        _underlying = "0x95fBfEeCcce94a3E8382bEdc10a877aB3A68b95e";
+    } else {
+        throw "STOPPED";
+    }
+    
+    let { _vat, _spot, _dog, _vow, _abacus } = require(`../deployment/addresses_${hre.network.name}_3.json`);
+    let { _interaction, _auctionProxy } = require(`../deployment/addresses_${hre.network.name}_4.json`);
+
     let { _yieldInheritor, _dog_hole, _dog_chop, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _vat_line, _vat_dust, _jug_duty, _mat} = require(`./config_${hre.network.name}.json`);
 
     let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin} = require(`./addresses_${hre.network.name}.json`);
@@ -96,12 +112,7 @@ async function main() {
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), _vow, {nonce: _nonce}); _nonce += 1; console.log("11")
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), _abacus, {nonce: _nonce}); _nonce += 1; console.log("12")
 
-    // console.log("Interaction init...");
-    // await interactionAttached.setDavosProvider(_masterVault, _davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1")
-    // await interactionAttached.setCollateralType(_masterVault, _gemJoin, _ilk, _clip, _mat, {nonce: _nonce}); _nonce += 1; console.log("2")
-    // await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 3000000}); _nonce += 1; console.log("3")
-    // await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 2000000}); _nonce += 1; console.log("4")
-    // await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 2500000}); _nonce += 1; console.log("5")
+    console.log("Finished !");
 }
 
 main()
