@@ -19,7 +19,7 @@ describe("Jar_V2", function () {
         const JarV2 = await ethers.getContractFactory("Jar_V2");
         jar2 = await upgrades.deployProxy(JarV2, ["Jar Token", "JAR_V2", token.address], {initializer: "initialize"});
         await jar2.deployed();
-        await token.approve(jar2.address, "1"+wad);
+        //await token.approve(jar2.address, "1"+wad);
         // jar2 = await JarV2.deploy();
         // await jar2.initialize("Test Jar", "TJAR", token.address);
     });
@@ -50,19 +50,22 @@ describe("Jar_V2", function () {
   describe('--- Put rewards', function(){
       it("should allow authorized address to put rewards", async function () {
             //const amount = web3.utils.toWei('1.5', 'ether');
+            await jar2.mint(user.address, "1"+wad);
+            await token.approve(jar2.address, "1"+wad, { from: user.address });
             await jar2.rely(user.address);
-
+            await jar2.putRewards("1"+wad);
             
-            await jar2.putRewards("10"+wad);
-            
-            expect(await jar2.balanceOf(user.address)).to.equal("10"+wad);
+            expect(await jar2.balanceOf(user.address)).to.equal("1"+wad);
             
  
           });
       it("should not allow unauthorized address to put rewards", async function () {
              // const amount = Web3.utils.toWei('1.5', 'ether');
-          
-              await expect(jar2.putRewards("10"+wad)).to.be.revertedWith("Jar_V2/not-authorized");
+             await jar2.mint(owner.address, "1"+wad);
+             await token.approve(jar2.address, "1"+wad, { from: owner.address });
+             await jar2.putRewards("1"+wad);
+             await jar2.deny(owner.address);
+             await expect(jar2.putRewards("1"+wad)).to.be.revertedWith("Jar_V2/not-authorized");
 
             });
     });
