@@ -21,8 +21,8 @@ async function main() {
     // Addresses
     // let { _ceaMATICc, _ceVault, _dMatic, _cerosRouter, } = require(`./addresses_${hre.network.name}_1.json`);
     // let { _masterVault, _waitingPool, _cerosYieldConverterStrategy } = require(`./addresses_${hre.network.name}_2.json`);
-    let { _vat, _spot, _davos, _davosJoin, _gemJoin, _jug, _vow, _dog, _clip, _abacus, _oracle } = require(`./addresses_${hre.network.name}_3.json`);
-    let { _rewards, _interaction, _davosProvider } = require(`./addresses_${hre.network.name}_4.json`);
+    let { _vat, _spot, _davos, _davosJoin, _jug, _vow, _dog, _abacus } = require(`./addresses_${hre.network.name}_3.json`);
+    let { _rewards, _interaction } = require(`./addresses_${hre.network.name}_4.json`);
     let { _jar } = require(`./addresses_${hre.network.name}_5.json`);
 
     // // Attaching

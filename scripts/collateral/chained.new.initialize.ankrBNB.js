@@ -16,7 +16,11 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let {_underlying, _interaction, _auctionProxy, _vat, _spot, _dog, _vow, _abacus, _ilk} = require(`./config_${hre.network.name}.json`);
+    let _ilk = ethers.utils.formatBytes32String("MVT_ankrBNB");
+
+    let { _vat, _spot, _dog, _vow, _abacus } = require(`../deployment/addresses_${hre.network.name}_3.json`);
+    let { _interaction, _auctionProxy } = require(`../deployment/addresses_${hre.network.name}_4.json`);
+
     let { _yieldInheritor, _dog_hole, _dog_chop, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _vat_line, _vat_dust, _jug_duty, _mat} = require(`./config_${hre.network.name}.json`);
 
     let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin} = require(`./addresses_${hre.network.name}.json`);
@@ -64,11 +68,11 @@ async function main() {
     console.log("DMatic init...");
     await dMaticAt.changeMinter(_davosProvider, {nonce: _nonce}); _nonce += 1;
 
-    // console.log("Vat init...");
-    // await vatAt.rely(gemJoinAt.address, {nonce: _nonce}); _nonce += 1; console.log("1")
-    // await vatAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("2")
-    // await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad, {nonce: _nonce}); _nonce += 1; console.log("3")
-    // await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad, {nonce: _nonce}); _nonce += 1; console.log("4")
+    console.log("Vat init...");
+    await vatAt.rely(gemJoinAt.address, {nonce: _nonce}); _nonce += 1; console.log("1")
+    await vatAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("2")
+    await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad, {nonce: _nonce}); _nonce += 1; console.log("3")
+    await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad, {nonce: _nonce}); _nonce += 1; console.log("4")
     
     // console.log("Spot init...");
     // await spotAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), _oracle, {nonce: _nonce}); _nonce += 1;
@@ -76,11 +80,11 @@ async function main() {
     console.log("Gemjoin init...");
     await gemJoinAt.rely(_interaction, {nonce: _nonce}); _nonce += 1;
 
-    // console.log("Dog init...");
-    // await dogAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("1")
-    // await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad, {nonce: _nonce}); _nonce += 1; console.log("2")
-    // await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("chop"), _dog_chop, {nonce: _nonce}); _nonce += 1; console.log("3")
-    // await dogAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("clip"), _clip, {nonce: _nonce}); _nonce += 1; console.log("4")
+    console.log("Dog init...");
+    await dogAt.rely(_clip, {nonce: _nonce}); _nonce += 1; console.log("1")
+    await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad, {nonce: _nonce}); _nonce += 1; console.log("2")
+    await dogAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("chop"), _dog_chop, {nonce: _nonce}); _nonce += 1; console.log("3")
+    await dogAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("clip"), _clip, {nonce: _nonce}); _nonce += 1; console.log("4")
 
     console.log("Clip init...");
     await clipAt.rely(_interaction, {nonce: _nonce}); _nonce += 1; console.log("1")
@@ -96,12 +100,7 @@ async function main() {
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), _vow, {nonce: _nonce}); _nonce += 1; console.log("11")
     await clipAt["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), _abacus, {nonce: _nonce}); _nonce += 1; console.log("12")
 
-    // console.log("Interaction init...");
-    // await interactionAttached.setDavosProvider(_masterVault, _davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1")
-    // await interactionAttached.setCollateralType(_masterVault, _gemJoin, _ilk, _clip, _mat, {nonce: _nonce}); _nonce += 1; console.log("2")
-    // await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 3000000}); _nonce += 1; console.log("3")
-    // await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 2000000}); _nonce += 1; console.log("4")
-    // await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 2500000}); _nonce += 1; console.log("5")
+    console.log("Finished !");
 }
 
 main()

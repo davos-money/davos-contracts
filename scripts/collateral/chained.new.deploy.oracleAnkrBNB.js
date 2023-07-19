@@ -23,29 +23,44 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _cl_eth_usd, _cl_reth_eth, _cl_bnb_usd, _underlying, _wsteth, _master_vault_v2 } = require(`./config_${hre.network.name}.json`);
+    let _ilk = ethers.utils.formatBytes32String("MVT_ankrBNB");
+    // let { _cl_eth_usd, _cl_reth_eth, _cl_bnb_usd, _underlying, _wsteth, _master_vault_v2 } = require(`./config_${hre.network.name}.json`);
     let { _masterVault } = require(`./addresses_${hre.network.name}.json`);
+    let { _spot } = require(`../deployment/addresses_${hre.network.name}_3.json`);
+
+    let _cl_reth_eth, _cl_eth_usd, rateProvider, _underlying, _cl_bnb_usd;
+    if (hre.network.name == "bsc") {
+        _cl_bnb_usd = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE";
+        _underlying = "0x52F24a5e03aee338Da5fd9Df68D2b6FAe1178827";
+    } else if (hre.network.name == "bscTestnet") {
+        _cl_bnb_usd = "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526";
+        _underlying = "0x4f9406bd3582A877Ec0e33cA1b1FD31E778345B6";
+    } else {
+        throw "STOPPED";
+    }
     
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
-    this.RethOracle = await hre.ethers.getContractFactory(hre.network.name === 'ethereum' ? "RethOracle" : "RethOracleTestnet");
+    this.RethOracle = await hre.ethers.getContractFactory("RethOracle");
     this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
     this.AnkrBNBOracle = await hre.ethers.getContractFactory("AnkrBNBOracle");
     this.AnkrETHOracle = await hre.ethers.getContractFactory("AnkrETHOracle");
+    this.Spot = await hre.ethers.getContractFactory("Spotter");
 
     let masterVaultV2 = await this.MasterVault.attach(_masterVault);
+    let spot = await this.Spot.attach(_spot);
 
     // Deployment
     console.log("Deploying...");
 
-    // let ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1
-    // await ratioAdapter.deployed();
-    // let ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
-    // console.log("RatioAdapter      : " + ratioAdapter.address);
-    // console.log("Imp              : " + ratioAdapterImp);
+    let ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1
+    await ratioAdapter.deployed();
+    let ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
+    console.log("RatioAdapter      : " + ratioAdapter.address);
+    console.log("Imp              : " + ratioAdapterImp);
 
-    // let rethOracleArgs = hre.network.name === 'ethereum' ? [_cl_reth_eth, _cl_eth_usd, _masterVault] : [_cl_eth_usd, _underlying, ratioAdapter.address, _masterVault]
+    // let rethOracleArgs = [_cl_reth_eth, _cl_eth_usd, _masterVault];
     // let rethOracle = await upgrades.deployProxy(this.RethOracle, rethOracleArgs, {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     // await rethOracle.deployed();
     // let rethOracleImp = await upgrades.erc1967.getImplementationAddress(rethOracle.address);
@@ -58,17 +73,17 @@ async function main() {
     // console.log("WstETHOracle     : " + wstEthOracle.address);
     // console.log("Imp              : " + wstEthOracleImp);
 
-    // let ankrBNBOracle = await upgrades.deployProxy(this.AnkrBNBOracle, [_cl_bnb_usd, _underlying, _masterVault, ratioAdapter.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    // await ankrBNBOracle.deployed();
-    // let ankrBNBOracleImp = await upgrades.erc1967.getImplementationAddress(ankrBNBOracle.address);
-    // console.log("ankrBNBOracle    : " + ankrBNBOracle.address);
-    // console.log("Imp              : " + ankrBNBOracleImp);
+    let ankrBNBOracle = await upgrades.deployProxy(this.AnkrBNBOracle, [_cl_bnb_usd, _underlying, _masterVault, ratioAdapter.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await ankrBNBOracle.deployed();
+    let ankrBNBOracleImp = await upgrades.erc1967.getImplementationAddress(ankrBNBOracle.address);
+    console.log("ankrBNBOracle    : " + ankrBNBOracle.address);
+    console.log("Imp              : " + ankrBNBOracleImp);
 
-    let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await ankrETHOracle.deployed();
-    let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
-    console.log("ankrETHOracle    : " + ankrETHOracle.address);
-    console.log("Imp              : " + ankrETHOracleImp);
+    // let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0xa17d1Aac3CE85a8D7531c181289599bB7c0c6b9b"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await ankrETHOracle.deployed();
+    // let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
+    // console.log("ankrETHOracle    : " + ankrETHOracle.address);
+    // console.log("Imp              : " + ankrETHOracleImp);
 
     // let masterVaultImp = await this.MasterVault.deploy();
     // await masterVaultImp.deployed();
@@ -91,24 +106,25 @@ async function main() {
     // await hre.run("verify:verify", {address: masterVaultImp.address});
 
     // console.log("Setup contracts...");
-    ratioAdapter = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E")
+    // ratioAdapter = await ethers.getContractAt("RatioAdapter", "0xa17d1Aac3CE85a8D7531c181289599bB7c0c6b9b")
     // // await ratioAdapter.setToken(_underlying, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
-    // await ratioAdapter.setToken(_underlying, '', '', "ratio()", false);
-    // await ratioAdapter.setProviderForToken(_underlying, "0x63dC5749fa134fF3B752813388a7215460a8aB01");
-    await masterVaultV2.changeAdapter(ratioAdapter.address);
+    await ratioAdapter.setToken(_underlying, '', '', "ratio()", false, {nonce: _nonce}); _nonce += 1;
+    // await ratioAdapter.setProviderForToken(_underlying, rateProvider, {nonce: _nonce}); _nonce += 1;
+    await masterVaultV2.changeAdapter(ratioAdapter.address, {nonce: _nonce}); _nonce += 1;
+    await spot["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), ankrBNBOracle.address, {nonce: _nonce}); _nonce += 1;
 
     // Store Deployed Contracts
     const addresses = {
-        // _ratioAdapter    : ratioAdapter.address,
-        // _ratioAdapterImp : ratioAdapterImp,
+        _ratioAdapter    : ratioAdapter.address,
+        _ratioAdapterImp : ratioAdapterImp,
         // _rethOracle      : rethOracle.address,
         // _rethOracleImp   : rethOracleImp,
         // _wstEthOracle    : wstEthOracle.address,
         // _wstEthOracleImp : wstEthOracleImp,
-        // _ankrBnbOracle      : ankrBNBOracle.address,
-        // _ankrBnbOracleImp   : ankrBNBOracleImp,
-        _ankrEthOracle      : ankrETHOracle.address,
-        _ankrEthOracleImp   : ankrETHOracleImp,
+        _ankrBnbOracle      : ankrBNBOracle.address,
+        _ankrBnbOracleImp   : ankrBNBOracleImp,
+        // _ankrEthOracle      : ankrETHOracle.address,
+        // _ankrEthOracleImp   : ankrETHOracleImp,
         // _master_vault_v2 : masterVaultImp,
         // _initialNonce    : initialNonce
     }

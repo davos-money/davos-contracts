@@ -64,7 +64,7 @@ module.exports = {
             url: process.env.ETHEREUM_URL,
             chainId: 1,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
-            gasPrice: parseInt(process.env.GAS_PRICE) || 'auto'
+            gasPrice: parseInt(process.env.GAS_PRICE_2) || 'auto'
         },
         goerli: {
             url: process.env.GOERLI_URL,
@@ -124,7 +124,7 @@ module.exports = {
             url: process.env.BSC_URL,
             chainId: 56,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
-            gasPrice: parseInt(process.env.GAS_PRICE) || 'auto'
+            gasPrice: parseInt(process.env.GAS_PRICE_1) || 'auto'
         },
         bscTestnet: {
             url: process.env.BSCTESTNET_URL,
@@ -137,7 +137,7 @@ module.exports = {
     etherscan: {
         apiKey: // process.env.SCAN_API_KEY
         {
-            goerli: process.env.SCAN_API_KEY
+            bscTestnet: process.env.SCAN_API_KEY
         },
         customChains: [
             {

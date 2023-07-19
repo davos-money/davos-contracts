@@ -8,7 +8,7 @@
     "_rewardsRate" : "1000000001847694957439350500",
     "_vat_Line" : "5000000",
     "_vat_line" : "5000000",
-    "_vat_dust" : "100",
+    "_vat_dust" : "50",
     "_spot_par" : "1",
     "_jug_base" : "1000000001243680656318820313",
     "_dog_Hole" : "50000000",
@@ -22,7 +22,7 @@
     "_clip_tip": "10",
     "_clip_stopped": "0",
     
-    "_multisig": "",
-    "_whitelistOperator" : "",
-    "_earnOperator" : ""
+    "_multisig": "0x0567E328D0E23be8B8cB8c3004bEAc39fbD11082",
+    "_whitelistOperator" : "0x0567E328D0E23be8B8cB8c3004bEAc39fbD11082",
+    "_earnOperator" : "0x0567E328D0E23be8B8cB8c3004bEAc39fbD11082"
 }
