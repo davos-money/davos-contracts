@@ -22,7 +22,7 @@ async function main() {
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCol");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
     this.Interaction = await hre.ethers.getContractFactory("Interaction", {
@@ -40,7 +40,7 @@ async function main() {
 
     let masterVaultAt = await ethers.getContractAt("MasterVault_V2", _masterVault);
     let davosProviderAt = await ethers.getContractAt("DavosProvider", _davosProvider);
-    let dMaticAt = await ethers.getContractAt("dMATIC", _dMatic);
+    let dMaticAt = await ethers.getContractAt("dCol", _dMatic);
     let gemJoinAt = await ethers.getContractAt("GemJoin", _gemJoin);
     let clipAt = await ethers.getContractAt("Clipper", _clip);
 
