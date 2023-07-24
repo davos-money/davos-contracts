@@ -8,6 +8,17 @@ let wad = "000000000000000000", // 18 Decimals
     rad = "000000000000000000000000000000000000000000000", // 45 Decimals
     ONE = 10 ** 27;
 
+const admin_slot = "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103";
+
+function parseAddress(addressString){
+    const buf = Buffer.from(addressString.replace(/^0x/, ''), 'hex');
+    if (!buf.slice(0, 12).equals(Buffer.alloc(12, 0))) {
+        return undefined;
+    }
+    const address = '0x' + buf.toString('hex', 12, 32); // grab the last 20 bytes
+    return ethers.utils.getAddress(address);
+}
+
 async function main() {
 
     // Signer
@@ -31,9 +42,9 @@ async function main() {
             AuctionProxy: "0x1A80B0512580791dDA042FeF0083e6Ce7cbd5d88"
         }
     });
-    let newInt = await this.Interaction.deploy({nonce: _nonce}); _nonce += 1;
-    await newInt.deployed();
-    console.log("Interaction: ", newInt.address);
+    // let newInt = await this.Interaction.deploy({nonce: _nonce}); _nonce += 1;
+    // await newInt.deployed();
+    // console.log("Interaction: ", newInt.address);
 
     // Initialize
     console.log("Initializing...");
@@ -50,6 +61,26 @@ async function main() {
     await dMaticAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
     await gemJoinAt.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
     await clipAt.rely(_multisig, {nonce: _nonce}); _nonce += 1;
+
+    console.log("=== Try proxyAdmin transfer...");
+    const proxyAdminAddress = parseAddress(await ethers.provider.getStorageAt(_masterVault, admin_slot));
+
+    let PROXY_ADMIN_ABI = ["function owner() public view returns (address)"];
+    let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
+
+    let owner = await proxyAdmin.owner();
+    console.log("Owner: ", owner);
+    console.log("Multi: ", _multisig);
+
+    if (owner != ethers.constants.AddressZero && owner != _multisig) {
+        PROXY_ADMIN_ABI = ["function transferOwnership(address newOwner) public"];
+        let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
+        await proxyAdmin.transferOwnership(_multisig);
+        console.log("proxyAdmin transferred");
+    } else {
+        console.log("Already owner of proxyAdmin")
+    }
+
     console.log("Transfer Complete !!!");
 
     

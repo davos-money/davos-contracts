@@ -52,11 +52,11 @@ async function main() {
     // console.log("RethOracle      : " + rethOracle.address);
     // console.log("Imp             : " + rethOracleImp);
 
-    // let wstEthOracle = await upgrades.deployProxy(this.WstETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0x6E726D8925e4CD1eDD510C2f1F8ECdB3F5D8491C"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    // await wstEthOracle.deployed();
-    // let wstEthOracleImp = await upgrades.erc1967.getImplementationAddress(wstEthOracle.address);
-    // console.log("WstETHOracle     : " + wstEthOracle.address);
-    // console.log("Imp              : " + wstEthOracleImp);
+    let wstEthOracle = await upgrades.deployProxy(this.WstETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await wstEthOracle.deployed();
+    let wstEthOracleImp = await upgrades.erc1967.getImplementationAddress(wstEthOracle.address);
+    console.log("WstETHOracle     : " + wstEthOracle.address);
+    console.log("Imp              : " + wstEthOracleImp);
 
     // let ankrBNBOracle = await upgrades.deployProxy(this.AnkrBNBOracle, [_cl_bnb_usd, _underlying, _masterVault, ratioAdapter.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     // await ankrBNBOracle.deployed();
@@ -64,11 +64,11 @@ async function main() {
     // console.log("ankrBNBOracle    : " + ankrBNBOracle.address);
     // console.log("Imp              : " + ankrBNBOracleImp);
 
-    let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await ankrETHOracle.deployed();
-    let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
-    console.log("ankrETHOracle    : " + ankrETHOracle.address);
-    console.log("Imp              : " + ankrETHOracleImp);
+    // let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await ankrETHOracle.deployed();
+    // let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
+    // console.log("ankrETHOracle    : " + ankrETHOracle.address);
+    // console.log("Imp              : " + ankrETHOracleImp);
 
     // let masterVaultImp = await this.MasterVault.deploy();
     // await masterVaultImp.deployed();
@@ -91,11 +91,11 @@ async function main() {
     // await hre.run("verify:verify", {address: masterVaultImp.address});
 
     // console.log("Setup contracts...");
-    ratioAdapter = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E")
+    // ratioAdapter = await ethers.getContractAt("RatioAdapter", "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71")
     // // await ratioAdapter.setToken(_underlying, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
     // await ratioAdapter.setToken(_underlying, '', '', "ratio()", false);
     // await ratioAdapter.setProviderForToken(_underlying, "0x63dC5749fa134fF3B752813388a7215460a8aB01");
-    await masterVaultV2.changeAdapter(ratioAdapter.address);
+    // await masterVaultV2.changeAdapter(ratioAdapter.address);
 
     // Store Deployed Contracts
     const addresses = {
@@ -103,12 +103,12 @@ async function main() {
         // _ratioAdapterImp : ratioAdapterImp,
         // _rethOracle      : rethOracle.address,
         // _rethOracleImp   : rethOracleImp,
-        // _wstEthOracle    : wstEthOracle.address,
-        // _wstEthOracleImp : wstEthOracleImp,
+        _wstEthOracle    : wstEthOracle.address,
+        _wstEthOracleImp : wstEthOracleImp,
         // _ankrBnbOracle      : ankrBNBOracle.address,
         // _ankrBnbOracleImp   : ankrBNBOracleImp,
-        _ankrEthOracle      : ankrETHOracle.address,
-        _ankrEthOracleImp   : ankrETHOracleImp,
+        // _ankrEthOracle      : ankrETHOracle.address,
+        // _ankrEthOracleImp   : ankrETHOracleImp,
         // _master_vault_v2 : masterVaultImp,
         // _initialNonce    : initialNonce
     }
