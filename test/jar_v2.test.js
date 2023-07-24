@@ -50,7 +50,7 @@ describe("Jar_V2", function () {
   describe('--- Put rewards', function(){
       it("should allow authorized address to put rewards", async function () {
             //const amount = web3.utils.toWei('1.5', 'ether');
-            await jar2.mint(user.address, "1"+wad);
+            await token.mint(user.address, "1"+wad);
             await token.approve(jar2.address, "1"+wad, { from: user.address });
             await jar2.rely(user.address);
             await jar2.putRewards("1"+wad);
@@ -61,7 +61,7 @@ describe("Jar_V2", function () {
           });
       it("should not allow unauthorized address to put rewards", async function () {
              // const amount = Web3.utils.toWei('1.5', 'ether');
-             await jar2.mint(owner.address, "1"+wad);
+             await token.mint(owner.address, "1"+wad);
              await token.approve(jar2.address, "1"+wad, { from: owner.address });
              await jar2.putRewards("1"+wad);
              await jar2.deny(owner.address);
