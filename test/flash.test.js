@@ -1,14 +1,16 @@
-const { ethers, network } = require('hardhat');
+const { ethers, network, upgrades} = require('hardhat');
 const { expect } = require("chai");
+const toBN = ethers.BigNumber.from;
+const formatBytes32String = ethers.utils.formatBytes32String;
+
+const wad = "000000000000000000", // 18 Decimals
+      ray = "000000000000000000000000000", // 27 Decimals
+      rad = "000000000000000000000000000000000000000000000"; // 45 Decimals
 
 describe('===Flash===', function () {
     let deployer, signer1, signer2;
-
-    let wad = "000000000000000000", // 18 Decimals
-        ray = "000000000000000000000000000", // 27 Decimals
-        rad = "000000000000000000000000000000000000000000000"; // 45 Decimals
-
-    let collateral = ethers.utils.formatBytes32String("TEST");
+    
+    let collateral = formatBytes32String("TEST");
 
     beforeEach(async function () {
 
@@ -38,108 +40,260 @@ describe('===Flash===', function () {
     });
 
     describe('--- initialize()', function () {
-        it('initialize', async function () {
+        it('deployer is an authorized member: ward = 1', async function () {
             expect(await flash.wards(deployer.address)).to.be.equal("1");
+        });
+        it('other addresses are not authorized by default: ward = 0', async function () {
+            expect(await flash.wards(signer1.address)).to.be.equal("0");
         });
     });
     describe('--- rely()', function () {
-        it('reverts: Flash/not-authorized', async function () {
-            await expect(flash.connect(signer2).rely(signer1.address)).to.be.revertedWith("Flash/not-authorized");
-            expect(await flash.wards(signer1.address)).to.be.equal("0");
-        });
-        it('relies on address', async function () {
+        it('authorized member can authorize another user', async function () {
             await flash.rely(signer1.address);
             expect(await flash.wards(signer1.address)).to.be.equal("1");
         });
+        it('reverts when unauthorized member tries to authorize: Flash/not-authorized', async function () {
+            await expect(flash.connect(signer1).rely(signer1.address)).to.be.revertedWith("Flash/not-authorized");
+            expect(await flash.wards(signer1.address)).to.be.equal("0");
+        });
     });
     describe('--- deny()', function () {
-        it('reverts: Flash/not-authorized', async function () {
-            await expect(flash.connect(signer2).deny(signer1.address)).to.be.revertedWith("Flash/not-authorized");
-        });
-        it('denies an address', async function () {
+        it('authorized member can revoke authorization of another user', async function () {
             await flash.rely(signer1.address);
             expect(await flash.wards(signer1.address)).to.be.equal("1");
             await flash.deny(signer1.address);
             expect(await flash.wards(signer1.address)).to.be.equal("0");
         });
+        it('reverts when unauthorized member tries revoke authorization: Flash/not-authorized', async function () {
+            await flash.rely(signer1.address);
+            await expect(flash.connect(signer2).deny(signer1.address)).to.be.revertedWith("Flash/not-authorized");
+            expect(await flash.wards(signer1.address)).to.be.equal("1");
+        });
     });
     describe('--- file(2)', function () {
-        it('reverts: Flash/ceiling-too-high', async function () {
-            await expect(flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "100" + rad)).to.be.revertedWith("Flash/ceiling-too-high");
+        it('sets max loan amount = rad', async function () {
+            value = toRad(1);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), value);
+            expect(await flash.max()).to.be.equal(value);
         });
-        it('reverts: Flash/file-unrecognized-param', async function () {
-            await expect(flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("maxi"), "100" + rad)).to.be.revertedWith("Flash/file-unrecognized-param");
+        it('sets max loan amount = 0', async function () {
+            value = "0";
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), value);
+            expect(await flash.max()).to.be.equal(value);
         });
-        it('sets max', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "5" + wad);
-            expect(await flash.max()).to.be.equal("5" + wad);
+        it('sets max loan amount < rad', async function () {
+            value = randomBN(rad.length);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), value);
+            expect(await flash.max()).to.be.equal(value);
         });
-        it('sets toll', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "1" + wad);
-            expect(await flash.toll()).to.be.equal("1" + wad);
+        it('reverts when max > upper bound: Flash/ceiling-too-high', async function () {
+            value = toRad(1).add(1);
+            await expect(flash["file(bytes32,uint256)"](formatBytes32String("max"), value))
+              .to.be.revertedWith("Flash/ceiling-too-high");
+        });
+        it('sets flash fee (toll)', async function () {
+            value = randomBN(wad.length);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), value);
+            expect(await flash.toll()).to.be.equal(value);
+        });
+        it('reverts for setting unknown var: Flash/file-unrecognized-param', async function () {
+            await expect(flash["file(bytes32,uint256)"](formatBytes32String("maxtoll"), "100" + rad))
+              .to.be.revertedWith("Flash/file-unrecognized-param");
         });
     });
     describe('--- maxFlashLoan()', function () {
-        it('other token', async function () {
-            expect(await flash.maxFlashLoan(deployer.address)).to.be.equal("0");
+        it('returns max flash loan amount for davos token', async function () {
+            value = randomBN(wad.length);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), value);
+            expect(await flash.maxFlashLoan(davos.address)).to.be.equal(value);
         });
-        it('loan token', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "5" + wad);
-            expect(await flash.maxFlashLoan(davos.address)).to.be.equal("5" + wad);
+        it('for every other token max flash loan amount = 0', async function () {
+            value = randomBN(wad.length);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), value);
+            expect(await flash.maxFlashLoan(deployer.address)).to.be.equal("0");
         });
     });
     describe('--- flashFee()', function () {
-        it('reverts: Flash/token-unsupported', async function () {
+        const amounts = [
+            "1111111111111111111",
+            "111111111111111111",
+            "11111111111111111",
+            "1111111111111111",
+            "111111111111111",
+            "11111111111111",
+            "1111111111111",
+            "111111111111",
+            "11111111111",
+            "1111111111",
+            "111111111",
+            "11111111",
+            "1111111",
+            "111111",
+            "11111",
+            "1111",
+            "111",
+            "11",
+            "1",
+            "0",
+        ]
+        amounts.forEach(function (amount) {
+            it(`calculates flashFee for ${amount}DAVOS`, async function () {
+                toll = randomBN(wad.length);
+                expectedFlashFee = toBN(amount).mul(toll).div(toWad(1));
+                await flash["file(bytes32,uint256)"](formatBytes32String("toll"), toll);
+                expect(await flash.flashFee(davos.address, amount)).to.be.closeTo(expectedFlashFee, 1);
+            });
+        })
+        it('reverts for unknown token: Flash/token-unsupported', async function () {
+            toll = randomBN(wad.length);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), toll);
             await expect(flash.flashFee(deployer.address, "1" + wad)).to.be.revertedWith("Flash/token-unsupported");
-        });
-        it('calculates flashFee', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "1" + wad);
-            expect(await flash.flashFee(davos.address, "1" + wad)).to.be.equal("1" +  wad);
         });
     });
     describe('--- flashLoan()', function () {
-        it('reverts: Flash/token-unsupported', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "10" + wad);
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "10000000000000000"); // 1%
-            davos2 = await this.Davos.connect(deployer).deploy();
-            await davos2.deployed();
-            await expect(borrowingContract.flashBorrow(davos2.address, "1" + wad)).to.be.revertedWith("Flash/token-unsupported");
-        });
-        it('reverts: Flash/ceiling-exceeded', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "10" + wad);
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "10000000000000000"); // 1%
-            await expect(borrowingContract.flashBorrow(davos.address, "11" + wad)).to.be.revertedWith("Flash/ceiling-exceeded");
-        });
-        it('reverts: Flash/vat-not-live', async function () {
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "10" + wad);
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "10000000000000000"); // 1%
-            await vat.cage();
-            await expect(borrowingContract.flashBorrow(davos.address, "9" + wad)).to.be.revertedWith("Flash/vat-not-live");
-        });
-        it('flash mints, burns and accrues with fee', async function () {
+        
+        const amounts = [
+            "9999999999999999999",
+            "6666666666666666666",
+            "5555555555555555555",
+            "1111111111111111111",
+            "111111111111111111",
+            "11111111111111111",
+            "1111111111111111",
+            "111111111111111",
+            "11111111111111",
+            "1111111111111",
+            "111111111111",
+            "11111111111",
+            "1111111111",
+            "111111111",
+            "11111111",
+            "1111111",
+            "111111",
+            "11111",
+            "1111",
+            "111",
+            "11",
+            "1",
+            "0",
+        ]
+        
+        amounts.forEach(function (amount) {
+            it(`flash mints ${amount}, burns and accrues with fee`, async function () {
+                await vat.init(collateral);
+                await vat["file(bytes32,uint256)"](formatBytes32String("Line"), "200" + rad);
+                await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("line"), "200" + rad);
+                await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("dust"), "10" + rad);
+                await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("spot"), "100" + ray);
+                await vat.slip(collateral, deployer.address, "1" + wad);
+                await vat.frob(collateral, deployer.address, deployer.address, deployer.address, "1" + wad, 0);
+                await vat.frob(collateral, deployer.address, deployer.address, davosjoin.address, 0, "20" + wad);
+                await vat.rely(flash.address);
+                await vat.rely(davosjoin.address);
+                
+                await davos.rely(davosjoin.address);
+                
+                await davosjoin.rely(flash.address);
+                
+                maxFlashLoan = toWad(10);
+                toll = toBN("10000000000000000"); // 1%
+                await flash["file(bytes32,uint256)"](formatBytes32String("max"), maxFlashLoan);
+                await flash["file(bytes32,uint256)"](formatBytes32String("toll"), toll);
+                requiredFlashFee = await flash.flashFee(davos.address, amount); // get flashFee from contract
+                borrowerBalanceReserve = randomBN(18); // to check that it does not burn more than necessary
+                borrowerBalance = requiredFlashFee.mul(2).add(borrowerBalanceReserve); // mul fee by 2 to borrow two times and add some reserve
+                
+                await davos.mint(borrowingContract.address, borrowerBalance); // minting davos tokens to pay flashFee
+                flashBorrowerBalanceBefore = await davos.balanceOf(borrowingContract.address);
+                console.log(`Borrowing contract balance before: ${flashBorrowerBalanceBefore}DAVOS`);
+                await borrowingContract.flashBorrow(davos.address, amount); // borrow 2 times
+                await borrowingContract.flashBorrow(davos.address, amount);
+                
+                feeCollected = (await vat.davos(flash.address));
+                console.log(`Fee collected: ${feeCollected}DAVOS`);
+                expect(feeCollected.mul(toWad(1)).div(toRad(1))).to.be.eq(requiredFlashFee.mul(2));
+                
+                flashBorrowerBalanceAfter = await davos.balanceOf(borrowingContract.address);
+                console.log(`Borrowing contract balance after: ${flashBorrowerBalanceAfter}DAVOS`);
+                expect(flashBorrowerBalanceAfter).to.be.eq(borrowerBalanceReserve);
+                
+                expect(await vat.davos(vow.address)).to.be.equal(toBN(0));
+                await flash.accrue();
+                expect(await vat.davos(vow.address)).to.be.equal(feeCollected); // Surplus from Flash fee
+            })
+        })
+        
+        it('reverts when flashBorrower balance is not sufficient to pay flashFee: Davos/insufficient-balance', async function () {
             await vat.init(collateral);
-            await vat.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("Line"), "200" + rad);
-            await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](collateral, await ethers.utils.formatBytes32String("line"), "200" + rad);  
-            await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](collateral, await ethers.utils.formatBytes32String("dust"), "10" + rad);              
-            await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](collateral, await ethers.utils.formatBytes32String("spot"), "100" + ray);
+            await vat["file(bytes32,uint256)"](formatBytes32String("Line"), "200" + rad);
+            await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("line"), "200" + rad);
+            await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("dust"), "10" + rad);
+            await vat["file(bytes32,bytes32,uint256)"](collateral, formatBytes32String("spot"), "100" + ray);
             await vat.slip(collateral, deployer.address, "1" + wad);
-            await vat.connect(deployer).frob(collateral, deployer.address, deployer.address, deployer.address, "1" + wad, 0);
-            await vat.connect(deployer).frob(collateral, deployer.address, deployer.address, davosjoin.address, 0, "20" + wad);
+            await vat.frob(collateral, deployer.address, deployer.address, deployer.address, "1" + wad, 0);
+            await vat.frob(collateral, deployer.address, deployer.address, davosjoin.address, 0, "20" + wad);
             await vat.rely(flash.address);
             await vat.rely(davosjoin.address);
-
+            
             await davos.rely(davosjoin.address);
-
+            
             await davosjoin.rely(flash.address);
-
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("max"), "10" + wad);
-            await flash.connect(deployer)["file(bytes32,uint256)"](await ethers.utils.formatBytes32String("toll"), "10000000000000000"); // 1%
-            await davos.mint(borrowingContract.address, "1000000000000000000"); // Minting 1% fee that will be returned with 1 wad next
-            await borrowingContract.flashBorrow(davos.address, "1" + wad);
-
-            expect(await vat.davos(vow.address)).to.be.equal("0" + rad);
-            await flash.accrue();
-            expect(await vat.davos(vow.address)).to.be.equal("10000000000000000000000000000000000000000000"); // Surplus from Flash fee
+            
+            maxFlashLoan = toWad(10);
+            toll = toBN("10000000000000000"); // 1%
+            amount = randomBN(18);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), maxFlashLoan);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), toll);
+            borrowerBalance = (await flash.flashFee(davos.address, amount)).sub(1); // sub 1 wei
+            await davos.mint(borrowingContract.address, borrowerBalance); // Minting insufficient davos token to pay flashFee
+            await expect(borrowingContract.flashBorrow(davos.address, amount))
+              .to.be.revertedWith("Davos/insufficient-balance");
+        });
+        
+        it('reverts on borrowing unknown token: Flash/token-unsupported', async function () {
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), "10" + wad);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), "10000000000000000"); // 1%
+            davos2 = await this.Davos.connect(deployer).deploy();
+            await davos2.deployed();
+            await expect(borrowingContract.flashBorrow(davos2.address, "1" + wad))
+              .to.be.revertedWith("Flash/token-unsupported");
+        });
+        it('reverts on exceeding max loan amount: Flash/ceiling-exceeded', async function () {
+            max = toWad(10);
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), max);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), "10000000000000000"); // 1%
+            await expect(borrowingContract.flashBorrow(davos.address, max.add(1)))
+              .to.be.revertedWith("Flash/ceiling-exceeded");
+        });
+        it('reverts when vat is disabled: Flash/vat-not-live', async function () {
+            await flash["file(bytes32,uint256)"](formatBytes32String("max"), "10" + wad);
+            await flash["file(bytes32,uint256)"](formatBytes32String("toll"), "10000000000000000"); // 1%
+            await vat.cage();
+            await expect(borrowingContract.flashBorrow(davos.address, "9" + wad))
+              .to.be.revertedWith("Flash/vat-not-live");
         });
     });
 });
+
+function toWad(amount) {
+  return toBN(amount + wad)
+}
+function toRay(amount) {
+  return toBN(amount + ray)
+}
+function toRad(amount) {
+  return toBN(amount + rad)
+}
+
+function randomBN(length) {
+    if (length > 0) {
+        let randomNum = '';
+        randomNum += Math.floor(Math.random() * 9) + 1; // generates a random digit 1-9
+        for (let i = 0; i < length - 1; i++) {
+            randomNum += Math.floor(Math.random() * 10); // generates a random digit 0-9
+        }
+        return toBN(randomNum);
+    } else {
+        return toBN(0);
+    }
+}
