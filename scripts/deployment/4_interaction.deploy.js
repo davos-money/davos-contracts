@@ -42,11 +42,11 @@ async function main() {
     // Deployment
     console.log("Interaction...");
 
-    let rewards = await upgrades.deployProxy(this.DgtRewards, [_vat, ether(_dgtRewardsPoolLimitInEth).toString(), "5"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await rewards.deployed();
-    rewardsImp = await upgrades.erc1967.getImplementationAddress(rewards.address);
-    console.log("Rewards         :", rewards.address);
-    console.log("Imp             :", rewardsImp);
+    // let rewards = await upgrades.deployProxy(this.DgtRewards, [_vat, ether(_dgtRewardsPoolLimitInEth).toString(), "5"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await rewards.deployed();
+    // rewardsImp = await upgrades.erc1967.getImplementationAddress(rewards.address);
+    // console.log("Rewards         :", rewards.address);
+    // console.log("Imp             :", rewardsImp);
 
     // // No Dgt Token & Oracle at the moment
     // let dgtOracle = await upgrades.deployProxy(this.DgtOracle, [_dgtOracleInitialPriceInWei], {initializer: "initialize", nonce: _nonce}) _nonce += 1; // 0.1
@@ -67,7 +67,7 @@ async function main() {
     // await rewards.setOracle(dgtOracle.address, { nonce: _nonce}); _nonce += 1;
     // await rewards.initPool(masterVault.address, _ilkCeMatic, _rewardsRate, { nonce: _nonce}) _nonce += 1; //6%
 
-    let interaction = await upgrades.deployProxy(this.Interaction, [_vat, _spot, _davos, _davosJoin, _jug, _dog, rewards.address], {
+    let interaction = await upgrades.deployProxy(this.Interaction, [_vat, _spot, _davos, _davosJoin, _jug, _dog, "0x564B15432f0368109263Ed031d7b7d3CFC20E7b4"], {
             initializer: "initialize",
             unsafeAllowLinkedLibraries: true,
             nonce: _nonce

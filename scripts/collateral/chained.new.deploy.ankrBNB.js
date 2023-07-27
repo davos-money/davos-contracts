@@ -23,7 +23,7 @@ async function main() {
     if (hre.network.name == "bsc") {
         _underlying = "0x52F24a5e03aee338Da5fd9Df68D2b6FAe1178827";
     } else if (hre.network.name == "bscTestnet") {
-        _underlying = "0x4f9406bd3582A877Ec0e33cA1b1FD31E778345B6";
+        _underlying = "0x3C1039C346bd5141BF2D5e855928E61655658fA7";
     } else {
         throw "STOPPED";
     }

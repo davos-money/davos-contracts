@@ -41,4 +41,6 @@ interface VatLike {
     function grab(bytes32,address,address,address,int256,int256) external;
 
     function slip(bytes32,address,int) external;
+
+    function live() external returns(uint256);
 }

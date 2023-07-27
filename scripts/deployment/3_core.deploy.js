@@ -66,13 +66,13 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await davos.deployed();
-    davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
-    console.log("davos           :", davos.address);
-    console.log("davosImp        :", davosImp);
+    // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await davos.deployed();
+    // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
+    // console.log("davos           :", davos.address);
+    // console.log("davosImp        :", davosImp);
 
-    let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, "0xB155f3E06AA210A33EAFB76087A8b58C388286B8"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosJoin.deployed();
     davosJoinImp = await upgrades.erc1967.getImplementationAddress(davosJoin.address);
     console.log("DavosJoin       :", davosJoin.address);
@@ -133,7 +133,7 @@ async function main() {
         _vatImp         : vatImp,
         _spot           : spot.address,
         _spotImp        : spotImp,
-        _davos          : davos.address,
+        _davos          : "0xB155f3E06AA210A33EAFB76087A8b58C388286B8",
         _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,

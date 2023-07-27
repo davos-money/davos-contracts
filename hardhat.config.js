@@ -135,10 +135,7 @@ module.exports = {
     },
 
     etherscan: {
-        apiKey: // process.env.SCAN_API_KEY
-        {
-            bscTestnet: process.env.SCAN_API_KEY
-        },
+        apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
               network: "zkevmTestnet",

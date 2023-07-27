@@ -34,7 +34,7 @@ async function main() {
         _underlying = "0x52F24a5e03aee338Da5fd9Df68D2b6FAe1178827";
     } else if (hre.network.name == "bscTestnet") {
         _cl_bnb_usd = "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526";
-        _underlying = "0x4f9406bd3582A877Ec0e33cA1b1FD31E778345B6";
+        _underlying = "0x3C1039C346bd5141BF2D5e855928E61655658fA7";
     } else {
         throw "STOPPED";
     }

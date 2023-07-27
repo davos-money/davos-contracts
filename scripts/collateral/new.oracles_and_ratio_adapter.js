@@ -24,7 +24,7 @@ async function main() {
 
     // Config
     let { _cl_eth_usd, _cl_reth_eth, _cl_bnb_usd, _underlying, _wsteth, _master_vault_v2 } = require(`./config_${hre.network.name}.json`);
-    let { _masterVault } = require(`./addresses_${hre.network.name}.json`);
+    // let { _masterVault } = require(`./addresses_${hre.network.name}.json`);
     
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
@@ -34,7 +34,7 @@ async function main() {
     this.AnkrBNBOracle = await hre.ethers.getContractFactory("AnkrBNBOracle");
     this.AnkrETHOracle = await hre.ethers.getContractFactory("AnkrETHOracle");
 
-    let masterVaultV2 = await this.MasterVault.attach(_masterVault);
+    // let masterVaultV2 = await this.MasterVault.attach(_masterVault);
 
     // Deployment
     console.log("Deploying...");
@@ -52,11 +52,11 @@ async function main() {
     // console.log("RethOracle      : " + rethOracle.address);
     // console.log("Imp             : " + rethOracleImp);
 
-    let wstEthOracle = await upgrades.deployProxy(this.WstETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await wstEthOracle.deployed();
-    let wstEthOracleImp = await upgrades.erc1967.getImplementationAddress(wstEthOracle.address);
-    console.log("WstETHOracle     : " + wstEthOracle.address);
-    console.log("Imp              : " + wstEthOracleImp);
+    // let wstEthOracle = await upgrades.deployProxy(this.WstETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await wstEthOracle.deployed();
+    // let wstEthOracleImp = await upgrades.erc1967.getImplementationAddress(wstEthOracle.address);
+    // console.log("WstETHOracle     : " + wstEthOracle.address);
+    // console.log("Imp              : " + wstEthOracleImp);
 
     // let ankrBNBOracle = await upgrades.deployProxy(this.AnkrBNBOracle, [_cl_bnb_usd, _underlying, _masterVault, ratioAdapter.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     // await ankrBNBOracle.deployed();
@@ -64,11 +64,11 @@ async function main() {
     // console.log("ankrBNBOracle    : " + ankrBNBOracle.address);
     // console.log("Imp              : " + ankrBNBOracleImp);
 
-    // let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, _underlying, _masterVault, "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    // await ankrETHOracle.deployed();
-    // let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
-    // console.log("ankrETHOracle    : " + ankrETHOracle.address);
-    // console.log("Imp              : " + ankrETHOracleImp);
+    let ankrETHOracle = await upgrades.deployProxy(this.AnkrETHOracle, [_cl_eth_usd, "0x2bBC91e1990F0dc5e5BAD04AaE000Ca97f56990f", "0xe6bDcd5d8c9D1946E538198491DDf5004276E807", "0xa17d1Aac3CE85a8D7531c181289599bB7c0c6b9b"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await ankrETHOracle.deployed();
+    let ankrETHOracleImp = await upgrades.erc1967.getImplementationAddress(ankrETHOracle.address);
+    console.log("ankrETHOracle    : " + ankrETHOracle.address);
+    console.log("Imp              : " + ankrETHOracleImp);
 
     // let masterVaultImp = await this.MasterVault.deploy();
     // await masterVaultImp.deployed();
@@ -91,9 +91,9 @@ async function main() {
     // await hre.run("verify:verify", {address: masterVaultImp.address});
 
     // console.log("Setup contracts...");
-    // ratioAdapter = await ethers.getContractAt("RatioAdapter", "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71")
-    // // await ratioAdapter.setToken(_underlying, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
-    // await ratioAdapter.setToken(_underlying, '', '', "ratio()", false);
+    ratioAdapter = await ethers.getContractAt("RatioAdapter", "0xa17d1Aac3CE85a8D7531c181289599bB7c0c6b9b")
+    // await ratioAdapter.setToken(_underlying, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
+    await ratioAdapter.setToken("0x2bBC91e1990F0dc5e5BAD04AaE000Ca97f56990f", '', '', "ratio()", false);
     // await ratioAdapter.setProviderForToken(_underlying, "0x63dC5749fa134fF3B752813388a7215460a8aB01");
     // await masterVaultV2.changeAdapter(ratioAdapter.address);
 
