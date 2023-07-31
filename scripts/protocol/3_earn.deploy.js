@@ -14,7 +14,7 @@ async function main() {
     let _nonce = initialNonce
 
     // Addresses
-    let { _davos } = require(`./addresses_${hre.network.name}_3.json`);
+    let { _davos } = require(`./addresses_${hre.network.name}_1.json`);
 
     let exitDelay = "0"; // 0 Days
     let spread = "604800"; // 7 Days
@@ -40,8 +40,8 @@ async function main() {
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/deployment/addresses_${hre.network.name}_5.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/deployment/addresses_${hre.network.name}_5.json`);
+    fs.writeFileSync(`./scripts/deployment/addresses_${hre.network.name}_3.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/deployment/addresses_${hre.network.name}_3.json`);
 }
 main()
     .then(() => process.exit(0))

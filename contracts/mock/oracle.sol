@@ -12,8 +12,15 @@ contract Oracle is Ownable {
 
     bytes32 public price; 
 
+    mapping(address => bool) public managers;
+
+    modifier onlyOwnerOrManager {
+        require(msg.sender == owner() || managers[msg.sender] == true);
+        _;
+    }
+
     // Take care of decimals while setting a price for the test
-    function setPrice(uint256 _price) external onlyOwner {
+    function setPrice(uint256 _price) external onlyOwnerOrManager {
         price = bytes32(_price);
         emit PriceUpdate(bytes32(_price));
     }
@@ -22,5 +29,9 @@ contract Oracle is Ownable {
         if (price  == 0)
          return (0, false);
         return (price, true);
+    }
+
+    function setManager(address manager, bool value) external onlyOwner {
+        managers[manager] = value;
     }
 }
