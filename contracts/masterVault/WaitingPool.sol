@@ -26,7 +26,7 @@ contract WaitingPool is IWaitingPool, Initializable {
     uint256 public totalDebt;
     uint256 public capLimit;
     
-    bool public lock;
+    bool private PLACEHOLDER_1;
 
     address public underlying;
 
@@ -106,25 +106,6 @@ contract WaitingPool is IWaitingPool, Initializable {
         require(_capLimit != 0, "WaitingPool/invalid-cap");
         
         capLimit = _capLimit;
-    }
-
-    // --- User ---
-    /** Users can manually withdraw their funds if they were not transferred in tryRemove()
-      */
-    function withdrawUnsettled(uint256 _index) external {
-        require(!lock, "reentrancy");
-        lock = true;
-
-        address src = msg.sender;
-        require(!people[_index]._settled && _index < index && people[_index]._address == src, "WaitingPool/already-settled");
-
-        uint256 withdrawAmount = people[_index]._debt;
-        totalDebt -= withdrawAmount;
-        people[_index]._settled = true;
-
-        IERC20Upgradeable(underlying).safeTransfer(src, withdrawAmount);
-        lock = false;
-        emit WithdrawCompleted(src, withdrawAmount);
     }
 
     // --- Views ---

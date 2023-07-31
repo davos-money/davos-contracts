@@ -9,7 +9,7 @@ const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const DATA = "0x02";
 
-describe('===MasterVault_V2===', function () {
+describe('===Ratio Adapter===', function () {
   let deployer, signer1, signer2, signer3, signer4;
 
   let token,

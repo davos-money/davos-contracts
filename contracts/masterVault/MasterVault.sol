@@ -41,6 +41,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
     uint256 private PLACEHOLDER_3;
     uint256 public allocateOnDeposit;
+    uint256 public tolerance;
 
 
     // ------------
@@ -89,16 +90,16 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     // ----------------
     // --- Deposits ---
     /** Deposit underlying assets via DavosProvider
-      * @param _amount amount of Underlying Token deposit
+      * @param assets amount of Underlying Token deposit
       * @return shares corresponding MasterVault tokens
       */
-    function depositUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
+    function deposit(uint256 assets, address receiver) public override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 shares) {
 
-        require(_amount > 0, "MasterVault/invalid-amount");
-        address src = msg.sender;
+        require(assets > 0, "MasterVault/invalid-amount");
+        receiver = msg.sender;
 
-        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), src, address(this), _amount);
-        shares = _assessFee(_amount, depositFee);
+        SafeERC20Upgradeable.safeTransferFrom(IERC20Upgradeable(asset()), receiver, address(this), assets);
+        shares = _assessFee(assets, depositFee);
 
         uint256 waitingPoolDebt = waitingPool.totalDebt();
         uint256 waitingPoolBalance = IERC20Upgradeable(asset()).balanceOf(address(waitingPool));
@@ -108,11 +109,11 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), poolAmount);
         }
 
-        _mint(src, shares);
+        _mint(receiver, shares);
 
         if(allocateOnDeposit == 1) allocate();
 
-        emit Deposit(src, src, _amount, shares);
+        emit Deposit(receiver, receiver, assets, shares);
     }
     /** Deposit underlying tokens into strategy
       * @param _strategy address of strategy
@@ -143,6 +144,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         // 'capacity' is total depositable; 'chargedCapacity' is capacity after charging fee
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canDeposit(_amount);
         if(capacity <= 0 || capacity > _amount || chargedCapacity > capacity) return false;
+
+        require(tolerable(capacity, chargedCapacity), "MasterVault/not-tolerable");
 
         totalDebt += chargedCapacity;
         strategyParams[_strategy].debt += chargedCapacity;
@@ -178,45 +181,45 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     // -----------------
     // --- Withdraws ---
     /** Withdraw underlying assets via DavosProvider
-      * @param _account receipient
-      * @param _amount underlying assets to withdraw
+      * @param receiver receipient
+      * @param shares underlying assets to withdraw
       * @return assets underlying assets excluding any fees
       */
-    function withdrawUnderlying(address _account, uint256 _amount) external override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
+    function redeem(uint256 shares, address receiver, address owner) public override nonReentrant whenNotPaused onlyOwnerOrProvider returns (uint256 assets) {
+        require(shares > 0, "MasterVault/invalid-amount");
+        owner = msg.sender;
+        assets = shares;
 
-        require(_amount > 0, "MasterVault/invalid-amount");
-        address src = msg.sender;
-        assets = _amount;
-
-        _burn(src, _amount);
+        _burn(owner, shares);
 
         uint256 underlyingBalance = totalAssetInVault();
-        if(underlyingBalance < _amount) {
+        if(underlyingBalance < shares) {
 
           uint256 debt = waitingPool.getUnbackedDebt();
           Type class = debt == 0 ? Type.ABSTRACT : Type.IMMEDIATE;
           
-          (uint256 withdrawn, bool incomplete, bool delayed) = _withdrawFromActiveStrategies(_account, _amount + debt - underlyingBalance, class);
+          (uint256 withdrawn, bool incomplete, bool delayed) = _withdrawFromActiveStrategies(receiver, shares + debt - underlyingBalance, class);
 
           if(withdrawn == 0 || debt != 0 || incomplete) {
             assets = _assessFee(assets, withdrawalFee);
-            waitingPool.addToQueue(_account, assets);
+            waitingPool.addToQueue(receiver, assets);
             if(totalAssetInVault() > 0) 
               SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), underlyingBalance);
-            emit Withdraw(src, src, src, assets, _amount);
-            return _amount;
+            emit Withdraw(owner, owner, owner, assets, shares);
+            return assets;
           } else if(delayed) {
             assets = underlyingBalance;
           } else {
+            require(tolerable(shares + debt - underlyingBalance, withdrawn), "MasterVault/not-tolerable");
             assets = underlyingBalance + withdrawn;
           }
         }
 
         assets = _assessFee(assets, withdrawalFee);
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), _account, assets);
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), owner, assets);
 
-        emit Withdraw(src, src, src, assets, _amount);
-        return _amount;
+        emit Withdraw(owner, owner, owner, assets, shares);
+        return assets;
     }
     /** Withdraw underlying assets from Strategy
       * @param _strategy address of strategy
@@ -249,7 +252,7 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         StrategyParams memory params = strategyParams[_strategy];
         (uint256 capacity, uint256 chargedCapacity) = IBaseStrategy(_strategy).canWithdraw(_amount);
-        if(capacity <= 0 || chargedCapacity > capacity) return (0, false);
+        if(capacity <= 0 || chargedCapacity > capacity) return (0, true);
         else if(capacity < _amount) incomplete = true;
 
         if(params.class == Type.DELAYED && incomplete) return (0, true);
@@ -269,14 +272,16 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
       * @param _amount amount of Underlying Tokens withdrawal
       */
     function _withdrawFromActiveStrategies(address _recipient, uint256 _amount, Type class) private returns(uint256 withdrawn, bool incomplete, bool delayed) {
-
+        
+        incomplete = true;
         for(uint8 i = 0; i < strategies.length; i++) {
             if(strategyParams[strategies[i]].active && (strategyParams[strategies[i]].class == class || class == Type.ABSTRACT) && strategyParams[strategies[i]].debt >= _amount) {
               _recipient = strategyParams[strategies[i]].class == Type.DELAYED ? _recipient : address(this);
               delayed = strategyParams[strategies[i]].class == Type.DELAYED ? true : false;
               (withdrawn, incomplete) = _withdrawFromStrategy(_recipient, strategies[i], _amount);
+              if (withdrawn > 0) break;
             }
-        }
+        } 
     }
     /** Internal -> charge corresponding fees from amount
       * @param amount amount to charge fee from
@@ -290,6 +295,13 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
             value = amount - fee;
             feeEarned += fee;
         } else return amount;
+    }
+
+    function tolerable(uint256 amount, uint256 actual) private view returns(bool) {
+
+        if(amount == 0 || actual > amount) return false;
+
+        return actual >= amount - ((amount * tolerance) / 1e6);
     }
 
     // ---------------
@@ -325,12 +337,13 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
 
         bool isValidStrategy;
         for(uint256 i = 0; i < strategies.length; i++) {
+            if(strategies[i] == _newStrategy) {
+              revert("MasterVault/new-strategy-already-exists");
+            }
             if(strategies[i] == _oldStrategy) {
                 isValidStrategy = true;
                 strategies[i] = _newStrategy;
                 strategyParams[_newStrategy] = params;
-                
-                break;
             }
         }
 
@@ -343,13 +356,14 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     /** Internal -> checks strategy's debt and deactives it
       * @param _strategy address of strategy 
       */
-    function _deactivateStrategy(address _strategy) private returns(bool success) {
+    function _deactivateStrategy(address _strategy) private returns(bool) {
 
         if (strategyParams[_strategy].debt <= 10) {
             strategyParams[_strategy].active = false;
             strategyParams[_strategy].debt = 0;
             return true;
         }
+        return false;
     }
     /** Internal -> Sums up all individual allocation to match total
       */
@@ -378,8 +392,8 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
           if (totalAssetInVault() >= withdrawAmount) {
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), withdrawAmount);
           } else {
-            (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount + 1, _class);
             uint256 amount = totalAssetInVault();
+            (withdrawn,,delayed) = _withdrawFromActiveStrategies(address(waitingPool), withdrawAmount - amount + 1, _class);
             if(withdrawn > 0 && !delayed) amount += withdrawn;
             SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(asset()), address(waitingPool), amount);
           }
@@ -468,6 +482,16 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
         withdrawalFee = _newWithdrawalFee;
 
         emit WithdrawalFeeChanged(_newWithdrawalFee);
+    }
+    /** Sets tolerance where 1% = 10000ppm
+      * @param _tolerance new tolerance percentage
+      */
+    function setTolerance(uint256 _tolerance) external onlyOwner {
+
+      require(_tolerance <= 1e6,"MasterVault/max-tolerance");
+      tolerance = _tolerance;
+
+      emit ToleranceChanged(_tolerance);
     }
     /** Changes provider contract
       * @param _provider new provider
@@ -563,8 +587,6 @@ contract MasterVault is IMasterVault, ERC4626Upgradeable, OwnableUpgradeable, Pa
     // --- ERC4626 ---
     /** Kept only for the sake of ERC4626 standard
       */
-    function deposit(uint256 assets, address receiver) public override returns (uint256) { revert(); }
     function mint(uint256 shares, address receiver) public override returns (uint256) { revert(); }
     function withdraw(uint256 assets, address receiver, address owner) public override returns (uint256) { revert(); }
-    function redeem(uint256 shares, address receiver, address owner) public override returns (uint256) { revert(); }
 }

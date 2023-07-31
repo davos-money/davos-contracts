@@ -19,6 +19,7 @@ interface IMasterVault {
     // --- Events ---
     event DepositFeeChanged(uint256 _newDepositFee);
     event WithdrawalFeeChanged(uint256 _newWithdrawalFee);
+    event ToleranceChanged(uint256 _tolerance);
     event ProviderChanged(address _provider);
     event ManagerAdded(address _newManager);
     event ManagerRemoved(address _manager);
@@ -33,8 +34,6 @@ interface IMasterVault {
     event WithdrawnFromStrategy(address indexed _strategy, uint256 _amount, uint256 _actualAmount);
 
     // --- Functions ---
-    function depositUnderlying(address _account, uint256 _amount) external returns (uint256);
-    function withdrawUnderlying(address _account, uint256 _amount) external returns (uint256);
     function feeReceiver() external returns (address);
     function withdrawalFee() external view returns (uint256);
     function strategyParams(address _strategy) external view returns(bool active, Type withdraw, uint256 allocation, uint256 debt);

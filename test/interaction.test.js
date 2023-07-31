@@ -16,7 +16,7 @@ describe("Interaction", function () {
 
     let collateral, _chainId, _mat, _dgtRewardsPoolLimitInEth, _vat_Line, _vat_line,
         _spot_par, _dog_Hole, _dog_hole, _dog_chop, _abacus_tau, _clip_buf, _clip_tail,
-        _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _multisig, _vat_dust, dMatic;
+        _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _multisig, _vat_dust, dCol;
         
     async function deploySwapPool() {
         const { MaxUint256 } = ethers.constants;
@@ -86,7 +86,7 @@ describe("Interaction", function () {
         CeVault = await ethers.getContractFactory("CeVault");
         AMATICb = await ethers.getContractFactory("aMATICb");
         AMATICc = await ethers.getContractFactory("aMATICc");
-        DMatic = await ethers.getContractFactory("dMATIC");
+        DCol = await ethers.getContractFactory("dCol");
         CerosRouter = await ethers.getContractFactory("CerosRouterLs");
         DavosProvider = await ethers.getContractFactory("DavosProvider");
         Vat = await ethers.getContractFactory("Vat");
@@ -114,9 +114,9 @@ describe("Interaction", function () {
             }
         });
 
-        dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
-        await dMatic.deployed();
-        dMaticImp = await upgrades.erc1967.getImplementationAddress(dMatic.address);
+        dCol = await upgrades.deployProxy(this.DCol, [], {initializer: "initialize"});
+        await dCol.deployed();
+        dColImp = await upgrades.erc1967.getImplementationAddress(dCol.address);
 
         abacus = await upgrades.deployProxy(this.Abacus, [], {initializer: "initialize"});
         await abacus.deployed();
@@ -175,7 +175,7 @@ describe("Interaction", function () {
         await interaction.deployed();
         interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, collateralToken.address, interaction.address, false], {initializer: "initialize"});
+        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dCol.address, collateralToken.address, interaction.address, false], {initializer: "initialize"});
         await davosProvider.deployed();
         davosProviderImplementation = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
 

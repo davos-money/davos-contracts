@@ -42,7 +42,7 @@ describe('===DavosProvider===', function () {
         this.Token = await hre.ethers.getContractFactory("Token");
         this.CeaMATICc = await hre.ethers.getContractFactory("CeToken");
         this.CeVault = await hre.ethers.getContractFactory("CeVault");
-        this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+        this.DCol = await hre.ethers.getContractFactory("dCol");
         this.CerosRouter = await hre.ethers.getContractFactory("CerosRouterLs");
         this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
         this.Vat = await hre.ethers.getContractFactory("Vat");
@@ -60,6 +60,7 @@ describe('===DavosProvider===', function () {
         this.DgtRewards = await hre.ethers.getContractFactory("DGTRewards");
         this.DgtOracle = await hre.ethers.getContractFactory("DGTOracle"); 
         this.AuctionProxy = await hre.ethers.getContractFactory("AuctionProxy");
+        this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
 
         const auctionProxy = await this.AuctionProxy.deploy();
         await auctionProxy.deployed();
@@ -70,7 +71,7 @@ describe('===DavosProvider===', function () {
             }
         });
 
-        this.MasterVault = await hre.ethers.getContractFactory("MasterVault");
+        this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
         this.WaitingPool = await hre.ethers.getContractFactory("WaitingPool");
 
         // Contract deployment
@@ -78,15 +79,15 @@ describe('===DavosProvider===', function () {
         await collateralToken.deployed();
         await collateralToken.initialize("Matic Token", "MTK");
 
-        masterVault = await upgrades.deployProxy(this.MasterVault, [collateralToken.address, "MasterVault Token", "MVTK", 4000, 4000, 10]);
+        masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVTK", 0, collateralToken.address]);
         await masterVault.deployed();
 
         waitingPool = await upgrades.deployProxy(this.WaitingPool, [masterVault.address, collateralToken.address, 10]);
         await waitingPool.deployed();
 
-        dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
-        await dMatic.deployed();
-        dMaticImp = await upgrades.erc1967.getImplementationAddress(dMatic.address);
+        dCol = await upgrades.deployProxy(this.DCol, [], {initializer: "initialize"});
+        await dCol.deployed();
+        dColImp = await upgrades.erc1967.getImplementationAddress(dCol.address);
 
         abacus = await upgrades.deployProxy(this.Abacus, [], {initializer: "initialize"});
         await abacus.deployed();
@@ -145,8 +146,10 @@ describe('===DavosProvider===', function () {
         await interaction.deployed();
         interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
+        davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dCol.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
         await davosProvider.deployed();
+
+        ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
 
         // initialize
         await vat.rely(gemJoin.address);
@@ -208,8 +211,9 @@ describe('===DavosProvider===', function () {
         await interaction.setDavosProvider(masterVault.address, davosProvider.address);
 
         await masterVault.changeProvider(davosProvider.address);
-        await masterVault.setWaitingPool(waitingPool.address);
-        await dMatic.changeMinter(davosProvider.address);
+        await masterVault.changeAdapter(ratioAdapter.address);
+        // await masterVault.setWaitingPool(waitingPool.address);
+        await dCol.changeMinter(davosProvider.address);
     });
 
     describe('--- Provide', function () {
@@ -226,15 +230,15 @@ describe('===DavosProvider===', function () {
             await collateralToken.deployed();
             await collateralToken.initialize("Wrapped Matic", "wMATIC");
 
-            masterVault = await upgrades.deployProxy(this.MasterVault, [collateralToken.address, "MasterVault Token", "MVTK", 4000, 4000, 10]);
+            masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVTK", 0, collateralToken.address]);
             await masterVault.deployed();
 
             waitingPool = await upgrades.deployProxy(this.WaitingPool, [masterVault.address, collateralToken.address, 10]);
             await waitingPool.deployed();
 
-            dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
-            await dMatic.deployed();
-            dMaticImp = await upgrades.erc1967.getImplementationAddress(dMatic.address);
+            dCol = await upgrades.deployProxy(this.DCol, [], {initializer: "initialize"});
+            await dCol.deployed();
+            dColImp = await upgrades.erc1967.getImplementationAddress(dCol.address);
 
             abacus = await upgrades.deployProxy(this.Abacus, [], {initializer: "initialize"});
             await abacus.deployed();
@@ -293,8 +297,10 @@ describe('===DavosProvider===', function () {
             await interaction.deployed();
             interactionImplAddress = await upgrades.erc1967.getImplementationAddress(interaction.address);
 
-            davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dMatic.address, masterVault.address, interaction.address, true], {initializer: "initialize"});
+            davosProvider = await upgrades.deployProxy(this.DavosProvider, [collateralToken.address, dCol.address, masterVault.address, interaction.address, true], {initializer: "initialize"});
             await davosProvider.deployed();
+
+            this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
 
             // initialize
             await vat.rely(gemJoin.address);
@@ -356,8 +362,9 @@ describe('===DavosProvider===', function () {
             await interaction.setDavosProvider(masterVault.address, davosProvider.address);
 
             await masterVault.changeProvider(davosProvider.address);
-            await masterVault.setWaitingPool(waitingPool.address);
-            await dMatic.changeMinter(davosProvider.address);
+            await masterVault.changeAdapter(ratioAdapter.address);
+            // await masterVault.setWaitingPool(waitingPool.address);
+            await dCol.changeMinter(davosProvider.address);
 
             await davosProvider.changeNativeStatus(true);
 
@@ -439,16 +446,16 @@ describe('===DavosProvider===', function () {
         it('reverts: 0 address burn', async function () {
             await expect(davosProvider.daoBurn(NULL_ADDRESS, "1")).to.be.revertedWith("");
         });
-        it('mints dMatic', async function () {
+        it('mints dCol', async function () {
             await davosProvider.daoMint(deployer.address, "1");
-            expect(await dMatic.balanceOf(deployer.address)).to.be.equal("1");
+            expect(await dCol.balanceOf(deployer.address)).to.be.equal("1");
         });
-        it('burns dMatic', async function () {
+        it('burns dCol', async function () {
             await davosProvider.daoMint(deployer.address, "1");
-            expect(await dMatic.balanceOf(deployer.address)).to.be.equal("1");
+            expect(await dCol.balanceOf(deployer.address)).to.be.equal("1");
 
             await davosProvider.daoBurn(deployer.address, "1");
-            expect(await dMatic.balanceOf(deployer.address)).to.be.equal("0");
+            expect(await dCol.balanceOf(deployer.address)).to.be.equal("0");
         });
     });
 });

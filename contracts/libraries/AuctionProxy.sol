@@ -38,7 +38,7 @@ library AuctionProxy {
     davosBal = davos.balanceOf(address(this)) - davosBal;
     davos.transfer(keeper, davosBal);
 
-    // Burn any derivative token (dMATIC incase of ceaMATICc collateral)
+    // Burn any derivative token (dCOL incase of ceaMATICc collateral)
     if (address(davosProvider) != address(0)) {
       davosProvider.daoBurn(user, _clip.sales(id).lot);
     }
