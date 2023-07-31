@@ -74,9 +74,9 @@ async function main() {
     let initialNonce = await ethers.provider.getTransactionCount(deployer.address);
     let _nonce = initialNonce
 
-    await flash["file(bytes32,uint256)"]("0x6d61780000000000000000000000000000000000000000000000000000000000", "50000000000000000000000", {nonce: _nonce}); _nonce += 1;
+    await flash["file(bytes32,uint256)"]("0x6d61780000000000000000000000000000000000000000000000000000000000", "100000000000000000000000", {nonce: _nonce}); _nonce += 1;
     console.log("1")
-    await flash["file(bytes32,uint256)"]("0x746f6c6c00000000000000000000000000000000000000000000000000000000", "10000000000000000", {nonce: _nonce}); _nonce += 1;
+    await flash["file(bytes32,uint256)"]("0x746f6c6c00000000000000000000000000000000000000000000000000000000", "1000000000000000", {nonce: _nonce}); _nonce += 1;
     
     console.log("Ownership");
     await flash.rely(_multisig, {nonce: _nonce}); _nonce += 1;
