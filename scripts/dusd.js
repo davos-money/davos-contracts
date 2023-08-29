@@ -28,10 +28,10 @@ async function main() {
         
     // Config 
     let _chainId = process.env.CHAIN_ID;
-    let _multisig = process.env.MULTISIG;
+    // let _multisig = process.env.MULTISIG;
 
-    console.log(_chainId);
-    console.log(_multisig);
+    // console.log(_chainId);
+    // console.log(_multisig);
 
     // Fetching
 
@@ -47,27 +47,27 @@ async function main() {
     console.log("davosImp        :", davosImp);
 
     console.log("===Transfering Ownership");
-    await davos.rely(_multisig); console.log("Relied");
-    await davos.deny(deployer.address); console.log("Denied");
+    // await davos.rely(_multisig); console.log("Relied");
+    // await davos.deny(deployer.address); console.log("Denied");
 
-    console.log("=== Try proxyAdmin transfer...");
-    const proxyAdminAddress = parseAddress(await ethers.provider.getStorageAt(davos.address, admin_slot));
+    // console.log("=== Try proxyAdmin transfer...");
+    // const proxyAdminAddress = parseAddress(await ethers.provider.getStorageAt(davos.address, admin_slot));
 
-    let PROXY_ADMIN_ABI = ["function owner() public view returns (address)"];
-    let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
+    // let PROXY_ADMIN_ABI = ["function owner() public view returns (address)"];
+    // let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
 
-    let owner = await proxyAdmin.owner();
-    console.log("Owner: ", owner);
+    // let owner = await proxyAdmin.owner();
+    // console.log("Owner: ", owner);
 
-    if (owner != ethers.constants.AddressZero && owner != _multisig) {
-        PROXY_ADMIN_ABI = ["function transferOwnership(address newOwner) public"];
-        let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
-        await proxyAdmin.transferOwnership(_multisig);
-        console.log("proxyAdmin transferred");
-    } else {
-        console.log("Already owner of proxyAdmin")
-    }
-    console.log("Transfer Complete !!!");
+    // if (owner != ethers.constants.AddressZero && owner != _multisig) {
+    //     PROXY_ADMIN_ABI = ["function transferOwnership(address newOwner) public"];
+    //     let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
+    //     await proxyAdmin.transferOwnership(_multisig);
+    //     console.log("proxyAdmin transferred");
+    // } else {
+    //     console.log("Already owner of proxyAdmin")
+    // }
+    // console.log("Transfer Complete !!!");
 
     // Store Deployed Contracts
     const addresses = {
