@@ -40,14 +40,15 @@ async function main() {
     // Deployment
     console.log("Core...");
 
-    let davos = await upgrades.deployProxy(this.Davos, ["1101", "DUSD", "5000000" + wad], {initializer: "initialize"});
-    await davos.deployed();
+    let davos = await upgrades.deployProxy(this.Davos, ["1101", "DUSD", "5000000" + wad], {initializer: "initialize"}); console.log("1");
+    await davos.deployed(); console.log("2");
     davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
     console.log("davos           :", davos.address);
     console.log("davosImp        :", davosImp);
 
     console.log("Rely on Bridge");
     await davos.rely("0x2304CE6B42D505141A286B7382d4D515950b1890");
+    console.log("Done");
 
     // console.log("===Transfering Ownership");
     // await davos.rely(_multisig); console.log("Relied");
