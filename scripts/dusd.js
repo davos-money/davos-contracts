@@ -24,10 +24,10 @@ async function main() {
     // Signer
     [deployer] = await ethers.getSigners();
     let initialNonce = await ethers.provider.getTransactionCount(deployer.address);
-    let _nonce = initialNonce
+    // let _nonce = initialNonce
         
     // Config 
-    let _chainId = process.env.CHAIN_ID;
+    // let _chainId = process.env.CHAIN_ID;
     // let _multisig = process.env.MULTISIG;
 
     // console.log(_chainId);
@@ -40,13 +40,16 @@ async function main() {
     // Deployment
     console.log("Core...");
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize"});
+    let davos = await upgrades.deployProxy(this.Davos, ["1101", "DUSD", "5000000" + wad], {initializer: "initialize"});
     await davos.deployed();
     davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
     console.log("davos           :", davos.address);
     console.log("davosImp        :", davosImp);
 
-    console.log("===Transfering Ownership");
+    console.log("Rely on Bridge");
+    await davos.rely("0x2304CE6B42D505141A286B7382d4D515950b1890");
+
+    // console.log("===Transfering Ownership");
     // await davos.rely(_multisig); console.log("Relied");
     // await davos.deny(deployer.address); console.log("Denied");
 
