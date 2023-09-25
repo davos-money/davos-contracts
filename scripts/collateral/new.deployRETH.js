@@ -16,15 +16,20 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./config_${hre.network.name}.json`);
-    
+    let { _interaction } = require(`../protocol/addresses_${hre.network.name}_2.json`);
+    let { _vat, _spot, _dog } = require(`../protocol/addresses_${hre.network.name}_1.json`);
+    let _underlying;
+    if (hre.network.name == "zkevm") {
+        _underlying = "0xb23C20EFcE6e24Acca0Cef9B7B7aA196b84EC942";
+    } else _underlying = "0x470445eDBB4898836fF18b31DF21bf6e8a76d985"; // Dummy
+    _ilk = "0x4d56545f72455448000000000000000000000000000000000000000000000000";
+
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCol");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
     // Deployment
     console.log("Deploying...");
@@ -59,13 +64,9 @@ async function main() {
     console.log("Clip             :", clip.address);
     console.log("Imp              :", clipImp);
 
-    let oracle = await this.WstETHOracle.deploy();
-    await oracle.deployed();
-    console.log("Oracle           :", oracle.address);
-
     // Store Deployed Contracts
     const addresses = {
-        _masterVault     : masterVault.address,
+        _masterVaultR     : masterVault.address,
         _masterVaultImp  : masterVaultImp,
         _dMatic          : dMatic.address,
         _dMaticImp       : dMaticImp,
@@ -75,13 +76,13 @@ async function main() {
         _gemJoinImp      : gemJoinImp,
         _clip            : clip.address,
         _clipImp         : clipImp,
-        _oracle          : oracle.address,
+        // _oracle          : oracle.address,
         _initialNonce    : initialNonce
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/collateral/addresses_${network.name}.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${network.name}.json`);
+    fs.writeFileSync(`./scripts/collateral/addressesRETH_${network.name}.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/collateral/addressesRETH_${network.name}.json`);
 }
 
 main()

@@ -1,6 +1,6 @@
 {
     "_chainId": 1101,
-    "_multisig": "",
+    "_multisig": "0xE52AbC30A80fC6133c2B866d903142464005AD07",
 
     "_dgtRewardsPoolLimitInEth" : "100000000",
     "_dgtTokenRewardsSupplyinEth" : "100000000",
@@ -11,5 +11,5 @@
     "_spot_par" : "1",
     "_dog_Hole" : "50000000",
     "_abacus_tau": "36000",
-    "_earnOperator" : ""
+    "_earnOperator" : "0xE52AbC30A80fC6133c2B866d903142464005AD07"
 }

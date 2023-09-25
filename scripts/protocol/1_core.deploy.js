@@ -43,13 +43,17 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await davos.deployed();
-    davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
-    console.log("davos           :", davos.address);
-    console.log("davosImp        :", davosImp);
+    // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await davos.deployed();
+    // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
+    // console.log("davos           :", davos.address);
+    // console.log("davosImp        :", davosImp);
+    let davos;
+    if (hre.network.name == "zkevm") {
+        davos = "0x819d1Daa794c1c46B841981b61cC978d95A17b8e";
+    } else davos = "0x294cf7f71CDb8FE7D3CdE779E0665D26f683F523";
 
-    let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosJoin.deployed();
     davosJoinImp = await upgrades.erc1967.getImplementationAddress(davosJoin.address);
     console.log("DavosJoin       :", davosJoin.address);
@@ -85,8 +89,8 @@ async function main() {
         _vatImp         : vatImp,
         _spot           : spot.address,
         _spotImp        : spotImp,
-        _davos          : davos.address,
-        _davosImp       : davosImp,
+        _davos          : davos,
+        // _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
         _jug            : jug.address,
@@ -101,8 +105,8 @@ async function main() {
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/deployment/addresses_${hre.network.name}_1.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/deployment/addresses_${hre.network.name}_1.json`);
+    fs.writeFileSync(`./scripts/protocol/addresses_${hre.network.name}_1.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/protocol/addresses_${hre.network.name}_1.json`);
 }
 
 main()

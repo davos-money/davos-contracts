@@ -1,0 +1,38 @@
+{
+    "_ilk": "",
+
+    "_underlying": "",
+    "_auctionProxy": "",
+    "_interaction": "",
+    "_vat": "",
+    "_spot": "",
+    "_dog": "",
+    "_vow": "",
+    "_abacus": "",
+
+    "_yieldInheritor": "0xE52AbC30A80fC6133c2B866d903142464005AD07",
+    "_multisig": "0xE52AbC30A80fC6133c2B866d903142464005AD07",
+
+    "_mat" : "1333333333333333333333333333",
+    "_vat_line" : "5000000",
+    "_vat_dust" : "50",
+    "_jug_duty" : "1000000001516911765932351184",
+    "_dog_hole" : "50000000",
+    "_dog_chop" : "1100000000000000000",
+    "_clip_buf"  : "1100000000000000000000000000",
+    "_clip_tail": "10800",
+    "_clip_cusp": "600000000000000000000000000",
+    "_clip_chip": "100000000000000",
+    "_clip_tip": "10",
+    "_clip_stopped": "0",
+
+    "_cl_eth_usd": "",
+    "_cl_steth_usd": "",
+
+    "_reth": "",
+    "_wsteth": "",
+
+    "_master_vault_v2": "",
+
+    "_ratio_adapter": ""
+}

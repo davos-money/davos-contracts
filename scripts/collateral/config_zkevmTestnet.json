@@ -1,0 +1,38 @@
+{
+    "_ilk": "",
+
+    "_underlying": "0x3f81C4b501FCE74f005e4e707E92FBf91490BffE",
+    "_auctionProxy": "0xA773D4B4deBc7Ce6e5807C624a5EcC6F8bd23d9C",
+    "_interaction": "0x0B8cb4C3ED4416D576E7B02284504d77c5e5e12E",
+    "_vat": "0x448B944308effd86d985A5e921f87C92f76933E1",
+    "_spot": "0x1F0333e2dB25dBed94E5b938181AC7fDa9a02B57",
+    "_dog": "0xD6549Efd44F3651Cd90a6733e9091266153b0Ddd",
+    "_vow": "0xFb6FDa7Ed0BC4c14f61682e0611645c86c11ECe9",
+    "_abacus": "0xE544a6fE5f0D0ABFDffEe018124761889839FB89",
+
+    "_yieldInheritor": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+    "_multisig": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+
+    "_mat" : "1333333333333333333333333333",
+    "_vat_line" : "5000000",
+    "_vat_dust" : "50",
+    "_jug_duty" : "1000000001516911765932351184",
+    "_dog_hole" : "50000000",
+    "_dog_chop" : "1100000000000000000",
+    "_clip_buf"  : "1100000000000000000000000000",
+    "_clip_tail": "10800",
+    "_clip_cusp": "600000000000000000000000000",
+    "_clip_chip": "100000000000000",
+    "_clip_tip": "10",
+    "_clip_stopped": "0",
+
+    "_cl_eth_usd": "",
+    "_cl_steth_usd": "",
+
+    "_reth": "",
+    "_wsteth": "",
+
+    "_master_vault_v2": "",
+
+    "_ratio_adapter": ""
+}
