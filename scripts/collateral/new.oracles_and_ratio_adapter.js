@@ -74,6 +74,10 @@ async function main() {
     await ratioAdapter.setToken("0x5D8cfF95D7A57c0BF50B30b43c7CC0D52825D4a9", '', '', 'getRate()', true); console.log("*");// wsteth
     await ratioAdapter.setToken("0x12D8CE035c5DE3Ce39B1fDD4C1d5a745EAbA3b8C", '', '', 'ratio()', true); console.log("*");// ankreth
 
+    console.log("Setup providers...");
+    await ratioAdapter.setProviderForToken("0xb23C20EFcE6e24Acca0Cef9B7B7aA196b84EC942", "0x60b39BEC6AF8206d1E6E8DFC63ceA214A506D6c3");
+    await ratioAdapter.setProviderForToken("0x5D8cfF95D7A57c0BF50B30b43c7CC0D52825D4a9", "0x00346D2Fd4B2Dc3468fA38B857409BC99f832ef8");
+
     console.log("Set masterVault's provider...");
     await masterVaultRETH.changeAdapter(ratioAdapter.address); console.log("*");
     await masterVaultWSTETH.changeAdapter(ratioAdapter.address); console.log("*");
