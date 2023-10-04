@@ -131,6 +131,30 @@ module.exports = {
             chainId: 97,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BSC) || 'auto'
+        },
+        linea: {
+            url: process.env.LINEA_URL,
+            chainId: 59144,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
+        lineaTestnet: {
+            url: process.env.LINEATESTNET_URL,
+            chainId: 59140,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
+        avalanche: {
+            url: process.env.AVALANCHE_URL,
+            chainId: 43114,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_AVA) || 'auto'
+        },
+        avalancheTestnet: {
+            url: process.env.AVALANCHETESTNET_URL,
+            chainId: 43113,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_AVA) || 'auto'
         }
     },
 
@@ -143,6 +167,14 @@ module.exports = {
               urls: {
                 apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
                 browserURL: "https://testnet-zkevm.polygonscan.com/"
+              }
+            },
+            {
+              network: "lineaTestnet",
+              chainId: 59140,
+              urls: {
+                apiURL: "https://api-goerli.lineascan.build/api",
+                browserURL: "https://goerli.lineascan.build/"
               }
             }
           ]
