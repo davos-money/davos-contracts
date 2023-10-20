@@ -23,78 +23,52 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _cl_eth_usd, _cl_reth_eth, _reth, _wsteth, _master_vault_v2 } = require(`./config_${hre.network.name}.json`);
+    let { _underlying, _ratioAdapter } = require(`./config_${hre.network.name}.json`);
+    let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
     
     // Fetching
-    this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
-    this.RethOracle = await hre.ethers.getContractFactory(hre.network.name === 'ethereum' ? "RethOracle" : "RethOracleTestnet");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
-    let masterVaultV2 = await this.MasterVault.attach(_master_vault_v2);
+    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
+    this.AnkrETHOracle = await hre.ethers.getContractFactory("AnkrETHOracle");
+    this.SwETHOracle = await hre.ethers.getContractFactory("SwETHOracle");
 
     // Deployment
     console.log("Deploying...");
+    let oracle;
+    let oracleImp;
 
-    let ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1
-    await ratioAdapter.deployed();
-    let ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
-    console.log("RatioAdapter      : " + ratioAdapter.address);
-    console.log("Imp              : " + ratioAdapterImp);
+    if (hre.network.name == "optimism") {
+        oracle = await upgrades.deployProxy(this.WstETHOracle, ["0xb7B9A39CC63f856b90B364911CC324dC46aC1770", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("WstETHOracle     : " + oracle.address);
+        console.log("Imp              : " + oracleImp);
+    } else if (hre.network.name == "arbitrum") {
+        oracle = await upgrades.deployProxy(this.AnkrETHOracle, ["0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("AnkrETHOracle     : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
+    } else if (hre.network.name == "ethereum") {
+        oracle = await upgrades.deployProxy(this.SwETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("SwETHOracle     : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
 
-    let rethOracleArgs = hre.network.name === 'ethereum' ? [_cl_reth_eth, _cl_eth_usd, _master_vault_v2] : [_cl_eth_usd, _reth, ratioAdapter.address, _master_vault_v2]
-    let rethOracle = await upgrades.deployProxy(this.RethOracle, rethOracleArgs, {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await rethOracle.deployed();
-    let rethOracleImp = await upgrades.erc1967.getImplementationAddress(rethOracle.address);
-    console.log("RethOracle      : " + rethOracle.address);
-    console.log("Imp             : " + rethOracleImp);
-
-    let wstEthOracle = await upgrades.deployProxy(this.WstETHOracle, [_cl_eth_usd, _wsteth, _master_vault_v2, ratioAdapter.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await wstEthOracle.deployed();
-    let wstEthOracleImp = await upgrades.erc1967.getImplementationAddress(wstEthOracle.address);
-    console.log("WstETHOracle     : " + wstEthOracle.address);
-    console.log("Imp              : " + wstEthOracleImp);
-
-    let masterVaultImp = await this.MasterVault.deploy();
-    await masterVaultImp.deployed();
-    console.log("Master Vault Imp     : " + masterVaultImp.address);
-
-    console.log("Upgrading master vault v2...");
-    const proxyAddress = await ethers.provider.getStorageAt(_master_vault_v2, admin_slot);
-
-    const proxyAdminAddress = parseAddress(proxyAddress);
-    let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
-
-    if (proxyAdminAddress != ethers.constants.AddressZero) {
-        await (await proxyAdmin.upgrade(_master_vault_v2, masterVaultImp.address)).wait();
-        console.log("Upgraded Successfully...")
-    } else {
-        console.log("Invalid proxyAdmin address");
-    }
-
-    console.log("Verifying MasterVaultImp...");
-    await hre.run("verify:verify", {address: masterVaultImp.address});
-
-    console.log("Setup contracts...");
-    await ratioAdapter.setToken(_wsteth, 'getStETHByWstETH(uint256)', 'getWstETHByStETH(uint256)', '', false);
-    await ratioAdapter.setToken(_reth, 'getRethValue(uint256)', 'getEthValue(uint256)', "", false);
-    await masterVaultV2.changeAdapter(ratioAdapter.address);
+    } else throw("NOT ALLOWED");
 
     // Store Deployed Contracts
     const addresses = {
-        _ratioAdapter    : ratioAdapter.address,
-        _ratioAdapterImp : ratioAdapterImp,
-        _rethOracle      : rethOracle.address,
-        _rethOracleImp   : rethOracleImp,
-        _wstEthOracle    : wstEthOracle.address,
-        _wstEthOracleImp : wstEthOracleImp,
-        _master_vault_v2 : masterVaultImp,
+        _oracle          : oracle.address,
+        _oracleImp       : oracleImp,
         _initialNonce    : initialNonce
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/collateral/addresses_${hre.network.name}.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${hre.network.name}.json`);
+    fs.writeFileSync(`./scripts/addresses_${hre.network.name}_oracle.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/addresses_${hre.network.name}_oracle.json`);
 }
 
 main()
