@@ -1,0 +1,31 @@
+{
+    "_ilk": "0x4d56545f616e6b72455448000000000000000000000000000000000000000000",
+
+    "_underlying": "0x8F4aC23956aEEf41984704768bDE1032eD49501b",
+    "_auctionProxy": "0x4b9d4b07112E6c42B61aDd331d155F70B5418789",
+    "_interaction": "0x86Bf90Aeb516F92f740fdE3C2737c4F39FBc44B7",
+    "_vat": "0x9f8F3E3DE0D0501232CA0368a4ea6E301F6153C0",
+    "_spot": "0x2B85115335774fDae808F019D79DBb2dd9167460",
+    "_dog": "0x00c09Fe3f3B177F3165Fd32B88f55222025B47d1",
+    "_vow": "0xA63FDf4e5a748C980713Ec3e1Cfe2d0B1E037725",
+    "_abacus": "0x2442F88251dB3492F76c8ba7c9CB305A020F9cAe",
+
+    "_ratioAdapter": "0x6E726D8925e4CD1eDD510C2f1F8ECdB3F5D8491C",
+
+    "_multisig": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+
+    "_yieldInheritor": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+    
+    "_mat" : "1333333333333333333333333333",
+    "_vat_line" : "5000000",
+    "_vat_dust" : "50",
+    "_jug_duty" : "1000000001516911765932351184",
+    "_dog_hole" : "50000000",
+    "_dog_chop" : "1100000000000000000",
+    "_clip_buf"  : "1100000000000000000000000000",
+    "_clip_tail": "10800",
+    "_clip_cusp": "600000000000000000000000000",
+    "_clip_chip": "100000000000000",
+    "_clip_tip": "10",
+    "_clip_stopped": "0"
+}

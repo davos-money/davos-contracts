@@ -19,15 +19,15 @@ async function main() {
     let {_underlying, _interaction, _auctionProxy, _vat, _spot, _dog, _vow, _abacus, _ilk} = require(`./config_${hre.network.name}.json`);
     let { _yieldInheritor, _dog_hole, _dog_chop, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _vat_line, _vat_dust, _jug_duty, _mat} = require(`./config_${hre.network.name}.json`);
 
-    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin, _oracle} = require(`./addresses_${hre.network.name}.json`);
+    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin, _oracle} = require(`./addresses_${hre.network.name}_collateral.json`);
 
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCol");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
+    // this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
     // Initialize
     console.log("Initializing...");
@@ -41,13 +41,13 @@ async function main() {
     let interactionAttached = await this.Interaction.attach(_interaction);
 
     let masterVaultAt = await ethers.getContractAt("MasterVault_V2", _masterVault);
-    let dMaticAt = await ethers.getContractAt("dMATIC", _dMatic);
+    let dMaticAt = await ethers.getContractAt("dCol", _dMatic);
     let clipAt = await ethers.getContractAt("Clipper", _clip);
     let gemJoinAt = await ethers.getContractAt("GemJoin", _gemJoin);
     let vatAt = await ethers.getContractAt("Vat", _vat);
     let dogAt = await ethers.getContractAt("Dog", _dog);
     let spotAt = await ethers.getContractAt("Spotter", _spot);
-    let oracleAt = await ethers.getContractAt("WstETHOracle", _oracle);
+    // let oracleAt = await ethers.getContractAt("WstETHOracle", _oracle);
 
     // let aggregatorAddress;
     // if (hre.network.name == "ethereum") {
@@ -57,9 +57,9 @@ async function main() {
     // console.log("Oracle init...");
     // await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault, {nonce: _nonce});
 
-    console.log("MasterVault_V2 init...");
+    // console.log("MasterVault_V2 init...");
     await masterVaultAt.changeProvider(_davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); console.log("2");
+    await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); _nonce += 1; console.log("2");
 
     console.log("DMatic init...");
     await dMaticAt.changeMinter(_davosProvider, {nonce: _nonce}); _nonce += 1;
@@ -70,8 +70,8 @@ async function main() {
     await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad, {nonce: _nonce}); _nonce += 1; console.log("3")
     await vatAt["file(bytes32,bytes32,uint256)"](_ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad, {nonce: _nonce}); _nonce += 1; console.log("4")
     
-    console.log("Spot init...");
-    await spotAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), _oracle, {nonce: _nonce}); _nonce += 1;
+    // console.log("Spot init...");
+    // await spotAt["file(bytes32,bytes32,address)"](_ilk, ethers.utils.formatBytes32String("pip"), _oracle, {nonce: _nonce}); _nonce += 1;
 
     console.log("Gemjoin init...");
     await gemJoinAt.rely(_interaction, {nonce: _nonce}); _nonce += 1;
