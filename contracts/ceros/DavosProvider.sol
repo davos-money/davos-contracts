@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/interfaces/IERC4626Upgradeable.sol";
 import "./interfaces/IDavosProvider.sol";
 
 import "./interfaces/ICertToken.sol";
-import "./interfaces/IInteraction.sol";
+import "../interfaces/IInteraction.sol";
 import "./interfaces/IWrapped.sol";
 
 // --- Wrapping adaptor with instances per Underlying for MasterVault ---

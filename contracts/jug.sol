@@ -23,7 +23,7 @@ pragma solidity ^0.8.10;
 // It doesn't use LibNote anymore.
 // New deployments of this contract will need to include custom events (TO DO).
 
-import "./dMath.sol";
+import "./libraries/dMath.sol";
 import "./interfaces/JugLike.sol";
 import "./interfaces/VatLike.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";

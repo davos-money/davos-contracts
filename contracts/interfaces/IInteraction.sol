@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.0;
 
-import "../../interfaces/GemJoinLike.sol";
+import "./GemJoinLike.sol";
 
+// --- Data ---
 struct CollateralType {
     GemJoinLike gem;
     bytes32 ilk;
@@ -12,6 +13,7 @@ struct CollateralType {
 
 interface IInteraction {
 
+    // --- Events ---
     event Deposit(address indexed user, address collateral, uint256 amount, uint256 totalAmount);
     event Borrow(address indexed user, address collateral, uint256 collateralAmount, uint256 amount, uint256 liquidationPrice);
     event Payback(address indexed user, address collateral, uint256 amount, uint256 debt, uint256 liquidationPrice);
@@ -24,22 +26,11 @@ interface IInteraction {
     event Liquidation(address indexed user, address indexed collateral, uint256 amount, uint256 leftover);
     event AddedToWhitelist(address indexed user);
     event RemovedFromWhitelist(address indexed user);
-    event ChangeRewards(address rewards);
     event ChangeDavosProvider(address davosProvider);
 
-      function deposit(
-        address participant,
-        address token,
-        uint256 dink
-    ) external returns (uint256);
-
-    function withdraw(
-        address participant,
-        address token,
-        uint256 dink
-    ) external returns (uint256);
-
-    function dropRewards(address token, address usr) external;
-    function buyFromAuction(address token, uint256 auctionId, uint256 collateralAmount, uint256 maxPrice, address receiverAddress) external;
+    // --- Functions ---
     function collaterals(address) external view returns(GemJoinLike gem, bytes32 ilk, uint32 live, address clip);
+    function deposit(address participant, address token, uint256 dink) external returns (uint256);
+    function withdraw(address participant, address token, uint256 dink) external returns (uint256);
+    function buyFromAuction(address token, uint256 auctionId, uint256 collateralAmount, uint256 maxPrice, address receiverAddress) external;
 }
