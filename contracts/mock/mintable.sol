@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
-contract MockAnkrETH is OwnableUpgradeable, ERC20Upgradeable {
+contract Mintable is OwnableUpgradeable, ERC20Upgradeable {
     
     function initialize(string memory name, string memory symbol) external initializer {
         __Ownable_init();

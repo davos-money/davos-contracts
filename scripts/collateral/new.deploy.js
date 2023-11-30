@@ -21,10 +21,9 @@ async function main() {
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
     this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.DMatic = await hre.ethers.getContractFactory("dMATIC");
+    this.DMatic = await hre.ethers.getContractFactory("dCol");
     this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
     this.Clip = await hre.ethers.getContractFactory("Clipper");
-    this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
 
     // Deployment
     console.log("Deploying...");
@@ -59,10 +58,6 @@ async function main() {
     console.log("Clip             :", clip.address);
     console.log("Imp              :", clipImp);
 
-    let oracle = await this.WstETHOracle.deploy();
-    await oracle.deployed();
-    console.log("Oracle           :", oracle.address);
-
     // Store Deployed Contracts
     const addresses = {
         _masterVault     : masterVault.address,
@@ -75,13 +70,12 @@ async function main() {
         _gemJoinImp      : gemJoinImp,
         _clip            : clip.address,
         _clipImp         : clipImp,
-        _oracle          : oracle.address,
         _initialNonce    : initialNonce
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/collateral/addresses_${network.name}.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${network.name}.json`);
+    fs.writeFileSync(`./scripts/addresses_${network.name}_collateral.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/addresses_${network.name}_collateral.json`);
 }
 
 main()

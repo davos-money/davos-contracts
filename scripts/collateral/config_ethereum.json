@@ -1,7 +1,7 @@
 {
-    "_ilk": "0x4d56545f77737445544800000000000000000000000000000000000000000000",
+    "_ilk": "0x4d56545f73444149000000000000000000000000000000000000000000000000",
 
-    "_underlying": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+    "_underlying": "0x83F20F44975D03b1b09e64809B757c47f942BEeA",
     "_auctionProxy": "0x1A80B0512580791dDA042FeF0083e6Ce7cbd5d88",
     "_interaction": "0x2F2E746b2e9ef33c2AC6348985f100AF8DBC944d",
     "_vat": "0x1c539E755A1BdaBB168aA9ad60B31548991981F9",
@@ -13,10 +13,10 @@
     "_yieldInheritor": "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
     "_multisig": "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
     
-    "_mat" : "1333333333333333333333333333",
+    "_mat" : "1515151515151515151515151515",
     "_vat_line" : "5000000",
-    "_vat_dust" : "50",
-    "_jug_duty" : "1000000001516911765932351184",
+    "_vat_dust" : "100",
+    "_jug_duty" : "1000000001622535724756171270",
     "_dog_hole" : "50000000",
     "_dog_chop" : "1100000000000000000",
     "_clip_buf"  : "1100000000000000000000000000",
@@ -26,14 +26,5 @@
     "_clip_tip": "10",
     "_clip_stopped": "0",
 
-    "_cl_eth_usd": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-    "_cl_steth_usd": "0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e",
-    "_cl_reth_eth": "0x536218f9E9Eb48863970252233c8F271f554C2d0",
-
-    "_reth": "0xae78736cd615f374d3085123a210448e74fc6393",
-    "_wsteth": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
-
-    "_master_vault_v2": "0x0730BA2252670Cd71580dadf471f3E137592e800",
-
-    "_ratio_adapter": "",
+    "_ratioAdapter": "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"
 }
