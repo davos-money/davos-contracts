@@ -92,7 +92,7 @@ module.exports = {
         },
         arbitrumTestnet: {
             url: process.env.ARBITRUMGOERLI_URL,
-            chainId: 421613,
+            chainId: 421614,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_ARB) || 'auto'
         },
@@ -138,11 +138,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-              network: "zkevmTestnet",
-              chainId: 1442,
+              network: "arbitrumTestnet",
+              chainId: 421614,
               urls: {
-                apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
-                browserURL: "https://testnet-zkevm.polygonscan.com/"
+                apiURL: "https://api-sepolia.arbiscan.io/api",
+                browserURL: "https://sepolia.arbiscan.io/"
               }
             }
           ]

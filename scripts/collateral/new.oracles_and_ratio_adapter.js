@@ -25,13 +25,15 @@ async function main() {
     // Config
     let { _underlying, _ratioAdapter } = require(`./config_${hre.network.name}.json`);
     let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
-    
+    let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
+
     // Fetching
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
 
     this.WstETHOracle = await hre.ethers.getContractFactory("WstETHOracle");
     this.AnkrETHOracle = await hre.ethers.getContractFactory("AnkrETHOracle");
     this.SwETHOracle = await hre.ethers.getContractFactory("SwETHOracle");
+    this.WCUSDCOracle = await hre.ethers.getContractFactory("WCUSDCOracle");
 
     // Deployment
     console.log("Deploying...");
@@ -44,11 +46,11 @@ async function main() {
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
         console.log("WstETHOracle     : " + oracle.address);
         console.log("Imp              : " + oracleImp);
-    } else if (hre.network.name == "arbitrum") {
-        oracle = await upgrades.deployProxy(this.AnkrETHOracle, ["0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    } else if (hre.network.name == "arbitrum" || hre.network.name == "arbitrumTestnet") {
+        oracle = await upgrades.deployProxy(this.WCUSDCOracle, ["0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3", _wcUSDC, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("AnkrETHOracle     : " + oracle.address);
+        console.log("WCUSDCOracle      : " + oracle.address);
         console.log("Imp               : " + oracleImp);
     } else if (hre.network.name == "ethereum") {
         oracle = await upgrades.deployProxy(this.SwETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;

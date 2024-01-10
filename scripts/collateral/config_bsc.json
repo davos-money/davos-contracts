@@ -14,5 +14,20 @@
     
     "_ratioAdapter": "0xFDCE096F361F32B084b73F86DD7fABb170F5dFC8",
 
-    "_multisig": "0x0567E328D0E23be8B8cB8c3004bEAc39fbD11082"
+    "_multisig": "0x0567E328D0E23be8B8cB8c3004bEAc39fbD11082",
+
+    "_yieldInheritor": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+    
+    "_mat" : "1333333333333333333333333333",
+    "_vat_line" : "5000000",
+    "_vat_dust" : "50",
+    "_jug_duty" : "1000000001516911765932351184",
+    "_dog_hole" : "50000000",
+    "_dog_chop" : "1100000000000000000",
+    "_clip_buf"  : "1100000000000000000000000000",
+    "_clip_tail": "10800",
+    "_clip_cusp": "600000000000000000000000000",
+    "_clip_chip": "100000000000000",
+    "_clip_tip": "10",
+    "_clip_stopped": "0"
 }

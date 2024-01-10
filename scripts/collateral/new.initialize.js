@@ -19,7 +19,7 @@ async function main() {
     let {_underlying, _interaction, _auctionProxy, _vat, _spot, _dog, _vow, _abacus, _ilk} = require(`./config_${hre.network.name}.json`);
     let { _yieldInheritor, _dog_hole, _dog_chop, _clip_buf, _clip_tail, _clip_cusp, _clip_chip, _clip_tip, _clip_stopped, _vat_line, _vat_dust, _jug_duty, _mat} = require(`./config_${hre.network.name}.json`);
 
-    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin, _oracle} = require(`./addresses_${hre.network.name}_collateral.json`);
+    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin, _oracle} = require(`../addresses_${hre.network.name}_collateral.json`);
 
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
@@ -57,7 +57,7 @@ async function main() {
     // console.log("Oracle init...");
     // await oracleAt.initialize(aggregatorAddress, _underlying, _masterVault, {nonce: _nonce});
 
-    // console.log("MasterVault_V2 init...");
+    console.log("MasterVault_V2 init...");
     await masterVaultAt.changeProvider(_davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1");
     await masterVaultAt.changeYieldHeritor(_yieldInheritor, {nonce: _nonce}); _nonce += 1; console.log("2");
 
@@ -99,9 +99,9 @@ async function main() {
     console.log("Interaction init...");
     await interactionAttached.setDavosProvider(_masterVault, _davosProvider, {nonce: _nonce}); _nonce += 1; console.log("1")
     await interactionAttached.setCollateralType(_masterVault, _gemJoin, _ilk, _clip, _mat, {nonce: _nonce}); _nonce += 1; console.log("2")
-    await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 300000}); _nonce += 1; console.log("3")
-    await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 200000}); _nonce += 1; console.log("4")
-    await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 250000}); _nonce += 1; console.log("5")
+    await interactionAttached.poke(_masterVault, {nonce: _nonce, gasLimit: 30000000}); _nonce += 1; console.log("3")
+    await interactionAttached.drip(_masterVault, {nonce: _nonce, gasLimit: 20000000}); _nonce += 1; console.log("4")
+    await interactionAttached.setCollateralDuty(_masterVault, _jug_duty, {nonce: _nonce, gasLimit: 25000000}); _nonce += 1; console.log("5")
 }
 
 main()

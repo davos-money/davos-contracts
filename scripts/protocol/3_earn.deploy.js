@@ -40,8 +40,8 @@ async function main() {
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/deployment/addresses_${hre.network.name}_3.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/deployment/addresses_${hre.network.name}_3.json`);
+    fs.writeFileSync(`./scripts/protocol/addresses_${hre.network.name}_3.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/protocol/addresses_${hre.network.name}_3.json`);
 }
 main()
     .then(() => process.exit(0))

@@ -34,34 +34,34 @@ async function main() {
     // Deployment
     console.log("Deploying...");
 
-    if (!!_ratio_adapter) {
+    // if (!!_ratio_adapter) {
         ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1
         await ratioAdapter.deployed();
         ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
         console.log("RatioAdapter      : " + ratioAdapter.address);
         console.log("Imp              : " + ratioAdapterImp);
         console.log("WARNING: DON'T FORGET TO SET NEW RATIO ADAPTER TO VAULTS AND ORACLES");
-    } else {
-        ratioAdapterImp = await this.RatioAdapter.deploy();
-        await ratioAdapterImp.deployed();
-        ratioAdapterImp = ratioAdapterImp.address;
+    // } else {
+    //     ratioAdapterImp = await this.RatioAdapter.deploy();
+    //     await ratioAdapterImp.deployed();
+    //     ratioAdapterImp = ratioAdapterImp.address;
 
-        console.log("RatioAdapterImp    : " + ratioAdapterImp);
+    //     console.log("RatioAdapterImp    : " + ratioAdapterImp);
 
-        console.log("Upgrading master vault v2...");
-        const proxyAddress = await ethers.provider.getStorageAt(_ratio_adapter, admin_slot);
-        const proxyAdminAddress = parseAddress(proxyAddress);
-        let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
-        if (proxyAdminAddress != ethers.constants.AddressZero) {
-            await (await proxyAdmin.upgrade(_ratio_adapter, ratioAdapterImp)).wait();
-            console.log("Upgraded Successfully...")
-        } else {
-            console.log("Invalid proxyAdmin address");
-        }
-        console.log("Verifying RatioAdapterImp...");
-        await hre.run("verify:verify", {address: ratioAdapterImp});
+    //     console.log("Upgrading master vault v2...");
+    //     const proxyAddress = await ethers.provider.getStorageAt(_ratio_adapter, admin_slot);
+    //     const proxyAdminAddress = parseAddress(proxyAddress);
+    //     let proxyAdmin = await ethers.getContractAt(PROXY_ADMIN_ABI, proxyAdminAddress);
+    //     if (proxyAdminAddress != ethers.constants.AddressZero) {
+    //         await (await proxyAdmin.upgrade(_ratio_adapter, ratioAdapterImp)).wait();
+    //         console.log("Upgraded Successfully...")
+    //     } else {
+    //         console.log("Invalid proxyAdmin address");
+    //     }
+    //     console.log("Verifying RatioAdapterImp...");
+    //     await hre.run("verify:verify", {address: ratioAdapterImp});
 
-    }
+    // }
 
     // Store Deployed Contracts
     const addresses = {
