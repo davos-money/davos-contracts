@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-                blockNumber: 159688773
+                blockNumber: 169715111
                 },
             },
             ],
@@ -151,83 +151,97 @@ describe('===FORK===', function () {
             this.Clip = await hre.ethers.getContractFactory("Clipper");
             this.Oracle = await hre.ethers.getContractFactory("WCUSDCOracle");
 
-            ilk = ethers.utils.formatBytes32String("MVT_cUSDC");
+            ilk = ethers.utils.formatBytes32String("MVT_wcUSDC");
 
-            wcUSDC = await upgrades.deployProxy(this.WrappedWcUSDCv3, ["Wrapped cUSDC v3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
-            await wcUSDC.deployed();
+            // wcUSDC = await upgrades.deployProxy(this.WrappedWcUSDCv3, ["Wrapped cUSDC v3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
+            // await wcUSDC.deployed();
+            wcUSDC = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
+            newImp1 = await (await this.WrappedWcUSDCv3.deploy()).deployed();
+            let proxyAdmin1 = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+            await proxyAdmin1.connect(deployer).upgrade(wcUSDC.address, newImp1.address);
 
-            masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
-            await masterVault.deployed();
+            // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
+            // await masterVault.deployed();
+            masterVault = await ethers.getContractAt("MasterVault_V2", "0x04901268EE65E989852370C0bad08E1514a0C484");
 
-            dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
-            await dMatic.deployed();
+            // dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
+            // await dMatic.deployed();
+            dMatic = await ethers.getContractAt("dCol", "0x624D6A1969CeF4ff7b880685E76019509f3c0b49");
 
-            davosProvider = await upgrades.deployProxy(this.DavosProvider, [wcUSDC.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
-            await davosProvider.deployed();
+            // davosProvider = await upgrades.deployProxy(this.DavosProvider, [wcUSDC.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
+            // await davosProvider.deployed();
+            davosProvider = await ethers.getContractAt("DavosProvider", "0x601ab2230C2f7B8E719A0111FebDfa94bB462c69");
+            newImp = await (await this.DavosProvider.deploy()).deployed();
+            let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+            await proxyAdmin.connect(deployer).upgrade(davosProvider.address, newImp.address);
+            await davosProvider.connect(deployer).changeCusdc("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            
+            // gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, ilk, masterVault.address], {initializer: "initialize"});
+            // await gemJoin.deployed();
+            gemJoin = await ethers.getContractAt("GemJoin", "0x87B3c773d6DD8Fc3a5b8FB96217031F226f0A5a9");
 
-            gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, ilk, masterVault.address], {initializer: "initialize"});
-            await gemJoin.deployed();
+            // clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, ilk], {initializer: "initialize"});
+            // await clip.deployed();
+            clip = await ethers.getContractAt("Clipper", "0xc5a7344461EEc05e174aa8AC4e4030b24aA02EBD");
 
-            clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, ilk], {initializer: "initialize"});
-            await clip.deployed();
-
-            oracle = await upgrades.deployProxy(this.Oracle, ["0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3", wcUSDC.address, masterVault.address, ra.address], {initializer: "initialize"});
-            await oracle.deployed();
+            // oracle = await upgrades.deployProxy(this.Oracle, ["0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3", wcUSDC.address, masterVault.address, ra.address], {initializer: "initialize"});
+            // await oracle.deployed();
+            oracle = await ethers.getContractAt("WCUSDCOracle", "0x122897d16b2Dd5a193EFCe19A1B4f34d1C540118");
         });
         it('tests', async function () {
             this.timeout(150000000);
 
-            // Init Collateral
-            console.log("MasterVault_V2 init...");
-            await masterVault.changeProvider(davosProvider.address);
-            await masterVault.changeAdapter(ra.address);
-            await masterVault.changeYieldHeritor(receiver.address);
-            await masterVault.changeYieldMargin("10000"); // Uncomment to get 100% yield
+            // // Init Collateral
+            // console.log("MasterVault_V2 init...");
+            // await masterVault.connect(deployer).changeProvider(davosProvider.address);
+            // await masterVault.connect(deployer).changeAdapter(ra.address);
+            await masterVault.connect(deployer).changeYieldHeritor(receiver.address);
+            await masterVault.connect(deployer).changeYieldMargin("10000"); // Uncomment to get 100% yield
 
-            console.log("Ratioadapter init...");
-            await ra.connect(deployer).setToken(wcUSDC.address, "convertToAssets(uint256)", "convertToShares(uint256)", "", false);
+            // console.log("Ratioadapter init...");
+            // await ra.connect(deployer).setToken(wcUSDC.address, "convertToAssets(uint256)", "convertToShares(uint256)", "", false);
 
-            console.log("DMatic init...");
-            await dMatic.changeMinter(davosProvider.address);
+            // console.log("DMatic init...");
+            // await dMatic.connect(deployer).changeMinter(davosProvider.address);
 
-            console.log("Vat init...");
-            await vat.connect(deployer).rely(gemJoin.address);
-            await vat.connect(deployer).rely(clip.address);
-            await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad);
-            await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad);
+            // console.log("Vat init...");
+            // await vat.connect(deployer).rely(gemJoin.address);
+            // await vat.connect(deployer).rely(clip.address);
+            // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad);
+            // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad);
             
-            console.log("Gemjoin init...");
-            await gemJoin.rely(interaction.address);
+            // console.log("Gemjoin init...");
+            // await gemJoin.connect(deployer).rely(interaction.address);
 
-            console.log("Dog init...");
-            await dog.connect(deployer).rely(clip.address);
-            await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad);
-            await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("chop"), _dog_chop);
-            await dog.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("clip"), clip.address);
+            // console.log("Dog init...");
+            // await dog.connect(deployer).rely(clip.address);
+            // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad);
+            // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("chop"), _dog_chop);
+            // await dog.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("clip"), clip.address);
 
-            console.log("Clip init...");
-            await clip.rely(interaction.address);
-            await clip.rely(dog.address);
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("buf"), _clip_buf);// 10%
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tail"), _clip_tail);// 3H reset time
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("cusp"), _clip_cusp);// 60% reset ratio
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("chip"), _clip_chip);// 0.01% vow incentive
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tip"), _clip_tip + rad);// 10$ flat incentive
-            await clip["file(bytes32,uint256)"](ethers.utils.formatBytes32String("stopped"), _clip_stopped);
-            await clip["file(bytes32,address)"](ethers.utils.formatBytes32String("spotter"), spot.address);
-            await clip["file(bytes32,address)"](ethers.utils.formatBytes32String("dog"), dog.address);
-            await clip["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), vow.address);
-            await clip["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), "0x74FB5adf4eBA704c42f5974B83E53BBDA46F0C96");
+            // console.log("Clip init...");
+            // await clip.connect(deployer).rely(interaction.address);
+            // await clip.connect(deployer).rely(dog.address);
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("buf"), _clip_buf);// 10%
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tail"), _clip_tail);// 3H reset time
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("cusp"), _clip_cusp);// 60% reset ratio
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("chip"), _clip_chip);// 0.01% vow incentive
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tip"), _clip_tip + rad);// 10$ flat incentive
+            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("stopped"), _clip_stopped);
+            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("spotter"), spot.address);
+            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("dog"), dog.address);
+            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), vow.address);
+            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), "0x74FB5adf4eBA704c42f5974B83E53BBDA46F0C96");
 
-            console.log("Spot init...");
-            // await spot.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("pip"), oracle);
+            // console.log("Spot init...");
+            // // await spot.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("pip"), oracle);
 
-            console.log("Interaction init...");
-            await interaction.connect(deployer).setDavosProvider(masterVault.address, davosProvider.address);
-            await interaction.connect(deployer).setCollateralType(masterVault.address, gemJoin.address, ilk, clip.address, _mat);
-            // await interaction.connect(deployer).poke(masterVault.address, {gasLimit: 300000});
-            await interaction.connect(deployer).drip(masterVault.address, {gasLimit: 200000});
-            await interaction.connect(deployer).setCollateralDuty(masterVault.address, _jug_duty, {gasLimit: 250000});
+            // console.log("Interaction init...");
+            // await interaction.connect(deployer).setDavosProvider(masterVault.address, davosProvider.address);
+            // await interaction.connect(deployer).setCollateralType(masterVault.address, gemJoin.address, ilk, clip.address, _mat);
+            // // await interaction.connect(deployer).poke(masterVault.address, {gasLimit: 300000});
+            // await interaction.connect(deployer).drip(masterVault.address, {gasLimit: 200000});
+            // await interaction.connect(deployer).setCollateralDuty(masterVault.address, _jug_duty, {gasLimit: 250000});
             
             // usdc: 
 
@@ -318,13 +332,13 @@ describe('===FORK===', function () {
             console.log("_______WRAPPED cUSDCv3_____")
             cusdc = await ethers.getContractAt(["function approve(address,uint256) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
 
-            await cusdc.connect(signer).approve(wcUSDC.address, MAX);
-            await cusdc.connect(signer2).approve(wcUSDC.address, MAX);
-            await cusdc.connect(signer3).approve(wcUSDC.address, MAX);
+            await cusdc.connect(signer).approve(davosProvider.address, MAX);
+            await cusdc.connect(signer2).approve(davosProvider.address, MAX);
+            await cusdc.connect(signer3).approve(davosProvider.address, MAX);
             
-            await wcUSDC.connect(signer).deposit("1000290", signer.address);
-            await wcUSDC.connect(signer2).deposit("1000290", signer2.address);
-            await wcUSDC.connect(signer3).deposit("1000290", signer3.address);
+            // await wcUSDC.connect(signer).deposit("1000366", signer.address);
+            // await wcUSDC.connect(signer2).deposit("1000366", signer2.address);
+            // await wcUSDC.connect(signer3).deposit("1000366", signer3.address);
 
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
             console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
@@ -365,13 +379,13 @@ describe('===FORK===', function () {
             console.log("ORACLE       : " + await oracle.peek());
 
             // Provide to davosProvider
-            await wcUSDC.connect(signer).approve(davosProvider.address, MAX);
-            await wcUSDC.connect(signer2).approve(davosProvider.address, MAX);
-            await wcUSDC.connect(signer3).approve(davosProvider.address, MAX);
+            // await wcUSDC.connect(signer).approve(davosProvider.address, MAX);
+            // await wcUSDC.connect(signer2).approve(davosProvider.address, MAX);
+            // await wcUSDC.connect(signer3).approve(davosProvider.address, MAX);
 
-            await davosProvider.connect(signer).provide("990640");
-            await davosProvider.connect(signer2).provide("990640");
-            await davosProvider.connect(signer3).provide("990639");
+            await davosProvider.connect(signer).wrapAndProvide("1000718");
+            await davosProvider.connect(signer2).wrapAndProvide("1000718");
+            await davosProvider.connect(signer3).wrapAndProvide("1000718");
 
             console.log("_________PROVIDE_________")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -424,9 +438,9 @@ describe('===FORK===', function () {
             await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer2.address);
             await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer3.address);
 
-            await davosProvider.connect(signer).release(signer.address, "990640000000000000");
-            await davosProvider.connect(signer2).release(signer2.address, "990640000000000000");
-            await davosProvider.connect(signer3).release(signer3.address, "990639000000000000");
+            await davosProvider.connect(signer).releaseAndUnwrap(signer.address, "983499000000000000");
+            await davosProvider.connect(signer2).releaseAndUnwrap(signer2.address, "983499000000000000");
+            await davosProvider.connect(signer3).releaseAndUnwrap(signer3.address, "983499000000000000");
 
             console.log("_________RELEASE_________")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -453,10 +467,10 @@ describe('===FORK===', function () {
             console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
             console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
-            await wcUSDC.connect(signer).redeem("990362", signer.address, signer.address);
-            await wcUSDC.connect(signer2).redeem("990363", signer2.address, signer2.address);
-            await wcUSDC.connect(signer3).redeem("990363", signer3.address, signer3.address);
-            await wcUSDC.connect(receiver).redeem("831", receiver.address, receiver.address);
+            // await wcUSDC.connect(signer).redeem("983171", signer.address, signer.address);
+            // await wcUSDC.connect(signer2).redeem("983170", signer2.address, signer2.address);
+            // await wcUSDC.connect(signer3).redeem("983171", signer3.address, signer3.address);
+            await wcUSDC.connect(receiver).redeem("986", receiver.address, receiver.address);
 
             console.log("_______UNWRAPPED cUSDCv3_____")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -482,10 +496,10 @@ describe('===FORK===', function () {
             console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
             cusdc = await ethers.getContractAt(["function withdraw(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            await cusdc.connect(signer).withdraw(usdc.address, "1000572")
-            await cusdc.connect(signer2).withdraw(usdc.address, "1000573")
-            await cusdc.connect(signer3).withdraw(usdc.address, "1000573")
-            await cusdc.connect(receiver).withdraw(usdc.address, "837")
+            await cusdc.connect(signer).withdraw(usdc.address, "1000714")
+            await cusdc.connect(signer2).withdraw(usdc.address, "1000714")
+            await cusdc.connect(signer3).withdraw(usdc.address, "1000715")
+            await cusdc.connect(receiver).withdraw(usdc.address, "1001")
 
             console.log("_______GET USDC_____")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
