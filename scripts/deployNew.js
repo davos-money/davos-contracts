@@ -9,14 +9,20 @@ async function main() {
     [deployer] = await ethers.getSigners();
 
     // Fetching
-    this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
+    this.MockToken = await hre.ethers.getContractFactory("MockToken");
 
     // Deployment
     console.log("Deploying...");
 
-    let dp = await this.DavosProvider.deploy();
-    await dp.deployed();
-    console.log("DavosProvider    : " + dp.address);
+    let vat = await upgrades.deployProxy(this.MockToken, ["StakeWise ETH", "osETH"], {initializer: "initialize"});
+    await vat.deployed();
+    vatImp = await upgrades.erc1967.getImplementationAddress(vat.address);
+    console.log("Vat             :", vat.address);
+    console.log("VatImp          :", vatImp);
+
+    // let dp = await this.DavosProvider.deploy();
+    // await dp.deployed();
+    // console.log("DavosProvider    : " + dp.address);
 }
 
 main()

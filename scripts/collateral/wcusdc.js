@@ -14,7 +14,7 @@ async function main() {
     // Deployment
     console.log("Deploying...");
 
-    let t = await upgrades.deployProxy(this.Token, ["Wrapped cUSDCv3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
+    let t = await upgrades.deployProxy(this.Token, ["Wrapped cUSDCv3", "wcUSDCv3", "0x0Bd7Aa45230C7CE9A8BB4D880d68Fe19861A6de7"], {initializer: "initialize"});
     await t.deployed();
     let ts = await upgrades.erc1967.getImplementationAddress(t.address);
     console.log("wcUSDC           : " + t.address);

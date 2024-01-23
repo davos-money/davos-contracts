@@ -12,7 +12,7 @@ async function main() {
 
     // Config
     let { _underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./config_${hre.network.name}.json`);
-    let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
+    // let {  _wcUSDC} = require(`../addresses_${hre.network.name}_asset.json`);
     
     // Fetching
     this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
@@ -24,7 +24,7 @@ async function main() {
     // Deployment
     console.log("Deploying...");
 
-    let masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, _wcUSDC], {initializer: "initialize", nonce: _nonce}); _nonce += 1
+    let masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, _underlying], {initializer: "initialize", nonce: _nonce}); _nonce += 1
     await masterVault.deployed();
     let masterVaultImp = await upgrades.erc1967.getImplementationAddress(masterVault.address);
     console.log("MasterVault      : " + masterVault.address);
@@ -36,7 +36,7 @@ async function main() {
     console.log("dMatic           : " + dMatic.address);
     console.log("imp              : " + dMaticImp);
 
-    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_wcUSDC, dMatic.address, masterVault.address, _interaction, false], {initializer: "initialize", nonce: _nonce}); _nonce += 1
+    let davosProvider = await upgrades.deployProxy(this.DavosProvider, [_underlying, dMatic.address, masterVault.address, _interaction, false], {initializer: "initialize", nonce: _nonce}); _nonce += 1
     await davosProvider.deployed();
     let davosProviderImp = await upgrades.erc1967.getImplementationAddress(davosProvider.address);
     console.log("DavosProvider    : " + davosProvider.address);

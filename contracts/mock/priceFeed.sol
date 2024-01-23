@@ -9,6 +9,14 @@ contract PriceFeed {
     uint256 public _updatedAt;
     uint80  public _answeredInRound;
 
+    function decimals()
+    external
+    view
+    returns (uint8)
+  {
+    return 8;
+  }
+
     function latestRoundData() external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) {
 
         return (_roundId, _answer, _startedAt, _updatedAt, _answeredInRound);

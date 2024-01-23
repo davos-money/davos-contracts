@@ -32,8 +32,8 @@ abstract contract LstOracle is Initializable {
         }
 
         // Get LST equivalent to 1 share in MasterVault
-        uint256 vaultAssets = masterVault.previewRedeem(1e18);
-        uint256 sharePrice = (lsTokenPrice * vaultAssets) / 1e6;
+        uint256 vaultShares = masterVault.previewRedeem(1e18);
+        uint256 sharePrice = (lsTokenPrice * vaultShares) / 1e18;
 
         return (bytes32(sharePrice), true);
     }

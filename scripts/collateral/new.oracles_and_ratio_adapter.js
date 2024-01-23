@@ -25,7 +25,7 @@ async function main() {
     // Config
     let { _underlying, _ratioAdapter } = require(`./config_${hre.network.name}.json`);
     let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
-    let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
+    // let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
 
     // Fetching
     this.RatioAdapter = await hre.ethers.getContractFactory("RatioAdapter");
@@ -34,6 +34,8 @@ async function main() {
     this.AnkrETHOracle = await hre.ethers.getContractFactory("AnkrETHOracle");
     this.SwETHOracle = await hre.ethers.getContractFactory("SwETHOracle");
     this.WCUSDCOracle = await hre.ethers.getContractFactory("WCUSDCOracle");
+    this.OsETHOracle = await hre.ethers.getContractFactory("OsETHOracle");
+    this.PriceFeed = await hre.ethers.getContractFactory("PriceFeed");
 
     // Deployment
     console.log("Deploying...");
@@ -52,11 +54,11 @@ async function main() {
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
         console.log("WCUSDCOracle      : " + oracle.address);
         console.log("Imp               : " + oracleImp);
-    } else if (hre.network.name == "ethereum") {
-        oracle = await upgrades.deployProxy(this.SwETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    } else if (hre.network.name == "ethereum" || hre.network.name == "ethereumTestnet") {
+        oracle = await upgrades.deployProxy(this.OsETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("SwETHOracle     : " + oracle.address);
+        console.log("SwETHOracle       : " + oracle.address);
         console.log("Imp               : " + oracleImp);
 
     } else throw("NOT ALLOWED");

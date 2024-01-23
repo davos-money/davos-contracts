@@ -68,7 +68,7 @@ module.exports = {
         },
         ethereumTestnet: {
             url: process.env.GOERLI_URL,
-            chainId: 5,
+            chainId: 17000,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_ETH) || 'auto'
         },

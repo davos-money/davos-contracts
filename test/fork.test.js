@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-                blockNumber: 169715111
+                blockNumber: 172979640
                 },
             },
             ],
@@ -156,9 +156,9 @@ describe('===FORK===', function () {
             // wcUSDC = await upgrades.deployProxy(this.WrappedWcUSDCv3, ["Wrapped cUSDC v3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
             // await wcUSDC.deployed();
             wcUSDC = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
-            newImp1 = await (await this.WrappedWcUSDCv3.deploy()).deployed();
-            let proxyAdmin1 = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
-            await proxyAdmin1.connect(deployer).upgrade(wcUSDC.address, newImp1.address);
+            // newImp1 = await (await this.WrappedWcUSDCv3.deploy()).deployed();
+            // let proxyAdmin1 = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+            // await proxyAdmin1.connect(deployer).upgrade(wcUSDC.address, newImp1.address);
 
             // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
             // await masterVault.deployed();
@@ -171,10 +171,10 @@ describe('===FORK===', function () {
             // davosProvider = await upgrades.deployProxy(this.DavosProvider, [wcUSDC.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
             // await davosProvider.deployed();
             davosProvider = await ethers.getContractAt("DavosProvider", "0x601ab2230C2f7B8E719A0111FebDfa94bB462c69");
-            newImp = await (await this.DavosProvider.deploy()).deployed();
-            let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
-            await proxyAdmin.connect(deployer).upgrade(davosProvider.address, newImp.address);
-            await davosProvider.connect(deployer).changeCusdc("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            // newImp = await (await this.DavosProvider.deploy()).deployed();
+            // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+            // await proxyAdmin.connect(deployer).upgrade(davosProvider.address, newImp.address);
+            // await davosProvider.connect(deployer).changeCusdc("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
             
             // gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, ilk, masterVault.address], {initializer: "initialize"});
             // await gemJoin.deployed();
@@ -383,9 +383,9 @@ describe('===FORK===', function () {
             // await wcUSDC.connect(signer2).approve(davosProvider.address, MAX);
             // await wcUSDC.connect(signer3).approve(davosProvider.address, MAX);
 
-            await davosProvider.connect(signer).wrapAndProvide("1000718");
-            await davosProvider.connect(signer2).wrapAndProvide("1000718");
-            await davosProvider.connect(signer3).wrapAndProvide("1000718");
+            await davosProvider.connect(signer).wrapAndProvide("1000296");
+            await davosProvider.connect(signer2).wrapAndProvide("1000296");
+            await davosProvider.connect(signer3).wrapAndProvide("1000296");
 
             console.log("_________PROVIDE_________")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -438,9 +438,9 @@ describe('===FORK===', function () {
             await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer2.address);
             await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer3.address);
 
-            await davosProvider.connect(signer).releaseAndUnwrap(signer.address, "983499000000000000");
-            await davosProvider.connect(signer2).releaseAndUnwrap(signer2.address, "983499000000000000");
-            await davosProvider.connect(signer3).releaseAndUnwrap(signer3.address, "983499000000000000");
+            await davosProvider.connect(signer).releaseAndUnwrap(signer.address, "981345000000000000");
+            await davosProvider.connect(signer2).releaseAndUnwrap(signer2.address, "981344000000000000");
+            await davosProvider.connect(signer3).releaseAndUnwrap(signer3.address, "981344000000000000");
 
             console.log("_________RELEASE_________")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -470,7 +470,7 @@ describe('===FORK===', function () {
             // await wcUSDC.connect(signer).redeem("983171", signer.address, signer.address);
             // await wcUSDC.connect(signer2).redeem("983170", signer2.address, signer2.address);
             // await wcUSDC.connect(signer3).redeem("983171", signer3.address, signer3.address);
-            await wcUSDC.connect(receiver).redeem("986", receiver.address, receiver.address);
+            await wcUSDC.connect(receiver).redeem("369", receiver.address, receiver.address);
 
             console.log("_______UNWRAPPED cUSDCv3_____")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
@@ -496,10 +496,10 @@ describe('===FORK===', function () {
             console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
             cusdc = await ethers.getContractAt(["function withdraw(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            await cusdc.connect(signer).withdraw(usdc.address, "1000714")
-            await cusdc.connect(signer2).withdraw(usdc.address, "1000714")
-            await cusdc.connect(signer3).withdraw(usdc.address, "1000715")
-            await cusdc.connect(receiver).withdraw(usdc.address, "1001")
+            await cusdc.connect(signer).withdraw(usdc.address, "1000291")
+            await cusdc.connect(signer2).withdraw(usdc.address, "1000291")
+            await cusdc.connect(signer3).withdraw(usdc.address, "1000292")
+            await cusdc.connect(receiver).withdraw(usdc.address, "374")
 
             console.log("_______GET USDC_____")
             console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
