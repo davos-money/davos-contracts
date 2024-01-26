@@ -44,8 +44,8 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-                blockNumber: 172979640
+                jsonRpcUrl: "https://rpc.ankr.com/eth",
+                blockNumber: 19081782
                 },
             },
             ],
@@ -105,11 +105,11 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x39355FFAfC47E54E7d7e786b1Df0fa0e222FBd06"],
+            params: ["0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C"],
         });
-        deployer = await ethers.getSigner("0x39355FFAfC47E54E7d7e786b1Df0fa0e222FBd06")
+        deployer = await ethers.getSigner("0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C")
         await network.provider.send("hardhat_setBalance", [
-            "0x39355FFAfC47E54E7d7e786b1Df0fa0e222FBd06",
+            "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
             "0x10000000000000000000",
         ]);
 
@@ -128,402 +128,417 @@ describe('===FORK===', function () {
         beforeEach(async function () {
 
             // Init Base
-            this.Interaction = await hre.ethers.getContractFactory("Interaction", {
-                unsafeAllow: ['external-library-linking'],
-                libraries: {
-                    AuctionProxy: "0x1c539E755A1BdaBB168aA9ad60B31548991981F9"
-                }
-            });
-            interaction = await this.Interaction.attach("0xa48F322F8b3edff967629Af79E027628b9Dd1298");
+            // this.Interaction = await hre.ethers.getContractFactory("Interaction", {
+            //     unsafeAllow: ['external-library-linking'],
+            //     libraries: {
+            //         AuctionProxy: "0x1c539E755A1BdaBB168aA9ad60B31548991981F9"
+            //     }
+            // });
+            // interaction = await this.Interaction.attach("0xa48F322F8b3edff967629Af79E027628b9Dd1298");
 
-            vat = await ethers.getContractAt("Vat", "0x2304CE6B42D505141A286B7382d4D515950b1890");
-            dog = await ethers.getContractAt("Dog", "0xa0CF627D429F35411820590D72eBaD183FD61C33");
-            spot = await ethers.getContractAt("Spotter", "0x819d1Daa794c1c46B841981b61cC978d95A17b8e");
-            vow = await ethers.getContractAt("Vow", "0xe84d3029feDd3CbE3d30c5245679CBD9B30118bC");
-            ra = await ethers.getContractAt("RatioAdapter", "0x42459761f3e0f8a1Adca056Edfeab30f1Eb2Cd71");
+            // vat = await ethers.getContractAt("Vat", "0x2304CE6B42D505141A286B7382d4D515950b1890");
+            // dog = await ethers.getContractAt("Dog", "0xa0CF627D429F35411820590D72eBaD183FD61C33");
+            // spot = await ethers.getContractAt("Spotter", "0x819d1Daa794c1c46B841981b61cC978d95A17b8e");
+            // vow = await ethers.getContractAt("Vow", "0xe84d3029feDd3CbE3d30c5245679CBD9B30118bC");
+            
 
             // Deploy Collateral
-            this.WrappedWcUSDCv3 = await hre.ethers.getContractFactory("WcUSDCv3_2");
+            // this.WrappedWcUSDCv3 = await hre.ethers.getContractFactory("WcUSDCv3_2");
             this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
-            this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-            this.DMatic = await hre.ethers.getContractFactory("dCol");
-            this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
-            this.Clip = await hre.ethers.getContractFactory("Clipper");
-            this.Oracle = await hre.ethers.getContractFactory("WCUSDCOracle");
+            // this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
+            // this.DMatic = await hre.ethers.getContractFactory("dCol");
+            // this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
+            // this.Clip = await hre.ethers.getContractFactory("Clipper");
+            this.Oracle = await hre.ethers.getContractFactory("OETHOracle");
 
-            ilk = ethers.utils.formatBytes32String("MVT_wcUSDC");
+            let x = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, "0xDcEe70654261AF21C44c093C300eD3Bb97b78192"], {initializer: "initialize"});
+            await x.deployed();
 
-            // wcUSDC = await upgrades.deployProxy(this.WrappedWcUSDCv3, ["Wrapped cUSDC v3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
-            // await wcUSDC.deployed();
-            wcUSDC = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
-            // newImp1 = await (await this.WrappedWcUSDCv3.deploy()).deployed();
-            // let proxyAdmin1 = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
-            // await proxyAdmin1.connect(deployer).upgrade(wcUSDC.address, newImp1.address);
+            let o = await upgrades.deployProxy(this.Oracle, ["0x253c22c654D9252deFcfA1f677Cbd3aE91eD1aec", x.address], {initializer: "initialize"});
+            await o.deployed();
 
-            // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
-            // await masterVault.deployed();
-            masterVault = await ethers.getContractAt("MasterVault_V2", "0x04901268EE65E989852370C0bad08E1514a0C484");
+            console.log(await o.peek())
 
-            // dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
-            // await dMatic.deployed();
-            dMatic = await ethers.getContractAt("dCol", "0x624D6A1969CeF4ff7b880685E76019509f3c0b49");
+        //     ilk = ethers.utils.formatBytes32String("MVT_wcUSDC");
 
-            // davosProvider = await upgrades.deployProxy(this.DavosProvider, [wcUSDC.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
-            // await davosProvider.deployed();
-            davosProvider = await ethers.getContractAt("DavosProvider", "0x601ab2230C2f7B8E719A0111FebDfa94bB462c69");
-            // newImp = await (await this.DavosProvider.deploy()).deployed();
-            // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
-            // await proxyAdmin.connect(deployer).upgrade(davosProvider.address, newImp.address);
-            // await davosProvider.connect(deployer).changeCusdc("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+        //     // wcUSDC = await upgrades.deployProxy(this.WrappedWcUSDCv3, ["Wrapped cUSDC v3", "wcUSDCv3", "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"], {initializer: "initialize"});
+        //     // await wcUSDC.deployed();
+        //     wcUSDC = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
+        //     // newImp1 = await (await this.WrappedWcUSDCv3.deploy()).deployed();
+        //     // let proxyAdmin1 = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+        //     // await proxyAdmin1.connect(deployer).upgrade(wcUSDC.address, newImp1.address);
+
+        //     // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
+        //     // await masterVault.deployed();
+        //     masterVault = await ethers.getContractAt("MasterVault_V2", "0x04901268EE65E989852370C0bad08E1514a0C484");
+
+        //     // dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
+        //     // await dMatic.deployed();
+        //     dMatic = await ethers.getContractAt("dCol", "0x624D6A1969CeF4ff7b880685E76019509f3c0b49");
+
+        //     // davosProvider = await upgrades.deployProxy(this.DavosProvider, [wcUSDC.address, dMatic.address, masterVault.address, interaction.address, false], {initializer: "initialize"});
+        //     // await davosProvider.deployed();
+        //     davosProvider = await ethers.getContractAt("DavosProvider", "0x601ab2230C2f7B8E719A0111FebDfa94bB462c69");
+        //     // newImp = await (await this.DavosProvider.deploy()).deployed();
+        //     // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+        //     // await proxyAdmin.connect(deployer).upgrade(davosProvider.address, newImp.address);
+        //     // await davosProvider.connect(deployer).changeCusdc("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
             
-            // gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, ilk, masterVault.address], {initializer: "initialize"});
-            // await gemJoin.deployed();
-            gemJoin = await ethers.getContractAt("GemJoin", "0x87B3c773d6DD8Fc3a5b8FB96217031F226f0A5a9");
+        //     // gemJoin = await upgrades.deployProxy(this.GemJoin, [vat.address, ilk, masterVault.address], {initializer: "initialize"});
+        //     // await gemJoin.deployed();
+        //     gemJoin = await ethers.getContractAt("GemJoin", "0x87B3c773d6DD8Fc3a5b8FB96217031F226f0A5a9");
 
-            // clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, ilk], {initializer: "initialize"});
-            // await clip.deployed();
-            clip = await ethers.getContractAt("Clipper", "0xc5a7344461EEc05e174aa8AC4e4030b24aA02EBD");
+        //     // clip = await upgrades.deployProxy(this.Clip, [vat.address, spot.address, dog.address, ilk], {initializer: "initialize"});
+        //     // await clip.deployed();
+        //     clip = await ethers.getContractAt("Clipper", "0xc5a7344461EEc05e174aa8AC4e4030b24aA02EBD");
 
-            // oracle = await upgrades.deployProxy(this.Oracle, ["0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3", wcUSDC.address, masterVault.address, ra.address], {initializer: "initialize"});
-            // await oracle.deployed();
-            oracle = await ethers.getContractAt("WCUSDCOracle", "0x122897d16b2Dd5a193EFCe19A1B4f34d1C540118");
+        //     // oracle = await upgrades.deployProxy(this.Oracle, ["0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3", wcUSDC.address, masterVault.address, ra.address], {initializer: "initialize"});
+        //     // await oracle.deployed();
+        //     oracle = await ethers.getContractAt("WCUSDCOracle", "0x122897d16b2Dd5a193EFCe19A1B4f34d1C540118");
         });
         it('tests', async function () {
             this.timeout(150000000);
+            // ra = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E");
 
-            // // Init Collateral
-            // console.log("MasterVault_V2 init...");
-            // await masterVault.connect(deployer).changeProvider(davosProvider.address);
-            // await masterVault.connect(deployer).changeAdapter(ra.address);
-            await masterVault.connect(deployer).changeYieldHeritor(receiver.address);
-            await masterVault.connect(deployer).changeYieldMargin("10000"); // Uncomment to get 100% yield
+            // await ra.connect(deployer).setToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "", "", "getRate()", true);
+            // await ra.connect(deployer).setProviderForToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "0x8023518b2192FB5384DAdc596765B3dD1cdFe471");
+            // console.log(await ra.toValue("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "1000000000000000000"))
 
-            // console.log("Ratioadapter init...");
-            // await ra.connect(deployer).setToken(wcUSDC.address, "convertToAssets(uint256)", "convertToShares(uint256)", "", false);
+            let x = await this.M
 
-            // console.log("DMatic init...");
-            // await dMatic.connect(deployer).changeMinter(davosProvider.address);
+        //     // // Init Collateral
+        //     // console.log("MasterVault_V2 init...");
+        //     // await masterVault.connect(deployer).changeProvider(davosProvider.address);
+        //     // await masterVault.connect(deployer).changeAdapter(ra.address);
+        //     await masterVault.connect(deployer).changeYieldHeritor(receiver.address);
+        //     await masterVault.connect(deployer).changeYieldMargin("10000"); // Uncomment to get 100% yield
 
-            // console.log("Vat init...");
-            // await vat.connect(deployer).rely(gemJoin.address);
-            // await vat.connect(deployer).rely(clip.address);
-            // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad);
-            // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad);
+        //     // console.log("Ratioadapter init...");
+        //     // await ra.connect(deployer).setToken(wcUSDC.address, "convertToAssets(uint256)", "convertToShares(uint256)", "", false);
+
+        //     // console.log("DMatic init...");
+        //     // await dMatic.connect(deployer).changeMinter(davosProvider.address);
+
+        //     // console.log("Vat init...");
+        //     // await vat.connect(deployer).rely(gemJoin.address);
+        //     // await vat.connect(deployer).rely(clip.address);
+        //     // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("line"), _vat_line + rad);
+        //     // await vat.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("dust"), _vat_dust + rad);
             
-            // console.log("Gemjoin init...");
-            // await gemJoin.connect(deployer).rely(interaction.address);
+        //     // console.log("Gemjoin init...");
+        //     // await gemJoin.connect(deployer).rely(interaction.address);
 
-            // console.log("Dog init...");
-            // await dog.connect(deployer).rely(clip.address);
-            // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad);
-            // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("chop"), _dog_chop);
-            // await dog.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("clip"), clip.address);
+        //     // console.log("Dog init...");
+        //     // await dog.connect(deployer).rely(clip.address);
+        //     // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("hole"), _dog_hole + rad);
+        //     // await dog.connect(deployer)["file(bytes32,bytes32,uint256)"](ilk, ethers.utils.formatBytes32String("chop"), _dog_chop);
+        //     // await dog.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("clip"), clip.address);
 
-            // console.log("Clip init...");
-            // await clip.connect(deployer).rely(interaction.address);
-            // await clip.connect(deployer).rely(dog.address);
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("buf"), _clip_buf);// 10%
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tail"), _clip_tail);// 3H reset time
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("cusp"), _clip_cusp);// 60% reset ratio
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("chip"), _clip_chip);// 0.01% vow incentive
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tip"), _clip_tip + rad);// 10$ flat incentive
-            // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("stopped"), _clip_stopped);
-            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("spotter"), spot.address);
-            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("dog"), dog.address);
-            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), vow.address);
-            // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), "0x74FB5adf4eBA704c42f5974B83E53BBDA46F0C96");
+        //     // console.log("Clip init...");
+        //     // await clip.connect(deployer).rely(interaction.address);
+        //     // await clip.connect(deployer).rely(dog.address);
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("buf"), _clip_buf);// 10%
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tail"), _clip_tail);// 3H reset time
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("cusp"), _clip_cusp);// 60% reset ratio
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("chip"), _clip_chip);// 0.01% vow incentive
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tip"), _clip_tip + rad);// 10$ flat incentive
+        //     // await clip.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("stopped"), _clip_stopped);
+        //     // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("spotter"), spot.address);
+        //     // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("dog"), dog.address);
+        //     // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("vow"), vow.address);
+        //     // await clip.connect(deployer)["file(bytes32,address)"](ethers.utils.formatBytes32String("calc"), "0x74FB5adf4eBA704c42f5974B83E53BBDA46F0C96");
 
-            // console.log("Spot init...");
-            // // await spot.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("pip"), oracle);
+        //     // console.log("Spot init...");
+        //     // // await spot.connect(deployer)["file(bytes32,bytes32,address)"](ilk, ethers.utils.formatBytes32String("pip"), oracle);
 
-            // console.log("Interaction init...");
-            // await interaction.connect(deployer).setDavosProvider(masterVault.address, davosProvider.address);
-            // await interaction.connect(deployer).setCollateralType(masterVault.address, gemJoin.address, ilk, clip.address, _mat);
-            // // await interaction.connect(deployer).poke(masterVault.address, {gasLimit: 300000});
-            // await interaction.connect(deployer).drip(masterVault.address, {gasLimit: 200000});
-            // await interaction.connect(deployer).setCollateralDuty(masterVault.address, _jug_duty, {gasLimit: 250000});
+        //     // console.log("Interaction init...");
+        //     // await interaction.connect(deployer).setDavosProvider(masterVault.address, davosProvider.address);
+        //     // await interaction.connect(deployer).setCollateralType(masterVault.address, gemJoin.address, ilk, clip.address, _mat);
+        //     // // await interaction.connect(deployer).poke(masterVault.address, {gasLimit: 300000});
+        //     // await interaction.connect(deployer).drip(masterVault.address, {gasLimit: 200000});
+        //     // await interaction.connect(deployer).setCollateralDuty(masterVault.address, _jug_duty, {gasLimit: 250000});
             
-            // usdc: 
+        //     // usdc: 
 
-            let usdc = await ethers.getContractAt(["function transfer(address,uint256) external"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831");
+        //     let usdc = await ethers.getContractAt(["function transfer(address,uint256) external"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831");
 
-            await usdc.connect(usdcOwner).transfer(signer.address, "1000000");
-            await usdc.connect(usdcOwner).transfer(signer2.address, "1000000");
-            await usdc.connect(usdcOwner).transfer(signer3.address, "1000000");
-            await usdc.connect(usdcOwner).transfer(civilian.address, "300000000000");
+        //     await usdc.connect(usdcOwner).transfer(signer.address, "1000000");
+        //     await usdc.connect(usdcOwner).transfer(signer2.address, "1000000");
+        //     await usdc.connect(usdcOwner).transfer(signer3.address, "1000000");
+        //     await usdc.connect(usdcOwner).transfer(civilian.address, "300000000000");
 
-            usdc = await ethers.getContractAt(["function approve(address,uint256) external"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831");
+        //     usdc = await ethers.getContractAt(["function approve(address,uint256) external"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831");
 
-            await usdc.connect(signer).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
-            await usdc.connect(signer2).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
-            await usdc.connect(signer3).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
-            await usdc.connect(civilian).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "300000000000");
+        //     await usdc.connect(signer).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
+        //     await usdc.connect(signer2).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
+        //     await usdc.connect(signer3).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "1000000");
+        //     await usdc.connect(civilian).approve("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "300000000000");
 
-            // console.log("Signer USDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     // console.log("Signer USDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
 
-            cusdc = await ethers.getContractAt(["function supply(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+        //     cusdc = await ethers.getContractAt(["function supply(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
 
-            console.log("_______BEFORE SUPPLY_____");
-            let util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("_______BEFORE SUPPLY_____");
+        //     let util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            // console.log("Utilizatio: " + util);
-            // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
-            let x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
-            console.log("BASESUPPLYINDEX: " + x)
+        //     // console.log("Utilizatio: " + util);
+        //     // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
+        //     let x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
+        //     console.log("BASESUPPLYINDEX: " + x)
 
-            await cusdc.connect(signer).supply(usdc.address, "1000000");
-            await cusdc.connect(signer2).supply(usdc.address, "1000000");
-            await cusdc.connect(signer3).supply(usdc.address, "1000000");
+        //     await cusdc.connect(signer).supply(usdc.address, "1000000");
+        //     await cusdc.connect(signer2).supply(usdc.address, "1000000");
+        //     await cusdc.connect(signer3).supply(usdc.address, "1000000");
 
-            console.log("_______AFTER SUPPLY_____");
-            util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
-            // console.log("Utilizatio: " + util);
-            // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
-            // console.log("Total  cUSDC BAL: " + await (await ethers.getContractAt(["function totalSupply() external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).totalSupply())
-            // console.log("Signer cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
-            x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
-            console.log("BASESUPPLYINDEX: " + x)
+        //     console.log("_______AFTER SUPPLY_____");
+        //     util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
+        //     // console.log("Utilizatio: " + util);
+        //     // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
+        //     // console.log("Total  cUSDC BAL: " + await (await ethers.getContractAt(["function totalSupply() external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).totalSupply())
+        //     // console.log("Signer cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
+        //     x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
+        //     console.log("BASESUPPLYINDEX: " + x)
             
-            await network.provider.send("evm_increaseTime", [86400])
-            await cusdc.connect(civilian).supply(usdc.address, "100000000000");
+        //     await network.provider.send("evm_increaseTime", [86400])
+        //     await cusdc.connect(civilian).supply(usdc.address, "100000000000");
 
-            console.log("_______CIVILIAN SUPPLY_____");
-            console.log("Civilian cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(civilian.address))
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
-            util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
-            // console.log("Utilizatio: " + util);
-            // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
-            // console.log("Signer USDC  BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], usdc.address)).balanceOf(signer.address))
-            // console.log("Total  cUSDC BAL: " + await (await ethers.getContractAt(["function totalSupply() external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).totalSupply())
-            // console.log("Signer cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("_______CIVILIAN SUPPLY_____");
+        //     console.log("Civilian cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(civilian.address))
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
+        //     util = await(await ethers.getContractAt(["function getUtilization() external view returns (uint)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getUtilization();
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
+        //     // console.log("Utilizatio: " + util);
+        //     // console.log("SupplyRate: " + await (await ethers.getContractAt(["function getSupplyRate(uint) external view returns (uint64)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).getSupplyRate(util));
+        //     // console.log("Signer USDC  BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], usdc.address)).balanceOf(signer.address))
+        //     // console.log("Total  cUSDC BAL: " + await (await ethers.getContractAt(["function totalSupply() external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).totalSupply())
+        //     // console.log("Signer cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
 
-            x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
-            console.log("BASESUPPLYINDEX: " + x)
+        //     x = await ethers.provider.getStorageAt("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", 0)
+        //     console.log("BASESUPPLYINDEX: " + x)
             
-            console.log("_______WRAPPED cUSDCv3_____")
-            cusdc = await ethers.getContractAt(["function approve(address,uint256) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+        //     console.log("_______WRAPPED cUSDCv3_____")
+        //     cusdc = await ethers.getContractAt(["function approve(address,uint256) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
 
-            await cusdc.connect(signer).approve(davosProvider.address, MAX);
-            await cusdc.connect(signer2).approve(davosProvider.address, MAX);
-            await cusdc.connect(signer3).approve(davosProvider.address, MAX);
+        //     await cusdc.connect(signer).approve(davosProvider.address, MAX);
+        //     await cusdc.connect(signer2).approve(davosProvider.address, MAX);
+        //     await cusdc.connect(signer3).approve(davosProvider.address, MAX);
             
-            // await wcUSDC.connect(signer).deposit("1000366", signer.address);
-            // await wcUSDC.connect(signer2).deposit("1000366", signer2.address);
-            // await wcUSDC.connect(signer3).deposit("1000366", signer3.address);
+        //     // await wcUSDC.connect(signer).deposit("1000366", signer.address);
+        //     // await wcUSDC.connect(signer2).deposit("1000366", signer2.address);
+        //     // await wcUSDC.connect(signer3).deposit("1000366", signer3.address);
 
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
             
-            cusdc = await ethers.getContractAt(["function supply(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            await network.provider.send("evm_increaseTime", [86400])
-            await cusdc.connect(civilian).supply(usdc.address, "100000000000");
+        //     cusdc = await ethers.getContractAt(["function supply(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+        //     await network.provider.send("evm_increaseTime", [86400])
+        //     await cusdc.connect(civilian).supply(usdc.address, "100000000000");
 
-            console.log("_______CIVILIAN SUPPLY X2_____");
-            console.log("Civilian cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(civilian.address))
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
+        //     console.log("_______CIVILIAN SUPPLY X2_____");
+        //     console.log("Civilian cUSDC BAL: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(civilian.address))
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
 
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            // Provide to davosProvider
-            // await wcUSDC.connect(signer).approve(davosProvider.address, MAX);
-            // await wcUSDC.connect(signer2).approve(davosProvider.address, MAX);
-            // await wcUSDC.connect(signer3).approve(davosProvider.address, MAX);
+        //     // Provide to davosProvider
+        //     // await wcUSDC.connect(signer).approve(davosProvider.address, MAX);
+        //     // await wcUSDC.connect(signer2).approve(davosProvider.address, MAX);
+        //     // await wcUSDC.connect(signer3).approve(davosProvider.address, MAX);
 
-            await davosProvider.connect(signer).wrapAndProvide("1000296");
-            await davosProvider.connect(signer2).wrapAndProvide("1000296");
-            await davosProvider.connect(signer3).wrapAndProvide("1000296");
+        //     await davosProvider.connect(signer).wrapAndProvide("1000296");
+        //     await davosProvider.connect(signer2).wrapAndProvide("1000296");
+        //     await davosProvider.connect(signer3).wrapAndProvide("1000296");
 
-            console.log("_________PROVIDE_________")
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
-            console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
-            console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("_________PROVIDE_________")
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
+        //     console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
+        //     console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
-            await network.provider.send("evm_increaseTime", [86400])
-            await cusdc.connect(civilian).supply(usdc.address, "100000000000");
+        //     await network.provider.send("evm_increaseTime", [86400])
+        //     await cusdc.connect(civilian).supply(usdc.address, "100000000000");
 
-            console.log("_______CIVILIAN SUPPLY X3_____");
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
-            console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
-            console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("_______CIVILIAN SUPPLY X3_____");
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
+        //     console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
+        //     console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer2.address);
-            await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer3.address);
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer.address);
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer2.address);
+        //     await(await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).accrueAccount(signer3.address);
 
-            await davosProvider.connect(signer).releaseAndUnwrap(signer.address, "981345000000000000");
-            await davosProvider.connect(signer2).releaseAndUnwrap(signer2.address, "981344000000000000");
-            await davosProvider.connect(signer3).releaseAndUnwrap(signer3.address, "981344000000000000");
+        //     await davosProvider.connect(signer).releaseAndUnwrap(signer.address, "981345000000000000");
+        //     await davosProvider.connect(signer2).releaseAndUnwrap(signer2.address, "981344000000000000");
+        //     await davosProvider.connect(signer3).releaseAndUnwrap(signer3.address, "981344000000000000");
 
-            console.log("_________RELEASE_________")
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("YieldHeritor USDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(receiver.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("YieldHeritor cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(receiver.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("YieldHeritor wcUSDC: " + await wcUSDC.balanceOf(receiver.address))
-            console.log("----")
-            console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
-            console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
-            console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("_________RELEASE_________")
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("YieldHeritor USDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(receiver.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("YieldHeritor cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(receiver.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("YieldHeritor wcUSDC: " + await wcUSDC.balanceOf(receiver.address))
+        //     console.log("----")
+        //     console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
+        //     console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
+        //     console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
-            // await wcUSDC.connect(signer).redeem("983171", signer.address, signer.address);
-            // await wcUSDC.connect(signer2).redeem("983170", signer2.address, signer2.address);
-            // await wcUSDC.connect(signer3).redeem("983171", signer3.address, signer3.address);
-            await wcUSDC.connect(receiver).redeem("369", receiver.address, receiver.address);
+        //     // await wcUSDC.connect(signer).redeem("983171", signer.address, signer.address);
+        //     // await wcUSDC.connect(signer2).redeem("983170", signer2.address, signer2.address);
+        //     // await wcUSDC.connect(signer3).redeem("983171", signer3.address, signer3.address);
+        //     await wcUSDC.connect(receiver).redeem("369", receiver.address, receiver.address);
 
-            console.log("_______UNWRAPPED cUSDCv3_____")
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("YieldHeritor cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(receiver.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
-            console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
-            console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("_______UNWRAPPED cUSDCv3_____")
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("YieldHeritor cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(receiver.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
+        //     console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
+        //     console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
-            cusdc = await ethers.getContractAt(["function withdraw(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            await cusdc.connect(signer).withdraw(usdc.address, "1000291")
-            await cusdc.connect(signer2).withdraw(usdc.address, "1000291")
-            await cusdc.connect(signer3).withdraw(usdc.address, "1000292")
-            await cusdc.connect(receiver).withdraw(usdc.address, "374")
+        //     cusdc = await ethers.getContractAt(["function withdraw(address,uint) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+        //     await cusdc.connect(signer).withdraw(usdc.address, "1000291")
+        //     await cusdc.connect(signer2).withdraw(usdc.address, "1000291")
+        //     await cusdc.connect(signer3).withdraw(usdc.address, "1000292")
+        //     await cusdc.connect(receiver).withdraw(usdc.address, "374")
 
-            console.log("_______GET USDC_____")
-            console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
-            console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
-            console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
-            console.log("YieldHeritor USDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(receiver.address))
+        //     console.log("_______GET USDC_____")
+        //     console.log("Signer  USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer.address))
+        //     console.log("Signer2 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer2.address))
+        //     console.log("Signer3 USDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(signer3.address))
+        //     console.log("YieldHeritor USDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")).balanceOf(receiver.address))
 
-            console.log("----")
-            console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
-            console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
-            console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
-            console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
-            console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
-            console.log("----")
-            console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
-            console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
-            console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
-            console.log("----")
-            console.log("ORACLE       : " + await oracle.peek());
+        //     console.log("----")
+        //     console.log("Signer  cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer.address))
+        //     console.log("Signer2 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer2.address))
+        //     console.log("Signer3 cUSDC: " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer   wcUSDC: " + await wcUSDC.balanceOf(signer.address))
+        //     console.log("Signe2   wcUSDC: " + await wcUSDC.balanceOf(signer2.address))
+        //     console.log("Signer3  wcUSDC: " + await wcUSDC.balanceOf(signer3.address))
+        //     console.log("----")
+        //     console.log("Signer    Ink  : " + (await vat.urns(ilk, signer.address)).ink)
+        //     console.log("Signer2   Ink  : " + (await vat.urns(ilk, signer2.address)).ink)
+        //     console.log("Signer3   Ink  : " + (await vat.urns(ilk, signer3.address)).ink)
+        //     console.log("----")
+        //     console.log("ORACLE       : " + await oracle.peek());
 
-            console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
-            console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
+        //     console.log("MasterVault  wcUSDC: " + await wcUSDC.balanceOf(masterVault.address))
+        //     console.log("Wrapper  cUSDC : " + await (await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf")).balanceOf(wcUSDC.address))
 
 
             // console.log(await ra.toValue(wcUSDC.address, "1000290000000000000"));

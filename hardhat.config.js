@@ -138,11 +138,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-              network: "arbitrumTestnet",
-              chainId: 421614,
+              network: "ethereumTestnet",
+              chainId: 17000,
               urls: {
-                apiURL: "https://api-sepolia.arbiscan.io/api",
-                browserURL: "https://sepolia.arbiscan.io/"
+                apiURL: "https://api-holesky.etherscan.io/api",
+                browserURL: "https://holesky.etherscan.io/"
               }
             }
           ]

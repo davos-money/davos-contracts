@@ -44,13 +44,13 @@ async function main() {
 
     let gemJoin = await upgrades.deployProxy(this.GemJoin, [_vat, _ilk, masterVault.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await gemJoin.deployed();
-    gemJoinImp = await upgrades.erc1967.getImplementationAddress(gemJoin.address);
+    let gemJoinImp = await upgrades.erc1967.getImplementationAddress(gemJoin.address);
     console.log("GemJoin          :", gemJoin.address);
     console.log("Imp              :", gemJoinImp);
 
     let clip = await upgrades.deployProxy(this.Clip, [_vat, _spot, _dog, _ilk], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await clip.deployed();
-    clipImp = await upgrades.erc1967.getImplementationAddress(clip.address);
+    let clipImp = await upgrades.erc1967.getImplementationAddress(clip.address);
     console.log("Clip             :", clip.address);
     console.log("Imp              :", clipImp);
 

@@ -9,28 +9,31 @@ async function main() {
     [deployer] = await ethers.getSigners();
 
     // Fetching
-    this.Token = await hre.ethers.getContractFactory("WcUSDCv3_2");
+    this.Token = await hre.ethers.getContractFactory("MockToken");
+    this.O = await hre.ethers.getContractFactory("Oracle");
 
     // Deployment
     console.log("Deploying...");
 
-    let t = await upgrades.deployProxy(this.Token, ["Wrapped cUSDCv3", "wcUSDCv3", "0x0Bd7Aa45230C7CE9A8BB4D880d68Fe19861A6de7"], {initializer: "initialize"});
+    let o = await this.O.deploy(); await o.deployed();
+    console.log(o.address);
+
+    let t = await upgrades.deployProxy(this.Token, ["Origin ETH", "oETH"], {initializer: "initialize"});
     await t.deployed();
     let ts = await upgrades.erc1967.getImplementationAddress(t.address);
     console.log("wcUSDC           : " + t.address);
     console.log("Imp              : " + ts);
 
-    await t.transferOwnership("0x39355FFAfC47E54E7d7e786b1Df0fa0e222FBd06");
 
-     // Store Deployed Contracts
-     const addresses = {
-        _wcUSDC     : t.address,
-        _wcUSDCImp  : ts,
-    }
+    //  // Store Deployed Contracts
+    //  const addresses = {
+    //     _wcUSDC     : t.address,
+    //     _wcUSDCImp  : ts,
+    // }
 
-    const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/addresses_${network.name}_asset.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/addresses_${network.name}_asset.json`);
+    // const json_addresses = JSON.stringify(addresses);
+    // fs.writeFileSync(`./scripts/addresses_${network.name}_asset.json`, json_addresses);
+    // console.log("Addresses Recorded to: " + `./scripts/addresses_${network.name}_asset.json`);
 
 }
 

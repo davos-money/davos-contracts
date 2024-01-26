@@ -20,7 +20,7 @@ contract MockToken is OwnableUpgradeable, ERC20Upgradeable {
     }
 
     function decimals() public view override returns(uint8) {
-        return 6;
+        return 18;
     }
 
     function burn(uint256 amount) external {
