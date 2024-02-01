@@ -13,6 +13,7 @@ interface IDavosProvider {
     event UnderlyingChanged(address _matic);
     event NativeStatusChanged(bool _isNative);
     event CusdcChanged(address _cUSDC);
+    event Referral(bytes32 indexed _code);
 
     // --- Functions ---
     function provide(uint256 _amount) external payable returns (uint256 value);

@@ -11,18 +11,19 @@ async function main() {
     // Fetching
     this.Token = await hre.ethers.getContractFactory("MockToken");
     this.O = await hre.ethers.getContractFactory("Oracle");
+    this.DP = await hre.ethers.getContractFactory("DavosProvider");
 
     // Deployment
     console.log("Deploying...");
+    console.log(await(await ((await this.DP.deploy()).deployed())).address);
+    // let o = await this.O.deploy(); await o.deployed();
+    // console.log(o.address);
 
-    let o = await this.O.deploy(); await o.deployed();
-    console.log(o.address);
-
-    let t = await upgrades.deployProxy(this.Token, ["Origin ETH", "oETH"], {initializer: "initialize"});
-    await t.deployed();
-    let ts = await upgrades.erc1967.getImplementationAddress(t.address);
-    console.log("wcUSDC           : " + t.address);
-    console.log("Imp              : " + ts);
+    // let t = await upgrades.deployProxy(this.Token, ["Origin ETH", "oETH"], {initializer: "initialize"});
+    // await t.deployed();
+    // let ts = await upgrades.erc1967.getImplementationAddress(t.address);
+    // console.log("wcUSDC           : " + t.address);
+    // console.log("Imp              : " + ts);
 
 
     //  // Store Deployed Contracts

@@ -59,7 +59,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     }
     
     // --- User ---
-    function provide(uint256 _amount) external payable override whenNotPaused nonReentrant returns (uint256 value) {
+    function provide(uint256 _amount) public payable override whenNotPaused nonReentrant returns (uint256 value) {
 
         if(isNative) {
             require(_amount == 0, "DavosProvider/erc20-not-accepted");
@@ -76,7 +76,12 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         emit Deposit(msg.sender, value);
         return value;
     }
-    function release(address _recipient, uint256 _amount) external override whenNotPaused nonReentrant returns (uint256 realAmount) {
+    function provideWithReferral(uint256 _amount, bytes32 _referral) external payable whenNotPaused nonReentrant returns (uint256 value) {
+        
+        emit Referral(_referral);
+        return provide(_amount);
+    }
+    function release(address _recipient, uint256 _amount) public override whenNotPaused nonReentrant returns (uint256 realAmount) {
 
         require(_recipient != address(0));
         realAmount = _withdrawCollateral(msg.sender, _amount);

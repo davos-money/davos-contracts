@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/eth",
-                blockNumber: 19081782
+                blockNumber: 19119420
                 },
             },
             ],
@@ -151,11 +151,13 @@ describe('===FORK===', function () {
             // this.Clip = await hre.ethers.getContractFactory("Clipper");
             this.Oracle = await hre.ethers.getContractFactory("OETHOracle");
 
-            let x = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, "0xDcEe70654261AF21C44c093C300eD3Bb97b78192"], {initializer: "initialize"});
-            await x.deployed();
+            // let x = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, "0xDcEe70654261AF21C44c093C300eD3Bb97b78192"], {initializer: "initialize"});
+            // await x.deployed();
 
-            let o = await upgrades.deployProxy(this.Oracle, ["0x253c22c654D9252deFcfA1f677Cbd3aE91eD1aec", x.address], {initializer: "initialize"});
-            await o.deployed();
+            // let o = await upgrades.deployProxy(this.Oracle, ["0x253c22c654D9252deFcfA1f677Cbd3aE91eD1aec", x.address], {initializer: "initialize"});
+            // await o.deployed();
+
+            let o = await ethers.getContractAt("OETHOracle", "0x64287e53C86aca461bf894330c1Db4B60e8eB756")
 
             console.log(await o.peek())
 
@@ -204,7 +206,7 @@ describe('===FORK===', function () {
             // await ra.connect(deployer).setProviderForToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "0x8023518b2192FB5384DAdc596765B3dD1cdFe471");
             // console.log(await ra.toValue("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "1000000000000000000"))
 
-            let x = await this.M
+            // let x = await this.M
 
         //     // // Init Collateral
         //     // console.log("MasterVault_V2 init...");
