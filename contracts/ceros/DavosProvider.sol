@@ -76,7 +76,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         emit Deposit(msg.sender, value);
         return value;
     }
-    function provideWithReferral(uint256 _amount, bytes32 _referral) external payable whenNotPaused nonReentrant returns (uint256 value) {
+    function provideWithReferral(uint256 _amount, bytes32 _referral) external payable returns (uint256 value) {
         
         emit Referral(_referral);
         return provide(_amount);
