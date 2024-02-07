@@ -36,6 +36,7 @@ async function main() {
     this.WCUSDCOracle = await hre.ethers.getContractFactory("WCUSDCOracle");
     this.OsETHOracle = await hre.ethers.getContractFactory("OsETHOracle");
     this.OETHOracle = await hre.ethers.getContractFactory("OETHOracle");
+    this.ETHxOracle = await hre.ethers.getContractFactory("ETHxOracle");
     this.PriceFeed = await hre.ethers.getContractFactory("PriceFeed");
 
     // Deployment
@@ -56,7 +57,7 @@ async function main() {
         console.log("WCUSDCOracle      : " + oracle.address);
         console.log("Imp               : " + oracleImp);
     } else if (hre.network.name == "ethereum" || hre.network.name == "ethereumTestnet") {
-        oracle = await upgrades.deployProxy(this.OETHOracle, ["0x253c22c654D9252deFcfA1f677Cbd3aE91eD1aec", _masterVault], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        oracle = await upgrades.deployProxy(this.ETHxOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
         console.log("OETHOracle       : " + oracle.address);
