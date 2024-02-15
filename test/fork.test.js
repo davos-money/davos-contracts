@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/eth",
-                blockNumber: 19119420
+                blockNumber: 19212027
                 },
             },
             ],
@@ -144,12 +144,12 @@ describe('===FORK===', function () {
 
             // Deploy Collateral
             // this.WrappedWcUSDCv3 = await hre.ethers.getContractFactory("WcUSDCv3_2");
-            this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
+            // this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2");
             // this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
             // this.DMatic = await hre.ethers.getContractFactory("dCol");
             // this.GemJoin = await hre.ethers.getContractFactory("GemJoin");
             // this.Clip = await hre.ethers.getContractFactory("Clipper");
-            this.Oracle = await hre.ethers.getContractFactory("OETHOracle");
+            // this.Oracle = await hre.ethers.getContractFactory("ETHxOracle");
 
             // let x = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, "0xDcEe70654261AF21C44c093C300eD3Bb97b78192"], {initializer: "initialize"});
             // await x.deployed();
@@ -172,7 +172,7 @@ describe('===FORK===', function () {
 
         //     // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
         //     // await masterVault.deployed();
-        //     masterVault = await ethers.getContractAt("MasterVault_V2", "0x04901268EE65E989852370C0bad08E1514a0C484");
+            masterVault = await ethers.getContractAt("MasterVault_V2", "0xC5A7bEB1E6c61B3Aa8dF5aD32a17eb5e9B974B98");
 
         //     // dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
         //     // await dMatic.deployed();
@@ -200,10 +200,10 @@ describe('===FORK===', function () {
         });
         it('tests', async function () {
             this.timeout(150000000);
-            // ra = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E");
+            ra = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E");
 
-            // await ra.connect(deployer).setToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "", "", "getRate()", true);
-            // await ra.connect(deployer).setProviderForToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "0x8023518b2192FB5384DAdc596765B3dD1cdFe471");
+            await ra.connect(deployer).setToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "", "", "getRate()", true);
+            await ra.connect(deployer).setProviderForToken("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "0x8023518b2192FB5384DAdc596765B3dD1cdFe471");
             // console.log(await ra.toValue("0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38", "1000000000000000000"))
 
             // let x = await this.M
