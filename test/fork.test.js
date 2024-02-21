@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/eth",
-                blockNumber: 19212027
+                blockNumber: 19239176
                 },
             },
             ],
@@ -157,9 +157,11 @@ describe('===FORK===', function () {
             // let o = await upgrades.deployProxy(this.Oracle, ["0x253c22c654D9252deFcfA1f677Cbd3aE91eD1aec", x.address], {initializer: "initialize"});
             // await o.deployed();
 
-            let o = await ethers.getContractAt("OETHOracle", "0x64287e53C86aca461bf894330c1Db4B60e8eB756")
+            // let o = await ethers.getContractAt("OETHOracle", "0x64287e53C86aca461bf894330c1Db4B60e8eB756")
+            let dCol = await ethers.getContractAt("dCol", "0x456554374e5e9bF91a32E35d9dAA03d37357E41A");
+            await dCol.initialize();
 
-            console.log(await o.peek())
+            // console.log(await o.peek())
 
         //     ilk = ethers.utils.formatBytes32String("MVT_wcUSDC");
 
@@ -172,7 +174,7 @@ describe('===FORK===', function () {
 
         //     // masterVault = await upgrades.deployProxy(this.MasterVault, ["MasterVault Token", "MVT", 0, wcUSDC.address], {initializer: "initialize"});
         //     // await masterVault.deployed();
-            masterVault = await ethers.getContractAt("MasterVault_V2", "0xC5A7bEB1E6c61B3Aa8dF5aD32a17eb5e9B974B98");
+            // masterVault = await ethers.getContractAt("MasterVault_V2", "0xC5A7bEB1E6c61B3Aa8dF5aD32a17eb5e9B974B98");
 
         //     // dMatic = await upgrades.deployProxy(this.DMatic, [], {initializer: "initialize"});
         //     // await dMatic.deployed();

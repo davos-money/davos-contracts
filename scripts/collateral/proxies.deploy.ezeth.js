@@ -44,8 +44,8 @@ async function main() {
     }
 
     const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/addresses_${network.name}_collateral_weeth.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/addresses_${network.name}_collateral_weeth.json`);
+    fs.writeFileSync(`./scripts/addresses_${network.name}_collateral_ezeth.json`, json_addresses);
+    console.log("Addresses Recorded to: " + `./scripts/addresses_${network.name}_collateral_ezeth.json`);
 
 }
 

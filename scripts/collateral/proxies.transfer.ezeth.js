@@ -9,8 +9,8 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin } = require(`../addresses_${hre.network.name}_collateral_weeth.json`);
-    let { _multisig } = require(`./proxies.config.weeth_${hre.network.name}.json`);
+    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin } = require(`../addresses_${hre.network.name}_collateral_ezeth.json`);
+    let { _multisig } = require(`./proxies.config.ezeth_${hre.network.name}.json`);
 
     // Initialize
     console.log("Initializing...");

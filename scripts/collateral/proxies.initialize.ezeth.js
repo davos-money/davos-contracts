@@ -10,8 +10,8 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let {_underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./proxies.config.weeth_${hre.network.name}.json`);
-    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin} = require(`../addresses_${hre.network.name}_collateral_weeth.json`);
+    let {_underlying, _interaction, _vat, _spot, _dog, _ilk} = require(`./proxies.config.ezeth_${hre.network.name}.json`);
+    let { _masterVault, _davosProvider, _dMatic, _clip, _gemJoin} = require(`../addresses_${hre.network.name}_collateral_ezeth.json`);
 
     // Fetching
     let masterVaultAt = await ethers.getContractAt("MasterVault_V2", _masterVault);
