@@ -21,8 +21,8 @@ async function main() {
     let clipAt = await ethers.getContractAt("Clipper", _clip);
 
     // Initialize
-    await masterVaultAt.initialize("MasterVault Token", "MVT", 0, _underlying, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await davosProviderAt.initialize(_underlying, dMaticAt.address, masterVaultAt.address, _interaction, false, {nonce: _nonce}); _nonce += 1; console.log("2");
+    // await masterVaultAt.initialize("MasterVault Token", "MVT", 0, _underlying, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await davosProviderAt.initialize(_underlying, dMaticAt.address, masterVaultAt.address, _interaction, false, {nonce: _nonce}); _nonce += 1; console.log("2");
     await dMaticAt.initialize({nonce: _nonce}); _nonce += 1; console.log("3");
     await gemJoinAt.initialize(_vat, _ilk, masterVaultAt.address, {nonce: _nonce}); _nonce += 1; console.log("4");
     await clipAt.initialize(_vat, _spot, _dog, _ilk, {nonce: _nonce}); _nonce += 1; console.log("5");
