@@ -37,6 +37,10 @@ interface CometInterface is CometMainInterface, CometExtInterface {
     function userBasic(address account) external view returns (UserBasic memory);
 }
 
+interface CometRewards {
+    function claim(address comet, address src, bool shouldAccrue) external;
+}
+
 contract WcUSDCv3_2 is ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
     // --- Wrappers ---
@@ -45,6 +49,15 @@ contract WcUSDCv3_2 is ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeab
     // --- Constants ---
     uint64 internal constant BASE_INDEX_SCALE = 1e15;
     uint64 internal constant FACTOR_SCALE = 1e18;
+
+    // --- Vars ---
+    address public rewards;   // Comet rewards
+    address public comp;      // Compound token
+    address public multisig;
+
+    // --- Events ---
+    event ClaimedX(uint256 indexed _amount);
+    event File(bytes32 indexed _what, address indexed _data);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     // --- Constructor ---
@@ -140,6 +153,18 @@ contract WcUSDCv3_2 is ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeab
 
         return status;
     }
+    function claimX() public {
+
+        // Claim Xtra COMP rewards
+        CometRewards(rewards).claim(asset(), address(this), true);
+
+        uint256 amount = IERC20Upgradeable(comp).balanceOf(address(this));
+        if (amount > 0) {
+
+            IERC20Upgradeable(comp).transfer(multisig, amount);
+            emit ClaimedX(amount);
+        }
+    }
 
     // --- Views ---
     function decimals() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (uint8) {
@@ -209,12 +234,23 @@ contract WcUSDCv3_2 is ERC4626Upgradeable, OwnableUpgradeable, PausableUpgradeab
         return principal > 0 ? presentValueSupply(baseSupplyIndex_, principal) : 0;
     }
     
-    // --- Pausable ---
+    // --- Admin ---
     function pause() public onlyOwner {
         _pause();
     }
     function unpause() public onlyOwner {
         _unpause();
+    }
+    function file(bytes32 _what, address _data) external onlyOwner {
+
+        require(_data != address(0), "wcUSDC/zero-address");
+
+        if (_what == "rewards") rewards = _data;
+        else if (_what == "comp") comp = _data;
+        else if (_what == "multisig") multisig = _data;
+        else revert ("wcUSDC/invalid-string");
+
+        emit File(_what, _data);
     }
     
     // ---------------

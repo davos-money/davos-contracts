@@ -9,4 +9,7 @@ interface IMasterVault_V2 {
     event YieldHeritor(address oldHeritor, address newHeritor);
     event YieldMargin(uint256 oldMargin, uint256 newMargin);
     event AdapterChanged(address oldAdapter, address newAdapter);
+    event ClaimedX(uint256 indexed amount);
+    event UnitrollerChanged(address indexed xUnitroller, address indexed unitroller);
+    event XVSChanged(address indexed xXvs, address indexed xvs);
 }

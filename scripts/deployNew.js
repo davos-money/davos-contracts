@@ -9,20 +9,25 @@ async function main() {
     [deployer] = await ethers.getSigners();
 
     // Fetching
-    this.MockToken = await hre.ethers.getContractFactory("MockToken");
+    this.WcUSDC = await hre.ethers.getContractFactory("WcUSDCv3_2");
+    this.MasterVault = await hre.ethers.getContractFactory("MasterVault_V2_R");
 
     // Deployment
     console.log("Deploying...");
 
-    let vat = await upgrades.deployProxy(this.MockToken, ["StakeWise ETH", "osETH"], {initializer: "initialize"});
-    await vat.deployed();
-    vatImp = await upgrades.erc1967.getImplementationAddress(vat.address);
-    console.log("Vat             :", vat.address);
-    console.log("VatImp          :", vatImp);
+    if (hre.network.name == "arbitrum" || hre.network.name == "arbitrumTestnet") {
+        console.log("ARBITRUM");
+        let c = await this.WcUSDC.deploy();
+        await c.deployed();
+        console.log(c.address);
+    } else if (hre.network.name == "bsc" || hre.network.name == "bscTestnet") { 
+        console.log("BSC");
+        let c = await this.MasterVault.deploy();
+        await c.deployed();
+        console.log(c.address);
+    } else throw("ERR:> Network Unsupported !");
 
-    // let dp = await this.DavosProvider.deploy();
-    // await dp.deployed();
-    // console.log("DavosProvider    : " + dp.address);
+    console.log("DONE !!")
 }
 
 main()
