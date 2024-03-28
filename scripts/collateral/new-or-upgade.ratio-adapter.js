@@ -43,8 +43,8 @@ async function main() {
         console.log("WARNING: DON'T FORGET TO SET NEW RATIO ADAPTER TO VAULTS AND ORACLES");
 
         
-        await ratioAdapter.setToken("0xF603c5A3F774F05d4D848A9bB139809790890864", "", "", "getRate()", true);
-        await ratioAdapter.setProviderForToken("0xF603c5A3F774F05d4D848A9bB139809790890864", "0xe31FAf135A6047Cbe595F91B4b6802cDB9B46E2b");
+        // await ratioAdapter.setToken("0xF603c5A3F774F05d4D848A9bB139809790890864", "", "", "getRate()", true);
+        // await ratioAdapter.setProviderForToken("0xF603c5A3F774F05d4D848A9bB139809790890864", "0xe31FAf135A6047Cbe595F91B4b6802cDB9B46E2b");
     // } else {
     //     ratioAdapterImp = await this.RatioAdapter.deploy();
     //     await ratioAdapterImp.deployed();

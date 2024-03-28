@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/bsc",
-                blockNumber: 37099898
+                blockNumber: 37187231
                 },
             },
             ],
@@ -141,20 +141,20 @@ describe('===FORK===', function () {
         it('tests', async function () {
             this.timeout(150000000);
 
-            let mvNEW = await (await ethers.getContractFactory("MasterVault_V2_R")).deploy();
-            await mvNEW.deployed();
+            // let mvNEW = await (await ethers.getContractFactory("MasterVault_V2_R")).deploy();
+            // await mvNEW.deployed();
 
-            let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
+            // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
             let mvVUSDT = await ethers.getContractAt("MasterVault_V2_R", "0xb44A251d1C31dd32700E5F2584B4282716C43EB3");
             let mvVUSDC = await ethers.getContractAt("MasterVault_V2_R", "0x87ad5Ab05d7C1E1F904e029783810A2a95702563");
 
-            await proxyAdmin.connect(bscOwner).upgrade(mvVUSDT.address, mvNEW.address);
-            await proxyAdmin.connect(bscOwner).upgrade(mvVUSDC.address, mvNEW.address);
+            // await proxyAdmin.connect(bscOwner).upgrade(mvVUSDT.address, mvNEW.address);
+            // await proxyAdmin.connect(bscOwner).upgrade(mvVUSDC.address, mvNEW.address);
 
-            await mvVUSDT.connect(bscOwner).changeUnitroller("0xfD36E2c2a6789Db23113685031d7F16329158384");
-            await mvVUSDT.connect(bscOwner).changeXVS("0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            await mvVUSDC.connect(bscOwner).changeUnitroller("0xfD36E2c2a6789Db23113685031d7F16329158384");
-            await mvVUSDC.connect(bscOwner).changeXVS("0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // await mvVUSDT.connect(bscOwner).changeUnitroller("0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // await mvVUSDT.connect(bscOwner).changeXVS("0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // await mvVUSDC.connect(bscOwner).changeUnitroller("0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // await mvVUSDC.connect(bscOwner).changeXVS("0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
 
             let xvs = await ethers.getContractAt("Davos", "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
             let yieldHeritor = await mvVUSDT.yieldHeritor();

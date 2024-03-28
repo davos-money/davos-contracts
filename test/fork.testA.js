@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-                blockNumber: 191915216
+                blockNumber: 192970408
                 },
             },
             ],
@@ -141,16 +141,16 @@ describe('===FORK===', function () {
         it('tests', async function () {
             this.timeout(150000000);
 
-            let wcusdcNew = await (await ethers.getContractFactory("WcUSDCv3_2")).deploy();
-            await wcusdcNew.deployed();
+            // let wcusdcNew = await (await ethers.getContractFactory("WcUSDCv3_2")).deploy();
+            // await wcusdcNew.deployed();
 
             let wcusdc = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
-            let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4")
-            await proxyAdmin.connect(arbitrumOwner).upgrade(wcusdc.address, wcusdcNew.address);
+            // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4")
+            // await proxyAdmin.connect(arbitrumOwner).upgrade(wcusdc.address, wcusdcNew.address);
 
-            await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("multisig"), deployer.address);
-            await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("rewards"), "0x88730d254A2f7e6AC8388c3198aFd694bA9f7fae");
-            await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("comp"), "0x354A6dA3fcde098F8389cad84b0182725c6C91dE");
+            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("multisig"), deployer.address);
+            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("rewards"), "0x88730d254A2f7e6AC8388c3198aFd694bA9f7fae");
+            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("comp"), "0x354A6dA3fcde098F8389cad84b0182725c6C91dE");
 
             let comet;
             comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");

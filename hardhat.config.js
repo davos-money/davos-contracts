@@ -104,7 +104,7 @@ module.exports = {
         },
         optimismTestnet: {
             url: process.env.OPTIMISMGOERLI_URL,
-            chainId: 420,
+            chainId: 11155420,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_OPT) || 'auto'
         },
@@ -131,18 +131,42 @@ module.exports = {
             chainId: 97,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BSC) || 'auto'
-        }
+        },
+        mode: {
+            url: process.env.MODE_URL,
+            chainId: 34443,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MOD) || 'auto'
+        },
+        modeTestnet: {
+            url: process.env.MODETESTNET_URL,
+            chainId: 919,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MOD) || 'auto'
+        },
+        linea: {
+            url: process.env.LINEA_URL,
+            chainId: 59144,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
+        lineaTestnet: {
+            url: process.env.LINEATESTNET_URL,
+            chainId: 59140,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
     },
 
     etherscan: {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-              network: "ethereumTestnet",
-              chainId: 17000,
+              network: "optimismTestnet",
+              chainId: 11155420,
               urls: {
-                apiURL: "https://api-holesky.etherscan.io/api",
-                browserURL: "https://holesky.etherscan.io/"
+                apiURL: "https://api-sepolia-optimism.etherscan.io/api",
+                browserURL: "https://sepolia-optimism.etherscan.io/"
               }
             }
           ]

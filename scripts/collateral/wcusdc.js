@@ -11,15 +11,16 @@ async function main() {
     const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
     // Fetching
-    // this.Token = await hre.ethers.getContractFactory("MockToken");
-    // this.O = await hre.ethers.getContractFactory("Oracle");
+    this.Token = await hre.ethers.getContractFactory("MockToken");
+    this.O = await hre.ethers.getContractFactory("Oracle");
     // this.DavosProvider = await hre.ethers.getContractFactory("DavosProvider");
-    this.TUP = await hre.ethers.getContractFactory(TUPABI.abi, TUPABI.bytecode);
+    // this.TUP = await hre.ethers.getContractFactory(TUPABI.abi, TUPABI.bytecode);
     
-    // Deployment
-    console.log("Deploying...");
-    let proxy = await this.TUP.deploy("0x9ed9f3e630253fE798cBEf13Be66B78EB9373B22", "0xD3Ca61303C70e3615e7345C41A3aB5c51F92bE9a", "0x");
-    console.log(proxy.address);
+    console.log((await (await this.O.deploy()).deployed()).address)
+    // // Deployment
+    // console.log("Deploying...");
+    // let proxy = await this.TUP.deploy("0x9ed9f3e630253fE798cBEf13Be66B78EB9373B22", "0xD3Ca61303C70e3615e7345C41A3aB5c51F92bE9a", "0x");
+    // console.log(proxy.address);
 
 
     // let t = await upgrades.deployProxy(this.DavosProvider, [], {initializer: false, redeployImplementation: 'never'});
@@ -32,11 +33,11 @@ async function main() {
     // let o = await this.O.deploy(); await o.deployed();
     // console.log(o.address);
 
-    // let t = await upgrades.deployProxy(this.Token, ["Puffer ETH", "pufETH"], {initializer: "initialize"});
-    // await t.deployed();
-    // let ts = await upgrades.erc1967.getImplementationAddress(t.address);
-    // console.log("wcUSDC           : " + t.address);
-    // console.log("Imp              : " + ts);
+    let t = await upgrades.deployProxy(this.Token, ["Renzo ETH", "ezETH"], {initializer: "initialize"});
+    await t.deployed();
+    let ts = await upgrades.erc1967.getImplementationAddress(t.address);
+    console.log("wcUSDC           : " + t.address);
+    console.log("Imp              : " + ts);
 
 
     //  // Store Deployed Contracts

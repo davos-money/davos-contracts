@@ -55,19 +55,19 @@ async function main() {
     console.log("DavosJoin       :", davosJoin.address);
     console.log("DavosJoinImp    :", davosJoinImp)
 
-    let jug = await upgrades.deployProxy(this.Jug, [vat.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let jug = await upgrades.deployProxy(this.Jug, ["0x6e2B5b6Df646091C69299cF93F3D1CdCB11c2Fb7"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await jug.deployed();
     jugImp = await upgrades.erc1967.getImplementationAddress(jug.address);
     console.log("Jug             :", jug.address);
     console.log("JugImp          :", jugImp);
 
-    let vow = await upgrades.deployProxy(this.Vow, [vat.address, davosJoin.address, _multisig], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let vow = await upgrades.deployProxy(this.Vow, ["0x6e2B5b6Df646091C69299cF93F3D1CdCB11c2Fb7", "0x6e5F76492b663828A481201AFd43e50aB2a461F1", _multisig], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await vow.deployed();
     vowImp = await upgrades.erc1967.getImplementationAddress(vow.address);
     console.log("Vow             :", vow.address);
     console.log("VowImp          :", vowImp);
 
-    let dog = await upgrades.deployProxy(this.Dog, [vat.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let dog = await upgrades.deployProxy(this.Dog, ["0x6e2B5b6Df646091C69299cF93F3D1CdCB11c2Fb7"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await dog.deployed();
     dogImpl = await upgrades.erc1967.getImplementationAddress(dog.address);
     console.log("Dog             :", dog.address);
