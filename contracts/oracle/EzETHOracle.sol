@@ -5,8 +5,8 @@ import "./extensions/CrossRateLstOracle.sol";
 
 contract EzETHOracle is CrossRateLstOracle {
 
-    function initialize(AggregatorV3Interface _aggregatorAddress, address _wstETH, IMasterVault _masterVault, IRatioAdapter _ratioAdapter) external initializer {
+    function initialize(AggregatorV3Interface _aggregatorAddress, address _ezETH, IMasterVault _masterVault, IRatioAdapter _ratioAdapter) external initializer {
         __LstOracle__init(_masterVault);
-        __CrossRateLstOracle__init(_aggregatorAddress, _wstETH, _ratioAdapter);
+        __CrossRateLstOracle__init(_aggregatorAddress, _ezETH, _ratioAdapter);
     }
 }

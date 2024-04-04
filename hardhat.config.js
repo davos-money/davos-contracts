@@ -162,11 +162,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-              network: "optimismTestnet",
-              chainId: 11155420,
+              network: "zkevmTestnet",
+              chainId: 1442,
               urls: {
-                apiURL: "https://api-sepolia-optimism.etherscan.io/api",
-                browserURL: "https://sepolia-optimism.etherscan.io/"
+                apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
+                browserURL: "https://testnet-zkevm.polygonscan.com/"
               }
             }
           ]
