@@ -23,7 +23,7 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _underlying, _ratioAdapter } = require(`./config_${hre.network.name}.json`);
+    let { _ratioAdapter } = require(`./addresses_${hre.network.name}.json`);
     let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
     // let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
 
@@ -47,22 +47,29 @@ async function main() {
     let oracleImp;
 
     if (hre.network.name == "optimism") {
-        oracle = await upgrades.deployProxy(this.WstETHOracle, ["0xb7B9A39CC63f856b90B364911CC324dC46aC1770", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle.deployed();
-        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("WstETHOracle     : " + oracle.address);
-        console.log("Imp              : " + oracleImp);
+        // oracle = await upgrades.deployProxy(this.WstETHOracle, ["0xb7B9A39CC63f856b90B364911CC324dC46aC1770", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        // console.log("WstETHOracle     : " + oracle.address);
+        // console.log("Imp              : " + oracleImp);
     } else if (hre.network.name == "arbitrum" || hre.network.name == "arbitrumTestnet") {
-        oracle = await upgrades.deployProxy(this.EzETHOracle, ["0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle.deployed();
-        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("EzETHOracle       : " + oracle.address);
-        console.log("Imp               : " + oracleImp);
+        // oracle = await upgrades.deployProxy(this.EzETHOracle, ["0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        // console.log("EzETHOracle       : " + oracle.address);
+        // console.log("Imp               : " + oracleImp);
     } else if (hre.network.name == "ethereum" || hre.network.name == "ethereumTestnet") {
-        oracle = await upgrades.deployProxy(this.ETHxOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // oracle = await upgrades.deployProxy(this.ETHxOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", _underlying, _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        // console.log("OETHOracle        : " + oracle.address);
+        // console.log("Imp               : " + oracleImp);
+
+    } else if (hre.network.name == "mode" || hre.network.name == "modeTestnet") {
+        oracle = await upgrades.deployProxy(this.EzETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("OETHOracle       : " + oracle.address);
+        console.log("MODEOracle        : " + oracle.address);
         console.log("Imp               : " + oracleImp);
 
     } else throw("NOT ALLOWED");

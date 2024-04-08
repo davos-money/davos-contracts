@@ -45,7 +45,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://rpc.ankr.com/arbitrum",
-                blockNumber: 192970408
+                blockNumber: 198828535
                 },
             },
             ],
@@ -141,44 +141,52 @@ describe('===FORK===', function () {
         it('tests', async function () {
             this.timeout(150000000);
 
-            // let wcusdcNew = await (await ethers.getContractFactory("WcUSDCv3_2")).deploy();
-            // await wcusdcNew.deployed();
+            let dog = await upgrades.deployProxy(await ethers.getContractFactory("EzETHOracle"), ["0xff1a0f4744e8582DF1aE09D5611b887B6a12925C", "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C", "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C", "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C"], {initializer: "initialize"});
+            await dog.deployed();
+            dogImpl = await upgrades.erc1967.getImplementationAddress(dog.address);
+            console.log("Dog             :", dog.address);
+            console.log("DogImp          :", dogImpl);
 
-            let wcusdc = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
-            // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4")
-            // await proxyAdmin.connect(arbitrumOwner).upgrade(wcusdc.address, wcusdcNew.address);
+            console.log(await dog.peeka())
 
-            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("multisig"), deployer.address);
-            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("rewards"), "0x88730d254A2f7e6AC8388c3198aFd694bA9f7fae");
-            // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("comp"), "0x354A6dA3fcde098F8389cad84b0182725c6C91dE");
+            // // let wcusdcNew = await (await ethers.getContractFactory("WcUSDCv3_2")).deploy();
+            // // await wcusdcNew.deployed();
 
-            let comet;
-            comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
+            // let wcusdc = await ethers.getContractAt("WcUSDCv3_2", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
+            // // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4")
+            // // await proxyAdmin.connect(arbitrumOwner).upgrade(wcusdc.address, wcusdcNew.address);
 
-            comet = await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            await comet.accrueAccount("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
+            // // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("multisig"), deployer.address);
+            // // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("rewards"), "0x88730d254A2f7e6AC8388c3198aFd694bA9f7fae");
+            // // await wcusdc.connect(arbitrumOwner)["file(bytes32,address)"](ethers.utils.formatBytes32String("comp"), "0x354A6dA3fcde098F8389cad84b0182725c6C91dE");
 
-            comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
+            // let comet;
+            // comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            // console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
 
-            console.log("CLAIMED");
-            comet = await ethers.getContractAt(["function rewardsClaimed(address,address) external view returns(uint256)"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
-            console.log(await comet.rewardsClaimed("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"))
+            // comet = await ethers.getContractAt(["function accrueAccount(address) external"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            // await comet.accrueAccount("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb");
 
-            await wcusdc.claimX();
-            // comet = await ethers.getContractAt(["function claim(address,address,bool) external"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
-            // await comet.claim("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb", true)
+            // comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            // console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
 
-            console.log("CLAIMED");
-            comet = await ethers.getContractAt(["function rewardsClaimed(address,address) external view returns(uint256)"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
-            console.log(await comet.rewardsClaimed("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"))
+            // console.log("CLAIMED");
+            // comet = await ethers.getContractAt(["function rewardsClaimed(address,address) external view returns(uint256)"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
+            // console.log(await comet.rewardsClaimed("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"))
 
-            let h = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x354A6dA3fcde098F8389cad84b0182725c6C91dE")
-            console.log(await h.balanceOf(deployer.address))
+            // await wcusdc.claimX();
+            // // comet = await ethers.getContractAt(["function claim(address,address,bool) external"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
+            // // await comet.claim("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb", true)
 
-            comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
-            console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
+            // console.log("CLAIMED");
+            // comet = await ethers.getContractAt(["function rewardsClaimed(address,address) external view returns(uint256)"], "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae");
+            // console.log(await comet.rewardsClaimed("0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf", "0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"))
+
+            // let h = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x354A6dA3fcde098F8389cad84b0182725c6C91dE")
+            // console.log(await h.balanceOf(deployer.address))
+
+            // comet = await ethers.getContractAt(["function baseTrackingAccrued(address) external view returns(uint256)"], "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf");
+            // console.log(await comet.baseTrackingAccrued("0xe148C9fC6Cb7E968BfF86Ec9A6a881662d8ED9bb"));
         });
     });
 });

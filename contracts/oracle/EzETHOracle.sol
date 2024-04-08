@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "./extensions/CrossRateLstOracle.sol";
+import "./extensions/CrossRateLstOraclePyth.sol";
 
-contract EzETHOracle is CrossRateLstOracle {
+contract EzETHOracle is CrossRateLstOraclePyth {
 
-    function initialize(AggregatorV3Interface _aggregatorAddress, address _ezETH, IMasterVault _masterVault, IRatioAdapter _ratioAdapter) external initializer {
+    function initialize(Pyth _aggregatorAddress, address _ezETH, IMasterVault _masterVault, IRatioAdapter _ratioAdapter) external initializer {
         __LstOracle__init(_masterVault);
         __CrossRateLstOracle__init(_aggregatorAddress, _ezETH, _ratioAdapter);
     }

@@ -1,6 +1,7 @@
 let hre = require("hardhat");
 let {ethers, upgrades} = require("hardhat");
 const {BN, ether} = require("@openzeppelin/test-helpers");
+const { deploy } = require("@openzeppelin/hardhat-upgrades/dist/utils");
 
 let wad = "000000000000000000", // 18 Decimals
     ray = "000000000000000000000000000", // 27 Decimals
@@ -15,7 +16,8 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _vat_Line, _spot_par, _dog_Hole, _abacus_tau, _earnOperator} = require(`./config_${hre.network.name}.json`);
+    let { _vat_Line, _spot_par, _dog_Hole, _abacus_tau } = require(`./config_${hre.network.name}.json`);
+    let _earnOperator = deployer.address;
 
     // Addresses
     let { _vat, _spot, _davos, _davosJoin, _jug, _vow, _dog, _abacus } = require(`./addresses_${hre.network.name}_1.json`);
