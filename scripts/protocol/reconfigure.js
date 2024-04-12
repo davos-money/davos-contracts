@@ -34,16 +34,20 @@ async function main() {
     let vat = await hre.ethers.getContractAt("Vat", _vatAddress);
     let vow = await hre.ethers.getContractAt("Vow", _vowAddress);
     let dog = await hre.ethers.getContractAt("Dog", _dogAddress);
+    let spot = await hre.ethers.getContractAt("Spotter", _spotAddress);
+    let rewards = await hre.ethers.getContractAt("DGTRewards", _rewardsAddress);
+    let jug = await hre.ethers.getContractAt("Jug", _jugAddress);
+    let davos = await hre.ethers.getContractAt("Davos", _davosAddress);
 
     let _oldInteraction = "0xbB3C4f6F468e033211E05c515E4a0B79F63A38e0";
 
     console.log("Vat init...");
     let initialNonce = await ethers.provider.getTransactionCount(deployer.address);
     let _nonce = initialNonce 
-    await vat.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await vat.rely(interaction.address, {nonce: _nonce}); _nonce += 1; console.log("2");
-    await vat.deny("0x6cFca08A8535A1029F906b1D7aCeb421372c240F", {nonce: _nonce}); _nonce += 1; console.log("3");
-    await vat.deny(_oldInteraction, {nonce: _nonce}); _nonce += 1; console.log("4");
+    // await vat.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await vat.rely(interaction.address, {nonce: _nonce}); _nonce += 1; console.log("2");
+    // await vat.deny("0x6cFca08A8535A1029F906b1D7aCeb421372c240F", {nonce: _nonce}); _nonce += 1; console.log("3");
+    // await vat.deny(_oldInteraction, {nonce: _nonce}); _nonce += 1; console.log("4");
 
     console.log("Spot init...");
     await spot.rely(interaction.address, {nonce: _nonce}); _nonce += 1; console.log("5");
