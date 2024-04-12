@@ -45,11 +45,12 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await davos.deployed();
-    davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
-    console.log("davos           :", davos.address);
-    console.log("davosImp        :", davosImp);
+    let davos = await ethers.getContractAt("Davos", "0x819d1Daa794c1c46B841981b61cC978d95A17b8e")
+    // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await davos.deployed();
+    // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
+    // console.log("davos           :", davos.address);
+    // console.log("davosImp        :", davosImp);
 
     let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosJoin.deployed();
@@ -88,7 +89,7 @@ async function main() {
         _spot           : spot.address,
         _spotImp        : spotImp,
         _davos          : davos.address,
-        _davosImp       : davosImp,
+        // _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
         _jug            : jug.address,
