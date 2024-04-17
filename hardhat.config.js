@@ -158,6 +158,30 @@ module.exports = {
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
         },
+        mantle: {
+            url: process.env.MANTLE_URL,
+            chainId: 5000,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MNT) || 'auto'
+        },
+        mantleTestnet: {
+            url: process.env.MANTLETESTNET_URL,
+            chainId: 5003,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MNT) || 'auto'
+        },
+        base: {
+            url: process.env.BASE_URL,
+            chainId: 8453,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BAS) || 'auto'
+        },
+        baseTestnet: {
+            url: process.env.BASETESTNET_URL,
+            chainId: 84532,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BAS) || 'auto'
+        }
     },
 
     etherscan: {
