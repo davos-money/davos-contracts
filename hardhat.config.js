@@ -1,5 +1,5 @@
 require("dotenv").config();
-require("@nomiclabs/hardhat-etherscan");
+// require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-web3');
@@ -10,6 +10,8 @@ require('hardhat-spdx-license-identifier');
 require('hardhat-abi-exporter');
 require('hardhat-storage-layout');
 require('@openzeppelin/hardhat-upgrades');
+require("@nomicfoundation/hardhat-verify");
+
 const fs = require("fs");
 
 module.exports = {
@@ -152,7 +154,7 @@ module.exports = {
         },
         lineaTestnet: {
             url: process.env.LINEATESTNET_URL,
-            chainId: 59140,
+            chainId: 59141,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
         },
@@ -162,14 +164,20 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-              network: "zkevmTestnet",
-              chainId: 1442,
+              network: "modeTestnet",
+              chainId: 919,
               urls: {
-                apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
-                browserURL: "https://testnet-zkevm.polygonscan.com/"
+                apiURL: "https://api.routescan.io/v2/network/testnet/evm/919/etherscan",
+                browserURL: "https://testnet.modescan.io"
               }
             }
           ]
+    },
+
+    sourcify: {
+        // Disabled by default
+        // Doesn't need an API key
+        enabled: true
     },
 
     mocha: {

@@ -17,7 +17,7 @@ async function main() {
     // this.TUP = await hre.ethers.getContractFactory(TUPABI.abi, TUPABI.bytecode);
     this.LSTFeed = await hre.ethers.getContractFactory("LSTFeed");
     
-    // console.log((await (await this.O.deploy()).deployed()).address)
+    console.log((await (await this.O.deploy()).deployed()).address)
     // // Deployment
     // console.log("Deploying...");
     // let proxy = await this.TUP.deploy("0x9ed9f3e630253fE798cBEf13Be66B78EB9373B22", "0xD3Ca61303C70e3615e7345C41A3aB5c51F92bE9a", "0x");
@@ -34,13 +34,13 @@ async function main() {
     // let o = await this.O.deploy(); await o.deployed();
     // console.log(o.address);
 
-    // let t = await upgrades.deployProxy(this.Token, ["Wrapped Staked ETH", "wstETH"], {initializer: "initialize"});
-    // await t.deployed();
-    // let ts = await upgrades.erc1967.getImplementationAddress(t.address);
-    // console.log("wcUSDC           : " + t.address);
-    // console.log("Imp              : " + ts);
+    let t = await upgrades.deployProxy(this.Token, ["Ionic USDT", "ionUSDT"], {initializer: "initialize"});
+    await t.deployed();
+    let ts = await upgrades.erc1967.getImplementationAddress(t.address);
+    console.log("wcUSDC           : " + t.address);
+    console.log("Imp              : " + ts);
 
-    console.log(await(await this.LSTFeed.deploy("0x9C17e6853d0f233bFA29ddbF08CdDE1a8eaf3FF2", ["0xf865a20D994DfFF6039A5CD503e418CeaC3A2731", NULL_ADDRESS, 2, 'ratio()', '', ''])).address)
+    // console.log(await(await this.LSTFeed.deploy("0x9C17e6853d0f233bFA29ddbF08CdDE1a8eaf3FF2", ["0xf865a20D994DfFF6039A5CD503e418CeaC3A2731", NULL_ADDRESS, 2, 'ratio()', '', ''])).address)
 
 
     //  // Store Deployed Contracts
