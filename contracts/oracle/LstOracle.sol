@@ -5,6 +5,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 interface IMasterVault {
+    function asset() external view returns (address);
     function previewRedeem(uint256 shares) external view returns (uint256);
     function decimals() external view returns (uint256);
 }
@@ -33,7 +34,8 @@ abstract contract LstOracle is Initializable {
 
         // Get LST equivalent to 1 share in MasterVault
         uint256 vaultShares = masterVault.previewRedeem(1e18);
-        uint256 sharePrice = (lsTokenPrice * vaultShares) / 1e6;
+        uint256 decimals = IMasterVault(masterVault.asset()).decimals();
+        uint256 sharePrice = (lsTokenPrice * vaultShares) / 10**decimals;
 
         return (bytes32(sharePrice), true);
     }

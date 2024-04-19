@@ -17,12 +17,12 @@ async function main() {
 
     // Config
     let { _vat_Line, _spot_par, _dog_Hole, _abacus_tau } = require(`./config_${hre.network.name}.json`);
-    let _earnOperator = deployer.address;
+    // let _earnOperator = deployer.address;
 
     // Addresses
     let { _vat, _spot, _davos, _davosJoin, _jug, _vow, _dog, _abacus } = require(`./addresses_${hre.network.name}_1.json`);
     let { _rewards, _interaction } = require(`./addresses_${hre.network.name}_2.json`);
-    let { _jar } = require(`./addresses_${hre.network.name}_3.json`);
+    // let { _jar } = require(`./addresses_${hre.network.name}_3.json`);
 
     // Attaching
     let vat = await hre.ethers.getContractAt("Vat", _vat);
@@ -39,7 +39,7 @@ async function main() {
     // this.DgtOracle = await hre.ethers.getContractAt("DGTOracle", ""); 
     let interaction = await hre.ethers.getContractAt("Interaction", _interaction);
 
-    let jar = await hre.ethers.getContractAt("Jar", _jar);
+    // let jar = await hre.ethers.getContractAt("Jar", _jar);
 
     console.log("Vat init...");
     await vat.rely(spot.address, {nonce: _nonce}); _nonce += 1;
@@ -49,9 +49,9 @@ async function main() {
     await vat.rely(interaction.address, {nonce: _nonce}); _nonce += 1;
     await vat["file(bytes32,uint256)"](ethers.utils.formatBytes32String("Line"), _vat_Line + rad, {nonce: _nonce}); _nonce += 1;
     
-    console.log("Davos init...");
-    await davos.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
-    await davos.setSupplyCap("5000000" + wad, {nonce: _nonce}); _nonce += 1;
+    // console.log("Davos init...");
+    // await davos.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
+    // await davos.setSupplyCap("5000000" + wad, {nonce: _nonce}); _nonce += 1;
 
     console.log("Spot init...");
     await spot.rely(interaction.address, {nonce: _nonce}); _nonce += 1;
@@ -103,8 +103,8 @@ async function main() {
     console.log("Abaci init...");
     await abacus.connect(deployer)["file(bytes32,uint256)"](ethers.utils.formatBytes32String("tau"), _abacus_tau, {nonce: _nonce}); _nonce += 1; // Price will reach 0 after this time
 
-    console.log("Jar...");
-    await jar.addOperator(_earnOperator);
+    // console.log("Jar...");
+    // await jar.addOperator(_earnOperator);
 
     console.log("Protocol Ready !!!");
 }

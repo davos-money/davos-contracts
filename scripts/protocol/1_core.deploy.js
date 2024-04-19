@@ -17,8 +17,7 @@ async function main() {
     let _nonce = initialNonce
         
     // Config 
-    let { _chainId } = require(`./config_${hre.network.name}.json`);
-    let _multisig = deployer.address;
+    let { _chainId, _multisig } = require(`./config_${hre.network.name}.json`);
 
     // Fetching
     this.Vat = await hre.ethers.getContractFactory("Vat");
@@ -32,7 +31,7 @@ async function main() {
 
     // Deployment
     console.log("Core...");
-
+    
     let vat = await upgrades.deployProxy(this.Vat, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await vat.deployed();
     vatImp = await upgrades.erc1967.getImplementationAddress(vat.address);
@@ -45,11 +44,12 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await davos.deployed();
-    davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
-    console.log("davos           :", davos.address);
-    console.log("davosImp        :", davosImp);
+    let davos = await ethers.getContractAt("Davos", "0xA88B54E6b76Fb97CdB8eCAE868f1458e18a953F4");
+    // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await davos.deployed();
+    // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
+    // console.log("davos           :", davos.address);
+    // console.log("davosImp        :", davosImp);
 
     let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosJoin.deployed();
@@ -88,7 +88,7 @@ async function main() {
         _spot           : spot.address,
         _spotImp        : spotImp,
         _davos          : davos.address,
-        _davosImp       : davosImp,
+        // _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
         _jug            : jug.address,
