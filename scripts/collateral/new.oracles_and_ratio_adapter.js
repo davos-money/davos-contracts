@@ -28,7 +28,7 @@ async function main() {
     let _masterVault1 = require(`../addresses_${hre.network.name}_collateral_mUSDC.json`);
     let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
     let _masterVault3 = require(`../addresses_${hre.network.name}_collateral_ezETH.json`);
-    let _masterVault4 = require(`../addresses_${hre.network.name}_collateral_wstETH.json`);
+    // let _masterVault4 = require(`../addresses_${hre.network.name}_collateral_wstETH.json`);
     // let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
 
     // Fetching
