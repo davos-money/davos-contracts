@@ -181,6 +181,18 @@ module.exports = {
             chainId: 84532,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BAS) || 'auto'
+        },
+        xLayer: {
+            url: process.env.XLAYER_URL,
+            chainId: 196,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_XLA) || 'auto'
+        },
+        xLayerTestnet: {
+            url: process.env.XLAYERTESTNET_URL,
+            chainId: 195,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_XLA) || 'auto'
         }
     },
 
@@ -189,10 +201,10 @@ module.exports = {
         customChains: [
             {
               network: "linea",
-              chainId: 59144,
+              chainId: 59141,
               urls: {
-                apiURL: "https://api.lineascan.build/api",
-                browserURL: "https://lineascan.build/"
+                apiURL: "https://api-sepolia.lineascan.build/api",
+                browserURL: "https://sepolia.lineascan.build/"
               }
             }
           ]

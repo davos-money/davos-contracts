@@ -1,14 +1,14 @@
 {
-    "_ilk": "",
+    "_ilk": "0x63654d415449435f6d65555344545f3200000000000000000000000000000000",
 
-    "_underlying": "",
-    "_auctionProxy": "",
-    "_interaction": "",
-    "_vat": "",
-    "_spot": "",
-    "_dog": "",
-    "_vow": "",
-    "_abacus": "",
+    "_underlying": "0x87E0811B2b1a87a76b3465c8d4f1348797f7f06F",
+    "_auctionProxy": "0x294DDcED8CEDd4bb993b795e0d5DDE9D6760a2Cc",
+    "_interaction": "0xE9B76c7fF62E78C413ACD7C13BFd3F01a5fDB69d",
+    "_vat": "0xd4c60fA43c95F9355316ad60Eb33D55e6c7a5aEF",
+    "_spot": "0xE3Ace8AEEe49f4799f2d178098a862Df52c7b518",
+    "_dog": "0xcF038e551fd813fC58Aee87A132AD46b759e987d",
+    "_vow": "0x1708dF32128fF01b8Ea0f65bC80845663E66301F",
+    "_abacus": "0x14DF6a1095d9bde69e746A2de928B4b09723C4c4",
 
     "_ratioAdapter": "",
 

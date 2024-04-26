@@ -26,8 +26,8 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://mainnet.mode.network/",
-                blockNumber: 6587542
+                jsonRpcUrl: "https://linea.blockpi.network/v1/rpc/public",
+                blockNumber: 3940772
                 },
             },
             ],
@@ -48,13 +48,13 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x044a9c43e95AA9FD28EEa25131A62b602D304F1f"],
+            params: ["0x636162c1b66b9092b51ca6ad169601559bee2f56"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x044a9c43e95AA9FD28EEa25131A62b602D304F1f",
+            "0x636162c1b66b9092b51ca6ad169601559bee2f56",
             "0x10000000000000000000",
         ]);
-        signer2 = await ethers.getSigner("0x044a9c43e95AA9FD28EEa25131A62b602D304F1f")
+        signer2 = await ethers.getSigner("0x636162c1b66b9092b51ca6ad169601559bee2f56")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -82,7 +82,7 @@ describe('===FORK===', function () {
             // Deployment
             console.log("Deploying...");
 
-            let _underlying = "0x2BE717340023C9e14C1Bb12cb3ecBcfd3c3fB038";
+            let _underlying = "0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D";
             let _vat = "0x08ABFd7DEd42CC33900d3457118eAB7fC40b71c8";
             let _spot = "0x8D575d202B7653fb2E076Be451B006626Cc31858";
             let _dog = "0xE309C0FE37D3696Cf8c13A629Dc43eAEfC077418";
@@ -170,21 +170,21 @@ describe('===FORK===', function () {
             // await interactionAttached.connect(signer1).setCollateralDuty(masterVault.address, "1000000001622535724756171270", {gasLimit: 25000000});; console.log("5")
 
             console.log("MAIN====");
-            let ionUSDC = await ethers.getContractAt("Davos", "0x94812F2eEa03A49869f95e1b5868C6f3206ee3D3");
+            let ionUSDC = await ethers.getContractAt("Davos", "0x2416092f143378750bb29b79eD961ab195CcEea5");
 
-            await ionUSDC.connect(signer2).approve("0xafF49343e7915532D7121dd2F31e8EB15f4bE084", "1000000");
+            await ionUSDC.connect(signer2).approve("0xCEC1919D5f5a84cE5977222bB4bc89C1992F7190", "1000000000000000000");
 
-            let davosProvider = await ethers.getContractAt("DavosProvider", "0xafF49343e7915532D7121dd2F31e8EB15f4bE084");
-            let dMatic = await ethers.getContractAt("Davos", "0x5449d4358CB87a80a655f5B398677b89230CC2CE");
+            let davosProvider = await ethers.getContractAt("DavosProvider", "0xCEC1919D5f5a84cE5977222bB4bc89C1992F7190");
+            let dMatic = await ethers.getContractAt("Davos", "0x8428F7C1Dd8Ee21e11924A7D71221641d3f2c3fA");
 
-            await davosProvider.connect(signer2).provide("1000000");
+            await davosProvider.connect(signer2).provide("1000000000000000000");
 
-            console.log(await ionUSDC.balanceOf("0xFdC5033b6Ef5DEDc6b5225B3Fbe3704C3F9638eE"));
+            console.log(await ionUSDC.balanceOf("0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7"));
             console.log(await dMatic.balanceOf(signer2.address));
 
             await davosProvider.connect(signer2).release(signer1.address, "1000000000000000000");
 
-            console.log(await ionUSDC.balanceOf("0xFdC5033b6Ef5DEDc6b5225B3Fbe3704C3F9638eE"));
+            console.log(await ionUSDC.balanceOf("0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7"));
             console.log(await dMatic.balanceOf(signer2.address));
             // let ra = await ethers.getContractAt("RatioAdapter", _ratioAdapter)
             // await ra.connect(signer1).setToken(_underlying, '', '', 'exchangeRateCurrent()', true);
