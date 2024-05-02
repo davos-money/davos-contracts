@@ -45,11 +45,13 @@ async function main() {
     this.EzETHOracle = await hre.ethers.getContractFactory("EzETHOracle");
     this.PriceFeed = await hre.ethers.getContractFactory("PriceFeed");
 
+    this.TimeLock = await hre.ethers.getContractFactory("TimeLock");
+
     this.MUSDOracle = await hre.ethers.getContractFactory("MUSDOracle");
 
     // Deployment
     console.log("Deploying...");
-    let oracle;
+    let oracle, timelock;
     let oracleImp;
 
     let oracle1, oracle2, oracle3, oracle4;
@@ -74,6 +76,16 @@ async function main() {
         // console.log("Imp               : " + oracleImp);
 
     } else if (hre.network.name == "mode" || hre.network.name == "modeTestnet") {
+        
+        oracle = await upgrades.deployProxy(this.WeETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace", "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("MODEOracle        : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
+
+
+
+
         // oracle = await upgrades.deployProxy(this.EzETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         // await oracle.deployed();
         // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
@@ -82,9 +94,14 @@ async function main() {
 
     } else if (hre.network.name == "linea" || hre.network.name == "lineaTestnet") {
 
-        oracle1 = await upgrades.deployProxy(this.WeETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle1.deployed();
-        console.log("LineaOracle        : " + oracle1.address);
+        oracle = await this.TimeLock.deploy(7200, ["0x910a845C872a6Af873D1DEc1f0Cce03034c94893"], ["0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774"], {nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        console.log("TimeLock        : " + oracle.address);
+        throw new Error("This is not an error. Execution FINISHED!");
+
+        // oracle1 = await upgrades.deployProxy(this.WeETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle1.deployed();
+        // console.log("LineaOracle        : " + oracle1.address);
 
         // oracle1 = await upgrades.deployProxy(this.MUSDOracle, ["0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5", "0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         // await oracle1.deployed();
@@ -106,7 +123,7 @@ async function main() {
 
     // Store Deployed Contracts
     const addresses = {
-        _oracle1         : oracle1.address,
+        _oracle1         : oracle.address,
         // _oracle2         : oracle2.address,
         // _oracle3         : oracle3.address,
         // _oracle4         : oracle4.address,
