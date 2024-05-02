@@ -23,11 +23,11 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _ratioAdapter } = require(`./addresses_${hre.network.name}.json`);
+    let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
     // let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
-    let _masterVault1 = require(`../addresses_${hre.network.name}_collateral_mUSDC.json`);
-    let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
-    let _masterVault3 = require(`../addresses_${hre.network.name}_collateral_ezETH.json`);
+    let _masterVault1 = require(`../addresses_${hre.network.name}_collateral.json`);
+    // let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
+    // let _masterVault3 = require(`../addresses_${hre.network.name}_collateral_ezETH.json`);
     // let _masterVault4 = require(`../addresses_${hre.network.name}_collateral_wstETH.json`);
     // let { _wcUSDC } = require(`../addresses_${hre.network.name}_asset.json`);
 
@@ -74,25 +74,29 @@ async function main() {
         // console.log("Imp               : " + oracleImp);
 
     } else if (hre.network.name == "mode" || hre.network.name == "modeTestnet") {
-        oracle = await upgrades.deployProxy(this.EzETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle.deployed();
-        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("MODEOracle        : " + oracle.address);
-        console.log("Imp               : " + oracleImp);
+        // oracle = await upgrades.deployProxy(this.EzETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        // console.log("MODEOracle        : " + oracle.address);
+        // console.log("Imp               : " + oracleImp);
 
     } else if (hre.network.name == "linea" || hre.network.name == "lineaTestnet") {
 
-        oracle1 = await upgrades.deployProxy(this.MUSDOracle, ["0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5", "0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        oracle1 = await upgrades.deployProxy(this.WeETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle1.deployed();
-        console.log("mUSDCOracle        : " + oracle1.address);
+        console.log("LineaOracle        : " + oracle1.address);
 
-        oracle2 = await upgrades.deployProxy(this.MUSDOracle, ["0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB", "0xf669C3C03D9fdF4339e19214A749E52616300E89", _masterVault2._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle2.deployed();
-        console.log("mUSDTOracle        : " + oracle2.address);
+        // oracle1 = await upgrades.deployProxy(this.MUSDOracle, ["0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5", "0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle1.deployed();
+        // console.log("mUSDCOracle        : " + oracle1.address);
 
-        oracle3 = await upgrades.deployProxy(this.EzETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault3._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle3.deployed();
-        console.log("ezETHOracle        : " + oracle3.address);
+        // oracle2 = await upgrades.deployProxy(this.MUSDOracle, ["0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB", "0xf669C3C03D9fdF4339e19214A749E52616300E89", _masterVault2._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle2.deployed();
+        // console.log("mUSDTOracle        : " + oracle2.address);
+
+        // oracle3 = await upgrades.deployProxy(this.EzETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x2416092f143378750bb29b79eD961ab195CcEea5", _masterVault3._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle3.deployed();
+        // console.log("ezETHOracle        : " + oracle3.address);
         
         // oracle4 = await upgrades.deployProxy(this.WstETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F", _masterVault4._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         // await oracle4.deployed();
@@ -103,8 +107,8 @@ async function main() {
     // Store Deployed Contracts
     const addresses = {
         _oracle1         : oracle1.address,
-        _oracle2         : oracle2.address,
-        _oracle3         : oracle3.address,
+        // _oracle2         : oracle2.address,
+        // _oracle3         : oracle3.address,
         // _oracle4         : oracle4.address,
         _initialNonce    : initialNonce
     }
