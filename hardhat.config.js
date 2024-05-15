@@ -193,6 +193,18 @@ module.exports = {
             chainId: 195,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_XLA) || 'auto'
+        },
+        blast: {
+            url: process.env.BLAST_URL,
+            chainId: 81457,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BLA) || 'auto'
+        },
+        blastTestnet: {
+            url: process.env.BLASTTESTNET_URL,
+            chainId: 168587773,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BLA) || 'auto'
         }
     },
 
@@ -200,11 +212,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-                network: "mode",
-                chainId: 34443,
+                network: "linea",
+                chainId: 59144,
                 urls: {
-                  apiURL: "https://api.routescan.io/v2/network/mainnet/evm/34443/etherscan",
-                  browserURL: "https://modescan.io"
+                  apiURL: "https://api.lineascan.build/api",
+                  browserURL: "https://lineascan.build/" 
                 }
               }
           ]

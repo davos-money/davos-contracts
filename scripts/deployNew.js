@@ -46,7 +46,7 @@ async function main() {
     //     await c.deployed();
     //     console.log(c.address);
     // } else throw("ERR:> Network Unsupported !");
-    let davos = await upgrades.deployProxy(this.Davos, ["196", "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let davos = await upgrades.deployProxy(this.Davos, ["81457", "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davos.deployed();
     davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
     console.log("davos           :", davos.address);
@@ -56,7 +56,7 @@ async function main() {
 
     initialNonce = await ethers.provider.getTransactionCount(deployer.address);
     _nonce = initialNonce
-    multisig = "0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01";
+    multisig = "0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298";
 
     await (await davos.rely(multisig, {nonce: _nonce})).wait(); _nonce += 1; console.log("Relied");
 
