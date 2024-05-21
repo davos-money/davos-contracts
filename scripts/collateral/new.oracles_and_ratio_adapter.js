@@ -23,7 +23,8 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
+    // let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
+    let _ratioAdapter1 = require(`./addresses_${hre.network.name}.json`);
     // let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
     let _masterVault1 = require(`../addresses_${hre.network.name}_collateral.json`);
     // let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
@@ -48,6 +49,8 @@ async function main() {
     this.TimeLock = await hre.ethers.getContractFactory("TimeLock");
 
     this.MUSDOracle = await hre.ethers.getContractFactory("MUSDOracle");
+
+    this.USDPlusOracle = await hre.ethers.getContractFactory("USDPlusOracle");
 
     // Deployment
     console.log("Deploying...");
@@ -118,6 +121,13 @@ async function main() {
         // oracle4 = await upgrades.deployProxy(this.WstETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F", _masterVault4._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         // await oracle4.deployed();
         // console.log("wstETHOracle       : " + oracle4.address);
+
+    } else if (hre.network.name == "base" || hre.network.name == "baseTestnet") {
+        oracle = await upgrades.deployProxy(this.USDPlusOracle, ["0x7e860098F58bBFC8648a4311b374B1D669a2bc6B", "0xd95ca61CE9aAF2143E81Ef5462C0c2325172E028", _masterVault1._masterVault, _ratioAdapter1._ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("BASEOracle        : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
 
     } else throw("NOT ALLOWED");
 

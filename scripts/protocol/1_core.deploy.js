@@ -44,7 +44,7 @@ async function main() {
     console.log("Spot            :", spot.address);
     console.log("SpotImp         :", spotImp)
 
-    let davos = await ethers.getContractAt("Davos", "0xA88B54E6b76Fb97CdB8eCAE868f1458e18a953F4");
+    let davos = await ethers.getContractAt("Davos", "0xf2393EEAdD67bf68a60f39992113775966F34E1e");
     // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     // await davos.deployed();
     // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);

@@ -43,13 +43,13 @@ async function main() {
         // console.log("WARNING: DON'T FORGET TO SET NEW RATIO ADAPTER TO VAULTS AND ORACLES");
 
         
-        await ratioAdapter.setToken("0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D", "", "", "exchangeRateStored()", true); console.log("1")
-        await ratioAdapter.setToken("0xf669C3C03D9fdF4339e19214A749E52616300E89", "", "", "exchangeRateStored()", true); console.log("2")
-        await ratioAdapter.setToken("0x2416092f143378750bb29b79eD961ab195CcEea5", "", "", "getRate()", true); console.log("3")
+        // await ratioAdapter.setToken("0x333D8b480BDB25eA7Be4Dd87EEB359988CE1b30D", "", "", "exchangeRateStored()", true); console.log("1")
+        // await ratioAdapter.setToken("0xf669C3C03D9fdF4339e19214A749E52616300E89", "", "", "exchangeRateStored()", true); console.log("2")
+        // await ratioAdapter.setToken("0x2416092f143378750bb29b79eD961ab195CcEea5", "", "", "getRate()", true); console.log("3")
 
         // await ratioAdapter.setToken("0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F", "", "", "getRate()", true); console.log("4")
 
-        await ratioAdapter.setProviderForToken("0x2416092f143378750bb29b79eD961ab195CcEea5", "0x4D7572040B84b41a6AA2efE4A93eFFF182388F88"); console.log("5")
+        // await ratioAdapter.setProviderForToken("0x2416092f143378750bb29b79eD961ab195CcEea5", "0x4D7572040B84b41a6AA2efE4A93eFFF182388F88"); console.log("5")
     // } else {
     //     ratioAdapterImp = await this.RatioAdapter.deploy();
     //     await ratioAdapterImp.deployed();

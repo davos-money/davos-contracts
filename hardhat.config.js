@@ -212,11 +212,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-                network: "linea",
-                chainId: 59144,
+                network: "mode",
+                chainId: 34443,
                 urls: {
-                  apiURL: "https://api.lineascan.build/api",
-                  browserURL: "https://lineascan.build/" 
+                  apiURL: "https://api.routescan.io/v2/network/mainnet/evm/34443/etherscan",
+                  browserURL: "https://modescan.io"
                 }
               }
           ]

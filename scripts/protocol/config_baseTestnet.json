@@ -1,0 +1,15 @@
+{
+    "_chainId": 84532,
+    "_multisig": "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+
+    "_dgtRewardsPoolLimitInEth" : "100000000",
+    "_dgtTokenRewardsSupplyinEth" : "100000000",
+    "_dgtOracleInitialPriceInWei" : "100000000000000000",
+
+    "_rewardsRate" : "1000000001847694957439350500",
+    "_vat_Line" : "5000000",
+    "_spot_par" : "1",
+    "_dog_Hole" : "50000000",
+    "_abacus_tau": "36000",
+    "_earnOperator" : "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896"
+}
