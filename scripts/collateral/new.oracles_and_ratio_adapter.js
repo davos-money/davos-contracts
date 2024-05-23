@@ -23,10 +23,10 @@ async function main() {
     let _nonce = initialNonce
 
     // Config
-    // let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
-    let _ratioAdapter1 = require(`./addresses_${hre.network.name}.json`);
-    // let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
-    let _masterVault1 = require(`../addresses_${hre.network.name}_collateral.json`);
+    let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
+    // let _ratioAdapter1 = require(`./addresses_${hre.network.name}.json`);
+    let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
+    // let _masterVault1 = require(`../addresses_${hre.network.name}_collateral.json`);
     // let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
     // let _masterVault3 = require(`../addresses_${hre.network.name}_collateral_ezETH.json`);
     // let _masterVault4 = require(`../addresses_${hre.network.name}_collateral_wstETH.json`);
@@ -52,10 +52,13 @@ async function main() {
 
     this.USDPlusOracle = await hre.ethers.getContractFactory("USDPlusOracle");
 
+    this.STONEOracle = await hre.ethers.getContractFactory("STONEOracle");
+
     // Deployment
     console.log("Deploying...");
     let oracle, timelock;
     let oracleImp;
+    let rp;
 
     let oracle1, oracle2, oracle3, oracle4;
 
@@ -97,10 +100,19 @@ async function main() {
 
     } else if (hre.network.name == "linea" || hre.network.name == "lineaTestnet") {
 
-        oracle = await this.TimeLock.deploy(7200, ["0x910a845C872a6Af873D1DEc1f0Cce03034c94893"], ["0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774"], {nonce: _nonce}); _nonce += 1;
+        // oracle = await this.TimeLock.deploy(7200, ["0x910a845C872a6Af873D1DEc1f0Cce03034c94893"], ["0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774"], {nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // console.log("TimeLock        : " + oracle.address);
+        // throw new Error("This is not an error. Execution FINISHED!");
+
+        let rpF = await ethers.getContractFactory("RateProxy");
+        rp = await rpF.deploy({nonce: _nonce}); _nonce += 1;
+        await rp.deployed();
+        console.log("RateProxy          : " + rp.address);
+
+        oracle = await upgrades.deployProxy(this.STONEOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x93F4d0ab6a8B4271f4a28Db399b5E30612D21116", _masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
-        console.log("TimeLock        : " + oracle.address);
-        throw new Error("This is not an error. Execution FINISHED!");
+        console.log("LineaOracle        : " + oracle.address);
 
         // oracle1 = await upgrades.deployProxy(this.WeETHOracle, ["0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA", "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", _masterVault1._masterVault, _ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         // await oracle1.deployed();
@@ -134,6 +146,7 @@ async function main() {
     // Store Deployed Contracts
     const addresses = {
         _oracle1         : oracle.address,
+        _rateProxy       : rp.address,
         // _oracle2         : oracle2.address,
         // _oracle3         : oracle3.address,
         // _oracle4         : oracle4.address,
