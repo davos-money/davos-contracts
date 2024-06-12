@@ -127,4 +127,9 @@ contract Token is OwnableUpgradeable, ERC20ModUpgradeable {
     function ethToSwETHRate() external view returns (uint256) {
         return ratio;
     }
+
+    // cbETH
+    function exchangeRate() external view returns (uint256) {
+        return ratio;
+    }
 }
