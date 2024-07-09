@@ -75,11 +75,13 @@ async function main() {
         // console.log("EzETHOracle       : " + oracle.address);
         // console.log("Imp               : " + oracleImp);
     } else if (hre.network.name == "ethereum" || hre.network.name == "ethereumTestnet") {
-        oracle = await upgrades.deployProxy(this.OETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", "0xDcEe70654261AF21C44c093C300eD3Bb97b78192", "0x7E6173fE3b426755B4B961c6a7686c13E3c82883", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-        await oracle.deployed();
-        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
-        console.log("OETHOracle        : " + oracle.address);
-        console.log("Imp               : " + oracleImp);
+        // oracle = await upgrades.deployProxy(this.OETHOracle, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", "0xDcEe70654261AF21C44c093C300eD3Bb97b78192", "0x7E6173fE3b426755B4B961c6a7686c13E3c82883", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        // await oracle.deployed();
+        // oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        // console.log("OETHOracle        : " + oracle.address);
+        // console.log("Imp               : " + oracleImp);
+        oracle = await ethers.getContractAt(["function changeProxyAdmin(address,address) external"], "0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7");
+        await oracle.changeProxyAdmin("0x8428F7C1Dd8Ee21e11924A7D71221641d3f2c3fA", "0x2B42585E7930FaB52696f7b853e6097B1Df7ED4E");
 
     } else if (hre.network.name == "mode" || hre.network.name == "modeTestnet") {
         
@@ -143,19 +145,19 @@ async function main() {
 
     } else throw("NOT ALLOWED");
 
-    // Store Deployed Contracts
-    const addresses = {
-        _oracle1         : oracle.address,
-        // _rateProxy       : rp.address,
-        // _oracle2         : oracle2.address,
-        // _oracle3         : oracle3.address,
-        // _oracle4         : oracle4.address,
-        _initialNonce    : initialNonce
-    }
+    // // Store Deployed Contracts
+    // const addresses = {
+    //     _oracle1         : oracle.address,
+    //     // _rateProxy       : rp.address,
+    //     // _oracle2         : oracle2.address,
+    //     // _oracle3         : oracle3.address,
+    //     // _oracle4         : oracle4.address,
+    //     _initialNonce    : initialNonce
+    // }
 
-    const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/addresses_${hre.network.name}_oracle.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/addresses_${hre.network.name}_oracle.json`);
+    // const json_addresses = JSON.stringify(addresses);
+    // fs.writeFileSync(`./scripts/addresses_${hre.network.name}_oracle.json`, json_addresses);
+    // console.log("Addresses Recorded to: " + `./scripts/addresses_${hre.network.name}_oracle.json`);
 }
 
 main()
