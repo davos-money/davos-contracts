@@ -1,20 +1,23 @@
 {
-    "_ilk": "",
+    "_ilk1": "0x4d56545f6e724554480000000000000000000000000000000000000000000000",
+    "_ilk2": "0x4d56545f6e725553444200000000000000000000000000000000000000000000",
+    
+    "_underlying1": "0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7",
+    "_underlying2": "0x96F6b70f8786646E0FF55813621eF4c03823139C",
 
-    "_underlying": "",
-    "_auctionProxy": "",
-    "_interaction": "",
-    "_vat": "",
-    "_spot": "",
-    "_dog": "",
-    "_vow": "",
-    "_abacus": "",
+    "_auctionProxy": "0x1FD7600e7a1F309044d6e4491216017A568744b9",
+    "_interaction": "0xC71428faD4469688c3B1f02C538f1e534730F429",
+    "_vat": "0x0B7c01D1a4ddFa9DdEFa5944eAc2E5c182393c05",
+    "_spot": "0xbfE8c19642929Ea9FfD1754e8DdAb880F05022f1",
+    "_dog": "0x68d0ff34196183e14F9C17DcE6566aFAc584a3C9",
+    "_vow": "0x925BEDd155c21B673bfD9F00e0eA23dd85d70186",
+    "_abacus": "0xD34176E8B4Efb3C846dC07A9938498067525F893",
 
     "_ratioAdapter": "",
 
-    "_multisig": "",
+    "_multisig": "0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298",
 
-    "_yieldInheritor": "",
+    "_yieldInheritor": "0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298",
     
     "_mat" : "1515151515151515151515151515",
     "_vat_line" : "5000000",
