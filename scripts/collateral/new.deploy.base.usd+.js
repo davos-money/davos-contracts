@@ -13,7 +13,7 @@ async function main() {
     // Config
     let { _vat, _spot, _dog} = require(`../protocol/addresses_${hre.network.name}_1.json`);
     let { _interaction } = require(`../protocol/addresses_${hre.network.name}_2.json`);
-    let _underlying = "0xd95ca61CE9aAF2143E81Ef5462C0c2325172E028";
+    let _underlying = "0xB8749F30871bbdf74C77f54EF7ABF59f6A9b8c5A";
     let _ilk = "0x4d56545f5553442b000000000000000000000000000000000000000000000000";
     // let {  _wcUSDC} = require(`../addresses_${hre.network.name}_asset.json`);
     

@@ -26,8 +26,8 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://linea.blockpi.network/v1/rpc/public",
-                blockNumber: 4225379
+                jsonRpcUrl: "https://rpc.ankr.com/eth",
+                blockNumber: 20261245
                 },
             },
             ],
@@ -38,13 +38,13 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774"],
+            params: ["0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774",
+            "0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C",
             "0x10000000000000000000",
         ]);
-        signer1 = await ethers.getSigner("0x8F0E864AE6aD45d973BD5B3159D5a7079A83B774")
+        signer1 = await ethers.getSigner("0x42bA6167ac1e5a37bA2B773EC3b7e4761cBC821C")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -169,16 +169,18 @@ describe('===FORK===', function () {
             // await interactionAttached.connect(signer1).drip(masterVault.address, {gasLimit: 2000000});; console.log("4")
             // await interactionAttached.connect(signer1).setCollateralDuty(masterVault.address, "1000000001622535724756171270", {gasLimit: 25000000});; console.log("5")
 
-            let ra = await ethers.getContractAt("RatioAdapter", "0x4D369feb9A2579e9D36BbEeDD94595446B3e977b")
-            await ra.connect(signer1).setToken("0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", "", "", "latestAnswer()", true);
-            await ra.connect(signer1).setProviderForToken("0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", "0x100c8e61aB3BeA812A42976199Fc3daFbcDD7272");
+            let ora = await ethers.getContractFactory("WoETHOracle");
+            let oraD = await upgrades.deployProxy(ora, ["0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419", "0xDcEe70654261AF21C44c093C300eD3Bb97b78192", "0x7E6173fE3b426755B4B961c6a7686c13E3c82883", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E"], {initializer: "initialize"});
+            await oraD.deployed();
 
-            console.log(await ra.toValue("0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", "1000000000000000000"))
-            console.log(await ra.fromValue("0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6", "1"))
+            let ra = await ethers.getContractAt("RatioAdapter", "0xd199260f2152fc65E35aC4950CC6a2D3D5f5412E")
+            await ra.connect(signer1).setToken("0xDcEe70654261AF21C44c093C300eD3Bb97b78192", "convertToAssets(uint256)", "convertToShares(uint256)", "", false);
+
+            console.log(await ra.toValue("0xDcEe70654261AF21C44c093C300eD3Bb97b78192", "1000000000000000000"))
+            // console.log(await ra.fromValue("0x93F4d0ab6a8B4271f4a28Db399b5E30612D21116", "1017275619456958000"))
             
-            let o = await ethers.getContractAt("Oracle", "0x4C77EF588F3D9a882a03a6Fa9763C06221674dc8")
-            console.log(await o.peek())
-            
+            console.log(await oraD.peek())
+
             // console.log("MAIN====");
             // let ionUSDC = await ethers.getContractAt("Davos", "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a");
 
