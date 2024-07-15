@@ -14,6 +14,11 @@ import "./interfaces/ICertToken.sol";
 import "./interfaces/IInteraction.sol";
 import "./interfaces/IWrapped.sol";
 
+interface INrToken {
+    function wrap(uint256 _amount) external returns (uint256);
+    function unwrap(uint256 _shares) external returns (uint256);
+}
+
 // --- Wrapping adaptor with instances per Underlying for MasterVault ---
 contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
@@ -25,7 +30,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     ICertToken public collateralDerivative;
     IERC4626Upgradeable public masterVault;
     IInteraction public interaction;
-    address public PLACEHOLDER_1;
+    address public rToken;                   // rebased token
     IWrapped public underlying;              // isNative then Wrapped, else ERC20
     bool public isNative;
 
@@ -90,6 +95,33 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         emit Withdrawal(msg.sender, _recipient, realAmount);
         return realAmount;
     }
+    function wrapAndProvide(uint256 _amount) external whenNotPaused nonReentrant returns (uint256 value) {  // rToken
+
+        IWrapped(rToken).safeTransferFrom(msg.sender, address(this), _amount);
+        _amount = IERC20(rToken).balanceOf(address(this));  // for safety
+        IWrapped(rToken).approve(address(underlying), _amount);
+
+        uint256 nrTokenAmount = INrToken(address(underlying)).wrap(_amount);  // nrToken
+
+        value = masterVault.deposit(nrTokenAmount, msg.sender);
+        value = _provideCollateral(msg.sender, value);
+
+        emit Deposit(msg.sender, value);
+        return value;
+    }
+    function releaseAndUnwrap(address _recipient, uint256 _amount) external whenNotPaused nonReentrant returns (uint256 realAmount) {
+
+        require(_recipient != address(0));
+        realAmount = _withdrawCollateral(msg.sender, _amount);
+        realAmount = masterVault.redeem(realAmount, address(this), address(this));  // nrToken
+
+        INrToken(address(underlying)).unwrap(realAmount);  // Return value unreliable
+        
+        IWrapped(rToken).safeTransfer(_recipient, IERC20(rToken).balanceOf(address(this)));  // So, for safety
+
+        emit Withdrawal(msg.sender, _recipient, realAmount);
+        return realAmount;
+    }
     
     // --- Interaction ---
     function liquidation(address _recipient, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
@@ -126,6 +158,11 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     function unPause() external onlyOwner {
 
         _unpause();
+    }
+    function changeRToken(address _rToken) external onlyOwner {
+
+        rToken = _rToken;
+        emit RTokenChanged(_rToken);
     }
     function changeCollateral(address _collateral) external onlyOwner {
 

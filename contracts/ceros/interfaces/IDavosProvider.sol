@@ -12,7 +12,7 @@ interface IDavosProvider {
     event InteractionChanged(address _interaction);
     event UnderlyingChanged(address _matic);
     event NativeStatusChanged(bool _isNative);
-    event CusdcChanged(address _cUSDC);
+    event RTokenChanged(address _cUSDC);
     event Referral(bytes32 indexed _code);
 
     // --- Functions ---

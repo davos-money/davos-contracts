@@ -212,11 +212,11 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
-                network: "mode",
-                chainId: 34443,
+                network: "blastTestnet",
+                chainId: 168587773,
                 urls: {
-                  apiURL: "https://explorer.mode.network/api",
-                  browserURL: "https://explorer.mode.network/"
+                  apiURL: "https://api-sepolia.blastscan.io/api",
+                  browserURL: "https://sepolia.blastscan.io/"
                 }
               }
           ]

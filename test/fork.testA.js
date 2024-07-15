@@ -26,8 +26,8 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://rpc.envelop.is/blast",
-                blockNumber: 5953238
+                jsonRpcUrl: "https://blast.drpc.org",
+                blockNumber: 6119876
                 },
             },
             ],
@@ -38,23 +38,23 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x910a845C872a6Af873D1DEc1f0Cce03034c94893"],
+            params: ["0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x910a845C872a6Af873D1DEc1f0Cce03034c94893",
+            "0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298",
             "0x10000000000000000000",
         ]);
-        signer1 = await ethers.getSigner("0x910a845C872a6Af873D1DEc1f0Cce03034c94893")
+        signer1 = await ethers.getSigner("0x9DA9270DE0Fa48c2626EcB57154b3D72d45BC298")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0xdC7Aa225964267c7E0EfB35f4931426209E90312"],
+            params: ["0x249aC5F4092932Cd4738c413a5666FB486A81A7A"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0xdC7Aa225964267c7E0EfB35f4931426209E90312",
+            "0x249aC5F4092932Cd4738c413a5666FB486A81A7A",
             "0x10000000000000000000",
         ]);
-        signer2 = await ethers.getSigner("0xdC7Aa225964267c7E0EfB35f4931426209E90312")
+        signer2 = await ethers.getSigner("0x249aC5F4092932Cd4738c413a5666FB486A81A7A")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -185,25 +185,96 @@ describe('===FORK===', function () {
 
             // console.log("MAIN====");
             // let ionUSDC = await ethers.getContractAt("Davos", "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a");
+
+
+            // UPGRADE
+            let factory = await ethers.getContractFactory("DavosProvider")
+            let newDp = await factory.deploy();
+            await newDp.deployed();
+
+            let dp = await ethers.getContractAt("DavosProvider", "0x9059e7bf0D97a0572b0C92aB9a788c14ACa2245C");
+
+            let pa = await ethers.getContractAt(["function upgrade(address,address) external"], "0x7b0e879f4860767d5e2455591ba025978ab3461f")
+            await pa.connect(signer1).upgrade(dp.address, newDp.address);
+
+            await dp.connect(signer1).changeRToken("0x4300000000000000000000000000000000000003")
+
+            // Test
+            let rToken = await ethers.getContractAt("Davos", "0x4300000000000000000000000000000000000003");
+            let nrToken = await ethers.getContractAt("Davos", "0x96F6b70f8786646E0FF55813621eF4c03823139C");
+
+            await rToken.connect(signer2).transfer(signer3.address, "100000000000000000000");
+            await rToken.connect(signer3).approve(dp.address, "100000000000000000000");
+
+            console.log("Provide");
+            // console.log(await rToken.balanceOf(signer3.address));
+            await dp.connect(signer3).wrapAndProvide("100000000000000000000"); // fuzz this amount
+            // console.log(await rToken.balanceOf(signer3.address));
+
+            let dcol = await ethers.getContractAt("dCol", "0xC09D8C9a780E79Df8b8aCFB5Ec1b9e66fA3B5724")
+            let mv = await ethers.getContractAt("MasterVault_V2", "0x614D9f79ee339f696AE9303f2fF6c40300364249")
+            console.log(await nrToken.balanceOf(mv.address))
+            console.log(await dcol.balanceOf(signer3.address))
+            console.log(await rToken.balanceOf(signer3.address));
+            console.log(await nrToken.balanceOf(signer3.address));
+
+            console.log("Release")
+            await dp.connect(signer3).releaseAndUnwrap(signer3.address, "96401697420000000000")
+            console.log(await nrToken.balanceOf(mv.address))
+            console.log(await dcol.balanceOf(signer3.address))
+            console.log(await rToken.balanceOf(signer3.address));
+            console.log(await nrToken.balanceOf(signer3.address));
+            console.log(await nrToken.balanceOf(dp.address));
+            console.log(await rToken.balanceOf(dp.address));
+
+
+
+
+
+
+
+
+            // let weth = await ethers.getContractAt(["function approve(address,uint256) external"], "0x4300000000000000000000000000000000000003")
+            // let nrETH = await ethers.getContractAt(["function approve(address,uint256) external", "function wrap(uint256) external"], "0x96F6b70f8786646E0FF55813621eF4c03823139C")
+
+
+            // await weth.connect(signer1).approve(nrETH.address, "2000000000000000000");
+            // await nrETH.connect(signer1).wrap("1500000000000000000");
+
+            // // nrETH = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x96F6b70f8786646E0FF55813621eF4c03823139C")
+
+            // // console.log(await nrETH.balanceOf(signer1.address))
+
+            // await nrETH.connect(signer1).approve("0x9059e7bf0D97a0572b0C92aB9a788c14ACa2245C", "2000000000")
+
+            // let dp = await ethers.getContractAt("DavosProvider", "0x9059e7bf0D97a0572b0C92aB9a788c14ACa2245C")
+
+            // await dp.connect(signer1).provide("1000000000")
+
+            // nrETH = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0x96F6b70f8786646E0FF55813621eF4c03823139C")
+            // console.log(await nrETH.balanceOf(signer1.address))
+
+            // let mv = await ethers.getContractAt("MasterVault_V2", "0xC09D8C9a780E79Df8b8aCFB5Ec1b9e66fA3B5724")
+            // console.log(await mv.balanceOf(signer1.address))
             
-            let mv1 = await ethers.getContractAt("MasterVault_V2", "0xF41f47eeB7379837D87Af0C32DB76E5925b8555e")
-            let mv2 = await ethers.getContractAt("MasterVault_V2", "0x614D9f79ee339f696AE9303f2fF6c40300364249")
+            // let mv1 = await ethers.getContractAt("MasterVault_V2", "0xF41f47eeB7379837D87Af0C32DB76E5925b8555e")
+            // let mv2 = await ethers.getContractAt("MasterVault_V2", "0x614D9f79ee339f696AE9303f2fF6c40300364249")
 
-            await mv1.connect(signer1).changeAdapter("0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
-            await mv2.connect(signer1).changeAdapter("0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
+            // await mv1.connect(signer1).changeAdapter("0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
+            // await mv2.connect(signer1).changeAdapter("0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
 
-            let ra = await ethers.getContractAt("RatioAdapter", "0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
+            // let ra = await ethers.getContractAt("RatioAdapter", "0xbac16a2f52bfd14abB561aB702AEBcf906F41A9A")
 
-            await ra.connect(signer1).setToken("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", "getStERC20ByNrERC20(uint256)", "getNrERC20ByStERC20(uint256)", "", false)
-            await ra.connect(signer1).setToken("0x96F6b70f8786646E0FF55813621eF4c03823139C", "getStERC20ByNrERC20(uint256)", "getNrERC20ByStERC20(uint256)", "", false)
+            // await ra.connect(signer1).setToken("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", "getStERC20ByNrERC20(uint256)", "getNrERC20ByStERC20(uint256)", "", false)
+            // await ra.connect(signer1).setToken("0x96F6b70f8786646E0FF55813621eF4c03823139C", "getStERC20ByNrERC20(uint256)", "getNrERC20ByStERC20(uint256)", "", false)
 
-            let  o1 = await ethers.getContractAt("Oracle", "0x5A33ec018D86aFc97328B8007c3c7fA88D64356E")
-            let  o2 = await ethers.getContractAt("Oracle", "0xEF72987B4A9Af2783b7a282294F7087937faf576")
+            // let  o1 = await ethers.getContractAt("Oracle", "0x5A33ec018D86aFc97328B8007c3c7fA88D64356E")
+            // let  o2 = await ethers.getContractAt("Oracle", "0xEF72987B4A9Af2783b7a282294F7087937faf576")
 
-            console.log(await ra.toValue("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", "1000000000"))
-            // console.log(await ra.fromValue("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", ""))
+            // console.log(await ra.toValue("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", "1000000000"))
+            // // console.log(await ra.fromValue("0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7", ""))
 
-            console.log(await ra.toValue("0x96F6b70f8786646E0FF55813621eF4c03823139C", "1000000000"))
+            // console.log(await ra.toValue("0x96F6b70f8786646E0FF55813621eF4c03823139C", "1000000000"))
             // console.log(await ra.fromValue("0x96F6b70f8786646E0FF55813621eF4c03823139C", ""))
             // await ionUSDC.connect(signer2).approve("0x3210dCdaC1DCf2619Efd6423be83Cc7B815425f2", "1000000000000000000");
 
