@@ -27,7 +27,7 @@ describe('===FORK===', function () {
             {
                 forking: {
                 jsonRpcUrl: "https://blast.drpc.org",
-                blockNumber: 6119876
+                blockNumber: 6196142
                 },
             },
             ],
@@ -48,13 +48,13 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x249aC5F4092932Cd4738c413a5666FB486A81A7A"],
+            params: ["0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x249aC5F4092932Cd4738c413a5666FB486A81A7A",
+            "0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66",
             "0x10000000000000000000",
         ]);
-        signer2 = await ethers.getSigner("0x249aC5F4092932Cd4738c413a5666FB486A81A7A")
+        signer2 = await ethers.getSigner("0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -188,20 +188,20 @@ describe('===FORK===', function () {
 
 
             // UPGRADE
-            let factory = await ethers.getContractFactory("DavosProvider")
-            let newDp = await factory.deploy();
-            await newDp.deployed();
+            // let factory = await ethers.getContractFactory("DavosProvider")
+            // let newDp = await factory.deploy();
+            // await newDp.deployed();
 
-            let dp = await ethers.getContractAt("DavosProvider", "0x9059e7bf0D97a0572b0C92aB9a788c14ACa2245C");
+            let dp = await ethers.getContractAt("DavosProvider", "0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7");
 
-            let pa = await ethers.getContractAt(["function upgrade(address,address) external"], "0x7b0e879f4860767d5e2455591ba025978ab3461f")
-            await pa.connect(signer1).upgrade(dp.address, newDp.address);
+            // let pa = await ethers.getContractAt(["function upgrade(address,address) external"], "0x7b0e879f4860767d5e2455591ba025978ab3461f")
+            // await pa.connect(signer1).upgrade(dp.address, newDp.address);
 
-            await dp.connect(signer1).changeRToken("0x4300000000000000000000000000000000000003")
+            await dp.connect(signer1).changeRToken("0x4300000000000000000000000000000000000004")
 
             // Test
-            let rToken = await ethers.getContractAt("Davos", "0x4300000000000000000000000000000000000003");
-            let nrToken = await ethers.getContractAt("Davos", "0x96F6b70f8786646E0FF55813621eF4c03823139C");
+            let rToken = await ethers.getContractAt("Davos", "0x4300000000000000000000000000000000000004");
+            let nrToken = await ethers.getContractAt("Davos", "0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7");
 
             await rToken.connect(signer2).transfer(signer3.address, "100000000000000000000");
             await rToken.connect(signer3).approve(dp.address, "100000000000000000000");
@@ -211,15 +211,15 @@ describe('===FORK===', function () {
             await dp.connect(signer3).wrapAndProvide("100000000000000000000"); // fuzz this amount
             // console.log(await rToken.balanceOf(signer3.address));
 
-            let dcol = await ethers.getContractAt("dCol", "0xC09D8C9a780E79Df8b8aCFB5Ec1b9e66fA3B5724")
-            let mv = await ethers.getContractAt("MasterVault_V2", "0x614D9f79ee339f696AE9303f2fF6c40300364249")
-            console.log(await nrToken.balanceOf(mv.address))
+            let dcol = await ethers.getContractAt("dCol", "0x8d7afbe930f36519DF580aAF45C31cAa470731F4")
+            let mv = await ethers.getContractAt("MasterVault_V2", "0xF41f47eeB7379837D87Af0C32DB76E5925b8555e")
+            console.log(await nrToken.balanceOf(mv.address)) 
             console.log(await dcol.balanceOf(signer3.address))
             console.log(await rToken.balanceOf(signer3.address));
             console.log(await nrToken.balanceOf(signer3.address));
 
             console.log("Release")
-            await dp.connect(signer3).releaseAndUnwrap(signer3.address, "96401697420000000000")
+            await dp.connect(signer3).releaseAndUnwrap(signer3.address, "98769280637000000000")
             console.log(await nrToken.balanceOf(mv.address))
             console.log(await dcol.balanceOf(signer3.address))
             console.log(await rToken.balanceOf(signer3.address));
