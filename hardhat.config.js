@@ -1,15 +1,15 @@
 require("dotenv").config();
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
-require('@nomiclabs/hardhat-truffle5');
-require('@nomiclabs/hardhat-web3');
+require("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-web3");
+require("hardhat-spdx-license-identifier");
 require("hardhat-gas-reporter");
-require('hardhat-contract-sizer');
+require("hardhat-contract-sizer");
+require("hardhat-abi-exporter");
+require("hardhat-storage-layout");
 require("solidity-coverage");
-require('hardhat-spdx-license-identifier');
-require('hardhat-abi-exporter');
-require('hardhat-storage-layout');
-require('@openzeppelin/hardhat-upgrades');
+require("@openzeppelin/hardhat-upgrades");
 const fs = require("fs");
 
 module.exports = {
@@ -17,38 +17,19 @@ module.exports = {
         compilers: [
             {
                 version: '0.8.15',
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 100
-                    }
-                }
+                settings: { optimizer: { enabled: true, runs: 100 } }
             },
             {
                 version: '0.8.10',
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 100
-                    }
-                }
+                settings: { optimizer: { enabled: true, runs: 100 } }
             },
             {
                 version: '0.7.6',
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 100
-                    }
-                }
-            },{
+                settings: { optimizer: { enabled: true, runs: 100 } }
+            },
+            {
                 version: '0.8.2',
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 100
-                    }
-                }
+                settings: { optimizer: { enabled: true, runs: 100 } }
             }
         ]
     },
@@ -56,9 +37,7 @@ module.exports = {
     networks: {
         hardhat: 
         {
-            accounts: {
-                accountsBalance: "100000000000000000000000000",
-              },
+            accounts: { accountsBalance: "100000000000000000000000000" }
         },
         ethereum: {
             url: process.env.ETHEREUM_URL,
@@ -67,7 +46,7 @@ module.exports = {
             gasPrice: parseInt(process.env.GAS_PRICE_ETH) || 'auto'
         },
         ethereumTestnet: {
-            url: process.env.GOERLI_URL,
+            url: process.env.ETHEREUMTESTNET_URL,
             chainId: 5,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_ETH) || 'auto'
@@ -79,7 +58,7 @@ module.exports = {
             gasPrice: parseInt(process.env.GAS_PRICE_POL) || 'auto'
         },
         polygonTestnet: {
-            url: process.env.MUMBAI_URL,
+            url: process.env.POLYGONTESTNET_URL,
             chainId: 80001,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_POL) || 'auto'
@@ -91,7 +70,7 @@ module.exports = {
             gasPrice: parseInt(process.env.GAS_PRICE_ARB) || 'auto'
         },
         arbitrumTestnet: {
-            url: process.env.ARBITRUMGOERLI_URL,
+            url: process.env.ARBITRUMTESTNET_URL,
             chainId: 421613,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_ARB) || 'auto'
@@ -103,7 +82,7 @@ module.exports = {
             gasPrice: parseInt(process.env.GAS_PRICE_OPT) || 'auto'
         },
         optimismTestnet: {
-            url: process.env.OPTIMISMGOERLI_URL,
+            url: process.env.OPTIMISMTESTNET_URL,
             chainId: 420,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_OPT) || 'auto'
@@ -131,6 +110,90 @@ module.exports = {
             chainId: 97,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BSC) || 'auto'
+        },
+        mode: {
+            url: process.env.MODE_URL,
+            chainId: 34443,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MOD) || 'auto'
+        },
+        modeTestnet: {
+            url: process.env.MODETESTNET_URL,
+            chainId: 919,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MOD) || 'auto'
+        },
+        linea: {
+            url: process.env.LINEA_URL,
+            chainId: 59144,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
+        lineaTestnet: {
+            url: process.env.LINEATESTNET_URL,
+            chainId: 59141,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_LIN) || 'auto'
+        },
+        mantle: {
+            url: process.env.MANTLE_URL,
+            chainId: 5000,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MNT) || 'auto'
+        },
+        mantleTestnet: {
+            url: process.env.MANTLETESTNET_URL,
+            chainId: 5003,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MNT) || 'auto'
+        },
+        base: {
+            url: process.env.BASE_URL,
+            chainId: 8453,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BAS) || 'auto'
+        },
+        baseTestnet: {
+            url: process.env.BASETESTNET_URL,
+            chainId: 84532,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BAS) || 'auto'
+        },
+        xLayer: {
+            url: process.env.XLAYER_URL,
+            chainId: 196,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_XLA) || 'auto'
+        },
+        xLayerTestnet: {
+            url: process.env.XLAYERTESTNET_URL,
+            chainId: 195,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_XLA) || 'auto'
+        },
+        blast: {
+            url: process.env.BLAST_URL,
+            chainId: 81457,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BLA) || 'auto'
+        },
+        blastTestnet: {
+            url: process.env.BLASTTESTNET_URL,
+            chainId: 168587773,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BLA) || 'auto'
+        },
+        bitLayer: {
+            url: process.env.BITLAYER_URL,
+            chainId: 200901,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BIT) || 'auto'
+        },
+        bitLayerTestnet: {
+            url: process.env.BITLAYERTESTNET_URL,
+            chainId: 200810,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BIT) || 'auto'
         }
     },
 
