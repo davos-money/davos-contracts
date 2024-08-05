@@ -205,6 +205,18 @@ module.exports = {
             chainId: 168587773,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BLA) || 'auto'
+        },
+        bitLayer: {
+            url: process.env.BITLAYER_URL,
+            chainId: 200901,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BIT) || 'auto'
+        },
+        bitLayerTestnet: {
+            url: process.env.BITLAYERTESTNET_URL,
+            chainId: 200810,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BIT) || 'auto'
         }
     },
 

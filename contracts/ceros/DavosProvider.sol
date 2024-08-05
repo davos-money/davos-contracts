@@ -14,6 +14,11 @@ import "./interfaces/ICertToken.sol";
 import "./interfaces/IInteraction.sol";
 import "./interfaces/IWrapped.sol";
 
+interface IWAToken {
+    function deposit(uint256 assets, address receiver) external returns (uint256);
+    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
+}
+
 // --- Wrapping adaptor with instances per Underlying for MasterVault ---
 contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
 
@@ -25,7 +30,7 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     ICertToken public collateralDerivative;
     IERC4626Upgradeable public masterVault;
     IInteraction public interaction;
-    address public PLACEHOLDER_1;
+    address public aToken;
     IWrapped public underlying;              // isNative then Wrapped, else ERC20
     bool public isNative;
 
@@ -90,6 +95,31 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
         emit Withdrawal(msg.sender, _recipient, realAmount);
         return realAmount;
     }
+    function wrapAndProvide(uint256 _amount) external whenNotPaused nonReentrant returns (uint256 value) {  // wAtoken
+
+        IWrapped(aToken).safeTransferFrom(msg.sender, address(this), _amount);  // might decrease balanceOf by 1
+        IWrapped(aToken).approve(address(underlying), type(uint256).max);
+        uint256 actualBalance = IWrapped(aToken).balanceOf(address(this));  // We get actual balance if balanceOf was decreased by 1
+
+        uint256 wAtoken = IWAToken(address(underlying)).deposit(actualBalance, address(this));
+
+        value = masterVault.deposit(wAtoken, msg.sender);
+        value = _provideCollateral(msg.sender, value);
+
+        emit Deposit(msg.sender, value);
+        return value;
+    }
+    function releaseAndUnwrap(address _recipient, uint256 _amount) external whenNotPaused nonReentrant returns (uint256 realAmount) {
+
+        require(_recipient != address(0));
+        realAmount = _withdrawCollateral(msg.sender, _amount);
+        realAmount = masterVault.redeem(realAmount, address(this), address(this));  // wAtoken
+
+        IWAToken(address(underlying)).redeem(realAmount, _recipient, address(this));
+
+        emit Withdrawal(msg.sender, _recipient, realAmount);
+        return realAmount;
+    }
     
     // --- Interaction ---
     function liquidation(address _recipient, uint256 _amount) external override onlyOwnerOrInteraction nonReentrant {
@@ -126,6 +156,11 @@ contract DavosProvider is IDavosProvider, OwnableUpgradeable, PausableUpgradeabl
     function unPause() external onlyOwner {
 
         _unpause();
+    }
+    function changeAToken(address _aToken) external onlyOwner {
+
+        aToken = _aToken;
+        emit ATokenChanged(_aToken);
     }
     function changeCollateral(address _collateral) external onlyOwner {
 

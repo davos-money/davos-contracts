@@ -26,15 +26,15 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://blast.drpc.org",
-                blockNumber: 6196142
+                jsonRpcUrl: "https://rpc.ankr.com/bitlayer",
+                blockNumber: 3505962
                 },
             },
             ],
         });
 
         // ACCOUNTS
-        [deployer] = await ethers.getSigners();
+        [deployer, civilian] = await ethers.getSigners();
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -48,23 +48,23 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66"],
+            params: ["0x30800c939725fe736f9d497c9d194dbe1f2a4e6c"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66",
+            "0x30800c939725fe736f9d497c9d194dbe1f2a4e6c",
             "0x10000000000000000000",
         ]);
-        signer2 = await ethers.getSigner("0x559e44572145aABf6Fdbc7E49dB92bB6e6079C66")
+        signer2 = await ethers.getSigner("0x30800c939725fe736f9d497c9d194dbe1f2a4e6c")
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x2850C2929B33BCE33b8aa81B0A9D1d3632118896"],
+            params: ["0x359d4104302c250f49fa35c1da2ef26589669dfd"],
         });
         await network.provider.send("hardhat_setBalance", [
-            "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+            "0x359d4104302c250f49fa35c1da2ef26589669dfd",
             "0x10000000000000000000",
         ]);
-        signer3 = await ethers.getSigner("0x2850C2929B33BCE33b8aa81B0A9D1d3632118896")
+        signer3 = await ethers.getSigner("0x359d4104302c250f49fa35c1da2ef26589669dfd")
     });
 
     describe('-', function () {
@@ -192,45 +192,103 @@ describe('===FORK===', function () {
             // let newDp = await factory.deploy();
             // await newDp.deployed();
 
-            let dp = await ethers.getContractAt("DavosProvider", "0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7");
+            // let dp = await ethers.getContractAt("DavosProvider", "0x2770cB901e6d990B4F5C35E0732821eBf9d3acb7");
 
-            // let pa = await ethers.getContractAt(["function upgrade(address,address) external"], "0x7b0e879f4860767d5e2455591ba025978ab3461f")
-            // await pa.connect(signer1).upgrade(dp.address, newDp.address);
+            // // let pa = await ethers.getContractAt(["function upgrade(address,address) external"], "0x7b0e879f4860767d5e2455591ba025978ab3461f")
+            // // await pa.connect(signer1).upgrade(dp.address, newDp.address);
 
-            await dp.connect(signer1).changeRToken("0x4300000000000000000000000000000000000004")
+            // await dp.connect(signer1).changeRToken("0x4300000000000000000000000000000000000004")
 
-            // Test
-            let rToken = await ethers.getContractAt("Davos", "0x4300000000000000000000000000000000000004");
-            let nrToken = await ethers.getContractAt("Davos", "0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7");
+            // // Test
+            // let rToken = await ethers.getContractAt("Davos", "0x4300000000000000000000000000000000000004");
+            // let nrToken = await ethers.getContractAt("Davos", "0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7");
 
-            await rToken.connect(signer2).transfer(signer3.address, "100000000000000000000");
-            await rToken.connect(signer3).approve(dp.address, "100000000000000000000");
+            // await rToken.connect(signer2).transfer(signer3.address, "100000000000000000000");
+            // await rToken.connect(signer3).approve(dp.address, "100000000000000000000");
 
-            console.log("Provide");
+            // console.log("Provide");
+            // // console.log(await rToken.balanceOf(signer3.address));
+            // await dp.connect(signer3).wrapAndProvide("100000000000000000000"); // fuzz this amount
+            // // console.log(await rToken.balanceOf(signer3.address));
+
+            // let dcol = await ethers.getContractAt("dCol", "0x8d7afbe930f36519DF580aAF45C31cAa470731F4")
+            // let mv = await ethers.getContractAt("MasterVault_V2", "0xF41f47eeB7379837D87Af0C32DB76E5925b8555e")
+            // console.log(await nrToken.balanceOf(mv.address)) 
+            // console.log(await dcol.balanceOf(signer3.address))
             // console.log(await rToken.balanceOf(signer3.address));
-            await dp.connect(signer3).wrapAndProvide("100000000000000000000"); // fuzz this amount
+            // console.log(await nrToken.balanceOf(signer3.address));
+
+            // console.log("Release")
+            // await dp.connect(signer3).releaseAndUnwrap(signer3.address, "98769280637000000000")
+            // console.log(await nrToken.balanceOf(mv.address))
+            // console.log(await dcol.balanceOf(signer3.address))
             // console.log(await rToken.balanceOf(signer3.address));
+            // console.log(await nrToken.balanceOf(signer3.address));
+            // console.log(await nrToken.balanceOf(dp.address));
+            // console.log(await rToken.balanceOf(dp.address));
 
-            let dcol = await ethers.getContractAt("dCol", "0x8d7afbe930f36519DF580aAF45C31cAa470731F4")
-            let mv = await ethers.getContractAt("MasterVault_V2", "0xF41f47eeB7379837D87Af0C32DB76E5925b8555e")
-            console.log(await nrToken.balanceOf(mv.address)) 
-            console.log(await dcol.balanceOf(signer3.address))
-            console.log(await rToken.balanceOf(signer3.address));
-            console.log(await nrToken.balanceOf(signer3.address));
+            // Deploy WATOKEN
+            let waToken = await ethers.getContractFactory("WAToken");
+            waToken = await upgrades.deployProxy(waToken, ["Wrapped aToken", "WAToken", "0xa984b70f7b41ee736b487d5f3d9c1e1026476ea3"], {initializer: "initialize"});
+            await waToken.deployed();
 
-            console.log("Release")
-            await dp.connect(signer3).releaseAndUnwrap(signer3.address, "98769280637000000000")
-            console.log(await nrToken.balanceOf(mv.address))
-            console.log(await dcol.balanceOf(signer3.address))
-            console.log(await rToken.balanceOf(signer3.address));
-            console.log(await nrToken.balanceOf(signer3.address));
-            console.log(await nrToken.balanceOf(dp.address));
-            console.log(await rToken.balanceOf(dp.address));
+            let wrappedTG = await ethers.getContractAt(["function depositETH(address,address,uint16) external payable"], "0x5a4247763709c251c8dA359674D5C362FDAc626D")
+            let wBTC = await ethers.getContractAt("Davos", "0xff204e2681a6fa0e2c3fade68a1b28fb90e4fc5f")
+            
+            // Signer1 deposits aToken
+            let aToken = await ethers.getContractAt("WAToken", "0xa984b70f7b41ee736b487d5f3d9c1e1026476ea3");
+
+            console.log(await aToken.balanceOf(signer1.address));
+            console.log(await aToken.balanceOf(civilian.address));
+
+            await aToken.connect(signer2).transfer(signer1.address, "200000000000000000");
+            await aToken.connect(signer2).transfer(civilian.address, "200000000000000000");
+
+            console.log(await aToken.balanceOf(signer1.address));
+            console.log(await aToken.balanceOf(civilian.address));
+
+            await aToken.connect(signer1).approve(waToken.address, "2000000000275746856")
+            await aToken.connect(civilian).approve(waToken.address, "1000000000000000000")
+            await aToken.connect(signer2).approve(waToken.address, "200000000000000000")
+
+            await waToken.connect(signer1).deposit("200000000000000000", signer1.address);
+            await waToken.connect(civilian).deposit("200000000000000000", civilian.address);
+            await waToken.connect(signer2).deposit("200000000000000000", signer2.address);
+
+            console.log(await aToken.balanceOf(signer1.address));
+            console.log(await aToken.balanceOf(civilian.address));
+            console.log(await aToken.balanceOf(waToken.address));
 
 
+            console.log("SOMEBODY DEPOSITS")
+            // console.log("RATE:" + await waToken.rate())
+            await wrappedTG.connect(signer3).depositETH(signer3.address, signer3.address, 0, {value: "40000000000000000000000"});
+            await wrappedTG.connect(signer3).depositETH(signer3.address, signer3.address, 0, {value: "4000000000000000000000"});
+
+            // console.log("RATE:" + await waToken.rate())
 
 
+            console.log(await aToken.balanceOf(signer1.address));
+            console.log(await aToken.balanceOf(civilian.address));
+            console.log(await aToken.balanceOf(waToken.address));
 
+            console.log("DESCEND");
+
+            console.log(await waToken.balanceOf(signer1.address))
+            console.log(await waToken.balanceOf(civilian.address))
+            console.log(await waToken.balanceOf(signer2.address))
+
+            let bal = await waToken.balanceOf(signer1.address)
+            let bal2 = await waToken.balanceOf(civilian.address)
+
+            await waToken.connect(signer1).redeem(bal, signer1.address, signer1.address);
+            await waToken.connect(civilian).redeem(bal2, civilian.address, civilian.address);
+            console.log(await waToken.balanceOf(signer1.address))
+            console.log(await aToken.balanceOf(signer1.address));
+            console.log(await waToken.balanceOf(civilian.address))
+            console.log(await aToken.balanceOf(civilian.address));
+            console.log(await aToken.balanceOf(waToken.address));
+            console.log(await waToken.balanceOf(signer2.address))
 
 
 
