@@ -1,0 +1,15 @@
+{
+    "_chainId": 196,
+    "_multisig": "0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01",
+
+    "_dgtRewardsPoolLimitInEth" : "100000000",
+    "_dgtTokenRewardsSupplyinEth" : "100000000",
+    "_dgtOracleInitialPriceInWei" : "100000000000000000",
+
+    "_rewardsRate" : "1000000001847694957439350500",
+    "_vat_Line" : "5000000",
+    "_spot_par" : "1",
+    "_dog_Hole" : "50000000",
+    "_abacus_tau": "36000",
+    "_earnOperator" : "0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01"
+}

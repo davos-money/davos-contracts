@@ -2,8 +2,6 @@ const { ethers } = require('hardhat');
 const TransparentUpgradeableProxy = require("@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json");
 const ProxyAdmin = require("@openzeppelin/upgrades-core/artifacts/ProxyAdmin.json");
 const ether = require('@openzeppelin/test-helpers/src/ether');
-const { increase } = require('@openzeppelin/test-helpers/src/time');
-const { EDIT_DISTANCE_THRESHOLD } = require('hardhat/internal/constants');
 
 let wad = "000000000000000000", // 18 Decimals
     ray = "000000000000000000000000000", // 27 Decimals

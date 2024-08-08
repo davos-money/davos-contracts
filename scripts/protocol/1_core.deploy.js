@@ -32,28 +32,28 @@ async function main() {
     // Deployment
     console.log("Core...");
     
-    // let vat = await upgrades.deployProxy(this.Vat, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    // await vat.deployed();
-    // vatImp = await upgrades.erc1967.getImplementationAddress(vat.address);
-    // console.log("Vat             :", vat.address);
-    // console.log("VatImp          :", vatImp);
-    let vat = await ethers.getContractAt("Vat", "0x0a2F62Fa25a19E5f860d150735D52B19eDe10273");
-    vatImp = "0xBc8Ffd90592079093Fe983895314f7d64D86079b";
+    let vat = await upgrades.deployProxy(this.Vat, [], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await vat.deployed();
+    vatImp = await upgrades.erc1967.getImplementationAddress(vat.address);
+    console.log("Vat             :", vat.address);
+    console.log("VatImp          :", vatImp);
+    // let vat = await ethers.getContractAt("Vat", "0x0a2F62Fa25a19E5f860d150735D52B19eDe10273");
+    // vatImp = "0xBc8Ffd90592079093Fe983895314f7d64D86079b";
 
-    // let spot = await upgrades.deployProxy(this.Spot, [vat.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    // await spot.deployed();
-    // spotImp = await upgrades.erc1967.getImplementationAddress(spot.address);
-    // console.log("Spot            :", spot.address);
-    // console.log("SpotImp         :", spotImp)
-    let spot = await ethers.getContractAt("Spotter", "0x9032bDa78d8fCe219fB0E95b69E54047921BB816");
-    spotImp = "0x901810Bc0393f6a8fdd93a50Ff57A3A0e5cCad30";
+    let spot = await upgrades.deployProxy(this.Spot, [vat.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    await spot.deployed();
+    spotImp = await upgrades.erc1967.getImplementationAddress(spot.address);
+    console.log("Spot            :", spot.address);
+    console.log("SpotImp         :", spotImp)
+    // let spot = await ethers.getContractAt("Spotter", "0x9032bDa78d8fCe219fB0E95b69E54047921BB816");
+    // spotImp = "0x901810Bc0393f6a8fdd93a50Ff57A3A0e5cCad30";
 
-    // let davos = await ethers.getContractAt("Davos", "");
-    let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
-    await davos.deployed();
-    davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
-    console.log("davos           :", davos.address);
-    console.log("davosImp        :", davosImp);
+    let davos = await ethers.getContractAt("Davos", "0x0a2F62Fa25a19E5f860d150735D52B19eDe10273");
+    // let davos = await upgrades.deployProxy(this.Davos, [_chainId, "DUSD", "5000000" + wad], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    // await davos.deployed();
+    // davosImp = await upgrades.erc1967.getImplementationAddress(davos.address);
+    // console.log("davos           :", davos.address);
+    // console.log("davosImp        :", davosImp);
 
     let davosJoin = await upgrades.deployProxy(this.DavosJoin, [vat.address, davos.address], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await davosJoin.deployed();
@@ -92,7 +92,7 @@ async function main() {
         _spot           : spot.address,
         _spotImp        : spotImp,
         _davos          : davos.address,
-        _davosImp       : davosImp,
+        // _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
         _jug            : jug.address,

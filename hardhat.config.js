@@ -217,6 +217,18 @@ module.exports = {
             chainId: 200810,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_BIT) || 'auto'
+        },
+        merlin: {
+            url: process.env.MERLIN_URL,
+            chainId: 4200,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MER) || 'auto'
+        },
+        merlinTestnet: {
+            url: process.env.BITLAYERTESTNET_URL,
+            chainId: 200810,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_MER) || 'auto'
         }
     },
 
