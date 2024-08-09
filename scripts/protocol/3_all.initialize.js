@@ -35,17 +35,17 @@ async function main() {
     let rewards = await hre.ethers.getContractAt("DGTRewards", _rewards);
     let interaction = await hre.ethers.getContractAt("Interaction", _interaction);
 
-    console.log("Vat init...");
-    await vat.rely(spot.address, {nonce: _nonce}); _nonce += 1;
-    await vat.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
-    await vat.rely(jug.address, {nonce: _nonce}); _nonce += 1;
-    await vat.rely(dog.address, {nonce: _nonce}); _nonce += 1;
-    await vat.rely(interaction.address, {nonce: _nonce}); _nonce += 1;
-    await vat["file(bytes32,uint256)"](ethers.utils.formatBytes32String("Line"), _vat_Line + rad, {nonce: _nonce}); _nonce += 1;
+    // console.log("Vat init...");
+    // await vat.rely(spot.address, {nonce: _nonce}); _nonce += 1;
+    // await vat.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
+    // await vat.rely(jug.address, {nonce: _nonce}); _nonce += 1;
+    // await vat.rely(dog.address, {nonce: _nonce}); _nonce += 1;
+    // await vat.rely(interaction.address, {nonce: _nonce}); _nonce += 1;
+    // await vat["file(bytes32,uint256)"](ethers.utils.formatBytes32String("Line"), _vat_Line + rad, {nonce: _nonce}); _nonce += 1;
     
-    console.log("Davos init...");
-    await davos.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
-    await davos.setSupplyCap("5000000" + wad, {nonce: _nonce}); _nonce += 1;
+    // console.log("Davos init...");
+    // await davos.rely(davosJoin.address, {nonce: _nonce}); _nonce += 1;
+    // await davos.setSupplyCap("5000000" + wad, {nonce: _nonce}); _nonce += 1;
 
     console.log("Spot init...");
     await spot.rely(interaction.address, {nonce: _nonce}); _nonce += 1;
