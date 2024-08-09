@@ -34,11 +34,11 @@ async function main() {
     let dog = await ethers.getContractAt("Vat", _dog);
     let abacus = await ethers.getContractAt("Vat", _abacus);
 
-    await interaction.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await rewards.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("2");
-    await vat.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
-    await spot.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
-    await davos.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("5");
+    // await interaction.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await rewards.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("2");
+    // await vat.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
+    // await spot.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
+    // await davos.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("5");
     await davosJoin.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("6");
     await jug.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("7");
     await vow.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("8");
