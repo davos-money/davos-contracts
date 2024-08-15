@@ -1,18 +1,18 @@
 {
-    "_ilk": "",
+    "_ilk": "0x4d56545f61426974574254430000000000000000000000000000000000000000",
 
     "_underlying": "",
     "_auctionProxy": "",
-    "_interaction": "",
-    "_vat": "",
-    "_spot": "",
-    "_dog": "",
-    "_vow": "",
-    "_abacus": "",
+    "_interaction": "0x90c9E35cEaDB67F7776C2d4057Aaf4b6df27Eb44",
+    "_vat": "0xe895119424A301ddC773Fa53Ba3FA53D3Af840F9",
+    "_spot": "0xA46C7Dfa0888AE822F3A569c9112D0F75e3A99e7",
+    "_dog": "0x23a85B59e83c126551288eDD377e33ea267219B0",
+    "_vow": "0x76ab5949EEBbBFB18BdacE6a360d443d1fFa2db6",
+    "_abacus": "0xaa076A65eE8bF4a7AaD4985406a186d33cf67CE6",
 
     "_ratioAdapter": "",
 
-    "_multisig": "",
+    "_multisig": "0x9126BC45A20076Eb9f65dE83C18bd3d618759Fc4",
 
     "_yieldInheritor": "",
     
