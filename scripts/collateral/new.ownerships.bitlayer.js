@@ -52,12 +52,12 @@ async function main() {
     let watokn = await ethers.getContractAt("WAToken", _watoken);
 
     console.log("Transfering...");
-    await ra.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await watokn.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await masterVaultAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
-    await davosProviderAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("2");
-    await dMaticAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
-    await gemJoinAt.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
+    // await ra.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await watokn.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await masterVaultAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("1");
+    // await davosProviderAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("2");
+    // await dMaticAt.transferOwnership(_multisig, {nonce: _nonce}); _nonce += 1; console.log("3");
+    // await gemJoinAt.rely(_multisig, {nonce: _nonce}); _nonce += 1; console.log("4");
     await clipAt.rely(_multisig, {nonce: _nonce}); _nonce += 1;
     console.log("Transfer Complete !!!");
 

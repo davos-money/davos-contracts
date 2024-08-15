@@ -44,8 +44,8 @@ describe('===FORK===', function () {
             params: [
             {
                 forking: {
-                jsonRpcUrl: "https://rpc.ankr.com/bsc",
-                blockNumber: 37187231
+                jsonRpcUrl: "https://xlayerrpc.okx.com",
+                blockNumber: 3955367
                 },
             },
             ],
@@ -65,21 +65,21 @@ describe('===FORK===', function () {
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x7D569Dd7053E169d026a137491628130064934cD"],
+            params: ["0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01"],
         });
-        civilian = await ethers.getSigner("0x7D569Dd7053E169d026a137491628130064934cD")
+        civilian = await ethers.getSigner("0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01")
         await network.provider.send("hardhat_setBalance", [
-            "0x7D569Dd7053E169d026a137491628130064934cD",
+            "0xf7fB593Bc23b96cf00949f811b4Bd0F1c9ae8a01",
             "0x10000000000000000000",
         ]);
 
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x2850C2929B33BCE33b8aa81B0A9D1d3632118896"],
+            params: ["0x910a845c872a6af873d1dec1f0cce03034c94893"],
         });
-        signer = await ethers.getSigner("0x2850C2929B33BCE33b8aa81B0A9D1d3632118896")
+        signer = await ethers.getSigner("0x910a845c872a6af873d1dec1f0cce03034c94893")
         await network.provider.send("hardhat_setBalance", [
-            "0x2850C2929B33BCE33b8aa81B0A9D1d3632118896",
+            "0x910a845c872a6af873d1dec1f0cce03034c94893",
             "0x10000000000000000000",
         ]);
         
@@ -141,12 +141,35 @@ describe('===FORK===', function () {
         it('tests', async function () {
             this.timeout(150000000);
 
+            let vat = await ethers.getContractAt("Vat", "0x7B0E879f4860767d5e2455591Ba025978ab3461F")
+            await vat.connect(civilian).rely("0x6082FaA820A6CBF3350A794E02F485fB0C78E6F5");
+
+            let pot = await ethers.getContractAt(["function file(bytes32,address) external"], "0x6082FaA820A6CBF3350A794E02F485fB0C78E6F5");
+
+            await pot.connect(civilian).file("0x766f770000000000000000000000000000000000000000000000000000000000", "0x5E7A00d850CD5E523002F25fA358a07C028ddC93")
+
+            pot =await ethers.getContractAt(["function vow() external view returns(address)"], "0x6082FaA820A6CBF3350A794E02F485fB0C78E6F5");
+
+            console.log(await pot.vow())
+
+            pot = await ethers.getContractAt(["function file(bytes32,uint256) external"], "0x6082FaA820A6CBF3350A794E02F485fB0C78E6F5");
+
+            await pot.connect(civilian).file("0x6473720000000000000000000000000000000000000000000000000000000000", "1000000001547125000000000000")
+
+            pot =await ethers.getContractAt(["function dsr() external view returns(uint256)"], "0x6082FaA820A6CBF3350A794E02F485fB0C78E6F5");
+
+            console.log(await pot.dsr())
+
+            let davosJoin = await ethers.getContractAt("DavosJoin", "0x5bF6C2a5dF522FeD9FaA17AA280510b4F78163E6")
+            await davosJoin.connect(civilian).rely("0xC09D8C9a780E79Df8b8aCFB5Ec1b9e66fA3B5724")
+
+
             // let mvNEW = await (await ethers.getContractFactory("MasterVault_V2_R")).deploy();
             // await mvNEW.deployed();
 
             // let proxyAdmin = await ethers.getContractAt(["function upgrade(address,address) external"], "0xa88b54e6b76fb97cdb8ecae868f1458e18a953f4");
-            let mvVUSDT = await ethers.getContractAt("MasterVault_V2_R", "0xb44A251d1C31dd32700E5F2584B4282716C43EB3");
-            let mvVUSDC = await ethers.getContractAt("MasterVault_V2_R", "0x87ad5Ab05d7C1E1F904e029783810A2a95702563");
+            // let mvVUSDT = await ethers.getContractAt("MasterVault_V2_R", "0xb44A251d1C31dd32700E5F2584B4282716C43EB3");
+            // let mvVUSDC = await ethers.getContractAt("MasterVault_V2_R", "0x87ad5Ab05d7C1E1F904e029783810A2a95702563");
 
             // await proxyAdmin.connect(bscOwner).upgrade(mvVUSDT.address, mvNEW.address);
             // await proxyAdmin.connect(bscOwner).upgrade(mvVUSDC.address, mvNEW.address);
@@ -156,39 +179,39 @@ describe('===FORK===', function () {
             // await mvVUSDC.connect(bscOwner).changeUnitroller("0xfD36E2c2a6789Db23113685031d7F16329158384");
             // await mvVUSDC.connect(bscOwner).changeXVS("0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
 
-            let xvs = await ethers.getContractAt("Davos", "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            let yieldHeritor = await mvVUSDT.yieldHeritor();
+            // let xvs = await ethers.getContractAt("Davos", "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // let yieldHeritor = await mvVUSDT.yieldHeritor();
 
-            console.log("BALANCES");
-            console.log(await xvs.balanceOf(yieldHeritor));
+            // console.log("BALANCES");
+            // console.log(await xvs.balanceOf(yieldHeritor));
 
-            console.log("ACCRUED")
-            let c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
-            console.log(await c.venusAccrued(mvVUSDT.address));
-            c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
-            console.log(await c.venusAccrued(mvVUSDC.address));
+            // console.log("ACCRUED")
+            // let c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // console.log(await c.venusAccrued(mvVUSDT.address));
+            // c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // console.log(await c.venusAccrued(mvVUSDC.address));
 
-            console.log("Yield HERITOR")
-            c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            console.log(await c.balanceOf(yieldHeritor));
-
-            console.log("CLAIMED !!!!!!!!!")
-            await mvVUSDT.claimX();
+            // console.log("Yield HERITOR")
             // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            console.log(await xvs.balanceOf(yieldHeritor));
-            await mvVUSDC.claimX();
-            // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            console.log(await xvs.balanceOf(yieldHeritor));
-            // c = await ethers.getContractAt(["function claimVenus(address) external"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
-            // await c.claimVenus("0xb44A251d1C31dd32700E5F2584B4282716C43EB3")
+            // console.log(await c.balanceOf(yieldHeritor));
 
-            c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
-            console.log(await c.venusAccrued(mvVUSDT.address));
-            c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
-            console.log(await c.venusAccrued(mvVUSDC.address));
+            // console.log("CLAIMED !!!!!!!!!")
+            // await mvVUSDT.claimX();
+            // // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // console.log(await xvs.balanceOf(yieldHeritor));
+            // await mvVUSDC.claimX();
+            // // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // console.log(await xvs.balanceOf(yieldHeritor));
+            // // c = await ethers.getContractAt(["function claimVenus(address) external"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // // await c.claimVenus("0xb44A251d1C31dd32700E5F2584B4282716C43EB3")
 
-            // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
-            // console.log(await c.balanceOf("0xb44A251d1C31dd32700E5F2584B4282716C43EB3"));
+            // c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // console.log(await c.venusAccrued(mvVUSDT.address));
+            // c = await ethers.getContractAt(["function venusAccrued(address) external view returns(uint256)"], "0xfD36E2c2a6789Db23113685031d7F16329158384");
+            // console.log(await c.venusAccrued(mvVUSDC.address));
+
+            // // c = await ethers.getContractAt(["function balanceOf(address) external view returns(uint256)"], "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63");
+            // // console.log(await c.balanceOf("0xb44A251d1C31dd32700E5F2584B4282716C43EB3"));
         });
     });
 });

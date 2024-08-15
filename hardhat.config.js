@@ -233,14 +233,14 @@ module.exports = {
     },
 
     etherscan: {
-        apiKey: process.env.SCAN_API_KEY,
+        apiKey: "fa1b3086-5091-4337-b875-447797b8ec44",
         customChains: [
             {
-                network: "mode",
-                chainId: 34443,
+                network: "xLayer",
+                chainId: 196,
                 urls: {
-                  apiURL: "https://explorer.mode.network/api",
-                  browserURL: "https://explorer.mode.network/"
+                  apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/XLAYER",
+                  browserURL: "https://www.oklink.com/xlayer"
                 }
               }
           ]
