@@ -7,7 +7,7 @@ interface IAPI3 {
 
 contract RateProxy {
 
-    address constant target = 0x8e5cbd5a9eF3747c9B7026411a033123390ACdD6;
+    address constant target = 0x672020bd166A51A79Ada022B51C974775d17e0f6;
     function getRate() external view returns(uint256) {
         (int224 value, ) = IAPI3(target).read();
         return uint256(int256(value));

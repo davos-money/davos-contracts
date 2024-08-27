@@ -34,7 +34,7 @@ async function main() {
     // let o = await this.O.deploy(); await o.deployed();
     // console.log(o.address);
 
-    let t = await upgrades.deployProxy(this.Token, ["non rebasing USDB", "nrUSDB"], {initializer: "initialize"});
+    let t = await upgrades.deployProxy(this.Token, ["Wrapped eETH", "weETH"], {initializer: "initialize"});
     await t.deployed();
     let ts = await upgrades.erc1967.getImplementationAddress(t.address);
     console.log("wcUSDC           : " + t.address);

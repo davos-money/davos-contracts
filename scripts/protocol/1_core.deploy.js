@@ -92,7 +92,7 @@ async function main() {
         _spot           : spot.address,
         _spotImp        : spotImp,
         _davos          : davos.address,
-        // _davosImp       : davosImp,
+        _davosImp       : davosImp,
         _davosJoin      : davosJoin.address,
         _davosJoinImp   : davosJoinImp,
         _jug            : jug.address,

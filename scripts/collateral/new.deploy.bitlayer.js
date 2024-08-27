@@ -33,7 +33,7 @@ async function main() {
     console.log("Ra               :", ra.address);
     console.log("Imp              :", raImp);
 
-    let watoken = await upgrades.deployProxy(this.WAToken, ["Wrapped Avalon wBTC", "waBitBTC", "0xa984b70f7b41ee736b487d5f3d9c1e1026476ea3"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+    let watoken = await upgrades.deployProxy(this.WAToken, ["Wrapped Avalon wBTC", "waBitBTC", "0x79A34146f05D5a0314E32CfDb9310Bf2b3294b32"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
     await watoken.deployed();
     let watokenImp = await upgrades.erc1967.getImplementationAddress(watoken.address);
     console.log("WAToken          :", watoken.address);
