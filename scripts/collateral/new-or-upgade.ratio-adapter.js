@@ -40,6 +40,10 @@ async function main() {
         ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
         console.log("RatioAdapter      : " + ratioAdapter.address);
         console.log("Imp              : " + ratioAdapterImp);
+
+        let { _multisig } = require(`./config_${hre.network.name}.json`);
+
+
         // console.log("WARNING: DON'T FORGET TO SET NEW RATIO ADAPTER TO VAULTS AND ORACLES");
 
         
@@ -82,6 +86,8 @@ async function main() {
     const json_addresses = JSON.stringify(addresses);
     fs.writeFileSync(`./scripts/collateral/addresses_${hre.network.name}.json`, json_addresses);
     console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${hre.network.name}.json`);
+
+    await ratioAdapter.transferOwnership(_multisig); console.log("1")
 }
 
 main()
