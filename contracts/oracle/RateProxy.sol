@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-interface IAPI3 {
-    function read() external view returns (int224 value, uint32 timestamp);
+interface IEarn {
+    function getCurrentExchangeRate() external view  returns (uint256);
 }
 
 contract RateProxy {
 
-    address constant target = 0x672020bd166A51A79Ada022B51C974775d17e0f6;
+    address constant target = 0xf5fA1728bABc3f8D2a617397faC2696c958C3409;
     function getRate() external view returns(uint256) {
-        (int224 value, ) = IAPI3(target).read();
-        return uint256(int256(value));
+        uint256 value = IEarn(target).getCurrentExchangeRate();
+        return (value * 1e12);
     }
 }
