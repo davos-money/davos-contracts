@@ -1,16 +1,16 @@
 {
-    "_ilk": "",
+    "_ilk": "0x4d56545f77654554480000000000000000000000000000000000000000000000",
 
-    "_underlying": "",
-    "_auctionProxy": "",
-    "_interaction": "",
-    "_vat": "",
-    "_spot": "",
-    "_dog": "",
-    "_vow": "",
-    "_abacus": "",
+    "_underlying": "0x01f0a31698C4d065659b9bdC21B3610292a1c506",
+    "_auctionProxy": "0x451A1d5f0bE601811d9e84e034C8B8D74cA242a4",
+    "_interaction": "0x925BEDd155c21B673bfD9F00e0eA23dd85d70186",
+    "_vat": "0x0a2F62Fa25a19E5f860d150735D52B19eDe10273",
+    "_spot": "0x9032bDa78d8fCe219fB0E95b69E54047921BB816",
+    "_dog": "0xc9069E47C72C0c54F473Ca44691cF64e5C95a823",
+    "_vow": "0x7B0E879f4860767d5e2455591Ba025978ab3461F",
+    "_abacus": "0x5bF6C2a5dF522FeD9FaA17AA280510b4F78163E6",
 
-    "_ratioAdapter": "",
+    "_ratioAdapter": "0xCdF972e0EC2aAe2cDbCaafb2D9d890990d7EB64F",
 
     "_multisig": "0xA6cd2ffC827DE676C1C9ad8343CE04562F6C4e5F"
 }

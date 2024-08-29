@@ -25,7 +25,7 @@ async function main() {
     // Config
     let { _ratioAdapter } = require(`./config_${hre.network.name}.json`);
     // let _ratioAdapter1 = require(`./addresses_${hre.network.name}.json`);
-    // let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
+    let { _masterVault } = require(`../addresses_${hre.network.name}_collateral.json`);
     // let _masterVault1 = require(`../addresses_${hre.network.name}_collateral.json`);
     // let _masterVault2 = require(`../addresses_${hre.network.name}_collateral_mUSDT.json`);
     // let _masterVault3 = require(`../addresses_${hre.network.name}_collateral_ezETH.json`);
@@ -138,6 +138,13 @@ async function main() {
 
     } else if (hre.network.name == "base" || hre.network.name == "baseTestnet") {
         oracle = await upgrades.deployProxy(this.USDPlusOracle, ["0x7e860098F58bBFC8648a4311b374B1D669a2bc6B", "0xd95ca61CE9aAF2143E81Ef5462C0c2325172E028", _masterVault1._masterVault, _ratioAdapter1._ratioAdapter], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("BASEOracle        : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
+
+    } else if (hre.network.name == "scroll" || hre.network.name == "scrollTestnet") {
+        oracle = await upgrades.deployProxy(this.WeETHOracle, ["0xA2aa501b19aff244D90cc15a4Cf739D2725B5729", "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace", "0x01f0a31698C4d065659b9bdC21B3610292a1c506", _masterVault, "0xCdF972e0EC2aAe2cDbCaafb2D9d890990d7EB64F"], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
         console.log("BASEOracle        : " + oracle.address);

@@ -253,6 +253,12 @@ module.exports = {
             chainId: 1115,
             accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
             gasPrice: parseInt(process.env.GAS_PRICE_COR) || 'auto'
+        },
+        beraTestnet: {
+            url: process.env.BERATESTNET_URL,
+            chainId: 80084,
+            accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+            gasPrice: parseInt(process.env.GAS_PRICE_BER) || 'auto'
         }
     },
 
@@ -260,6 +266,22 @@ module.exports = {
         apiKey: process.env.SCAN_API_KEY,
         customChains: [
             {
+                network: "blastTestnet",
+                chainId: 168587773,
+                urls: {
+                  apiURL: "",
+                  browserURL: ""
+                }        
+              },
+              {
+                network: "blast",
+                chainId: 81457,                        
+                urls: {
+                  apiURL: "https://api.routescan.io/v2/network/mainnet/evm/81457/etherscan",
+                  browserURL: "https://blastexplorer.io"
+                }
+              },
+              {
                 network: "bitLayerTestnet",
                 chainId: 200810,
                 urls: {
