@@ -296,6 +296,22 @@ module.exports = {
                   apiURL: "https://api.btrscan.com/scan/api",
                   browserURL: "https://www.btrscan.com/"
                 }
+              },
+              {
+                network: "beraTestnet",
+                chainId: 80084,
+                urls: {
+                  apiURL: "https://api.routescan.io/v2/network/testnet/evm/80084/etherscan",
+                  browserURL: "https://bartio.beratrail.io"
+                }
+              },
+              {
+                network: "coreDao",
+                chainId: 1116,
+                urls: {
+                  apiURL: "https://api.scan.coredao.org/api",
+                  browserURL: "https://scan.coredao.org/"
+                }
               }
           ]
     },

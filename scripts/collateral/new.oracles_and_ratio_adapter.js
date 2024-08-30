@@ -53,6 +53,7 @@ async function main() {
     this.USDPlusOracle = await hre.ethers.getContractFactory("USDPlusOracle");
 
     this.STONEOracle = await hre.ethers.getContractFactory("STONEOracle");
+    this.StCOREORACLE = await hre.ethers.getContractFactory("StCOREOracle");
 
     // Deployment
     console.log("Deploying...");
@@ -148,6 +149,13 @@ async function main() {
         await oracle.deployed();
         oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
         console.log("BASEOracle        : " + oracle.address);
+        console.log("Imp               : " + oracleImp);
+
+    } else if (hre.network.name == "coreDao" || hre.network.name == "coreDaoTestnet") {
+        oracle = await upgrades.deployProxy(this.StCOREORACLE, ["0xDa4A02ADB8AA8495541238429536Fdcb0AB83654", _masterVault], {initializer: "initialize", nonce: _nonce}); _nonce += 1;
+        await oracle.deployed();
+        oracleImp = await upgrades.erc1967.getImplementationAddress(oracle.address);
+        console.log("Oracle        : " + oracle.address);
         console.log("Imp               : " + oracleImp);
 
     } else throw("NOT ALLOWED");

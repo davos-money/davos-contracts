@@ -35,11 +35,11 @@ async function main() {
     console.log("Deploying...");
 
     // if (!!_ratio_adapter) {
-        ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
-        await ratioAdapter.deployed();
-        ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
-        console.log("RatioAdapter      : " + ratioAdapter.address);
-        console.log("Imp              : " + ratioAdapterImp);
+        // ratioAdapter = await upgrades.deployProxy(this.RatioAdapter, [], {initializer: "initialize"});
+        // await ratioAdapter.deployed();
+        // ratioAdapterImp = await upgrades.erc1967.getImplementationAddress(ratioAdapter.address);
+        // console.log("RatioAdapter      : " + ratioAdapter.address);
+        // console.log("Imp              : " + ratioAdapterImp);
 
         let { _multisig } = require(`./config_${hre.network.name}.json`);
 
@@ -77,16 +77,17 @@ async function main() {
     // }
 
     // Store Deployed Contracts
-    const addresses = {
-        _ratioAdapter    : ratioAdapter.address,
-        _ratioAdapterImp : ratioAdapterImp,
-        _initialNonce    : initialNonce
-    }
+    // const addresses = {
+    //     _ratioAdapter    : ratioAdapter.address,
+    //     _ratioAdapterImp : ratioAdapterImp,
+    //     _initialNonce    : initialNonce
+    // }
 
-    const json_addresses = JSON.stringify(addresses);
-    fs.writeFileSync(`./scripts/collateral/addresses_${hre.network.name}.json`, json_addresses);
-    console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${hre.network.name}.json`);
+    // const json_addresses = JSON.stringify(addresses);
+    // fs.writeFileSync(`./scripts/collateral/addresses_${hre.network.name}.json`, json_addresses);
+    // console.log("Addresses Recorded to: " + `./scripts/collateral/addresses_${hre.network.name}.json`);
 
+    ratioAdapter = await ethers.getContractAt("RatioAdapter", "0xC09D8C9a780E79Df8b8aCFB5Ec1b9e66fA3B5724");
     await ratioAdapter.transferOwnership(_multisig); console.log("1")
 }
 
